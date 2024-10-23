@@ -1,3 +1,5 @@
+[![CI](https://github.com/alescdb/mailviewer/actions/workflows/build-test.yml/badge.svg)](https://github.com/alescdb/mailviewer/actions/workflows/build-test.yml)
+
 # MailViewer
 
 MailViewer is a desktop application built with [GTK4](https://www.gtk.org/)/[libadwaita](https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/index.html) and [Rust](https://www.rust-lang.org/) that allows users to read and decode `.eml` files (email files). It provides a graphical interface for easy navigation and rendering of email content, including attachments, HTML, and plain text.
