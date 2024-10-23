@@ -15,7 +15,7 @@ jobs:
     - name: Install deps
       if: ${{ matrix.arch != 'x86_64' }}
       run: |
-        dnf -y install pkg-config pango-devel
+        dnf -y install pkg-config rust-pango-sys0.19+v1_52-devel.noarch
     - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
       with:
         bundle: mailviewer.flatpak
