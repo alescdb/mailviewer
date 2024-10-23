@@ -197,7 +197,7 @@ impl MailParser {
     });
     if let Some(html) = html {
       self.body_html = Some(self.integrate_cid(&html));
-      // for debugging purposes
+      // for debugging parsed html
       // self.write_debug_html();
     }
   }
