@@ -12,6 +12,10 @@ jobs:
       options: --privileged
     steps:
     - uses: actions/checkout@v4
+    - name: Install deps
+      if: ${{ matrix.arch != 'x86_64' }}
+      run: |
+        dnf -y install pango-devel
     - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
       with:
         bundle: mailviewer.flatpak
