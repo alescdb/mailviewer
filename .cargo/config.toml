@@ -1,0 +1,3 @@
+[env]
+GSETTINGS_SCHEMA_DIR="dist/share/glib-2.0/schemas"
+RUST_LOG="mailviewer=debug"
