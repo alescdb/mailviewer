@@ -1,0 +1,76 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the mailviewer package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: mailviewer\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-10-20 17:49+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: data/org.cosinus.mailviewer.desktop.in:3
+#: data/org.cosinus.mailviewer.desktop.in:11
+#: data/org.cosinus.mailviewer.metainfo.xml.in:7
+msgid "Mail Viewer"
+msgstr ""
+
+#: src/window.ui:22
+msgid "Menu"
+msgstr ""
+
+#: src/window.ui:29
+msgid "Show plain text"
+msgstr ""
+
+#: src/window.ui:35
+msgid "Show Images"
+msgstr ""
+
+#: src/window.ui:41
+msgid "Force CSS"
+msgstr ""
+
+#: src/window.ui:47
+msgid "Zoom -"
+msgstr ""
+
+#: src/window.ui:53
+msgid "Zoom +"
+msgstr ""
+
+#: src/window.ui:89
+msgid "From"
+msgstr ""
+
+#: src/window.ui:98
+msgid "Date"
+msgstr ""
+
+#: src/window.ui:123
+msgid "To"
+msgstr ""
+
+#: src/window.ui:148
+msgid "Subject"
+msgstr ""
+
+#: src/window.ui:235
+msgid "_Preferences"
+msgstr ""
+
+#: src/window.ui:239
+msgid "_Keyboard Shortcuts"
+msgstr ""
+
+#: src/window.ui:243
+msgid "_About MailViewer"
+msgstr ""

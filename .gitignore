@@ -1,0 +1,13 @@
+/*.flatpak
+/.cargo
+/.flatpak
+/.flatpak-builder
+/.idea
+/.repo
+/_build
+/body.html
+/dist
+/gmime
+/gmime-rs
+/repo
+/target
