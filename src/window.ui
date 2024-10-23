@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0" />
+  <requires lib="Adw" version="1.0" />
+  <requires lib="WebKit" version="6.0" />
+
+  <template class="MailViewerWindow" parent="AdwApplicationWindow">
+    <property name="default-width">1200</property>
+    <property name="default-height">900</property>
+    <property name="resizable">1</property>
+
+    <property name="content">
+      <object class="AdwBottomSheet" id="sheet">
+        <property name="content">
+          <object class="AdwToolbarView">
+            <child type="top">
+              <object class="AdwHeaderBar" id="header_bar">
+                <child type="end">
+                  <object class="GtkMenuButton">
+                    <property name="primary">True</property>
+                    <property name="icon-name">open-menu-symbolic</property>
+                    <property name="tooltip-text" translatable="yes">Menu</property>
+                    <property name="menu-model">primary_menu</property>
+                  </object>
+                </child>
+                <child type="end">
+                  <object class="GtkToggleButton" id="show_text">
+                    <property name="icon-name">text-x-generic-symbolic</property>
+                    <property name="tooltip-text" translatable="yes">Show plain text</property>
+                  </object>
+                </child>
+                <child type="end">
+                  <object class="GtkToggleButton" id="show_images">
+                    <property name="icon-name">image-x-generic-symbolic</property>
+                    <property name="tooltip-text" translatable="yes">Show Images</property>
+                  </object>
+                </child>
+                <child type="end">
+                  <object class="GtkToggleButton" id="force_css">
+                    <property name="icon-name">font-x-generic-symbolic</property>
+                    <property name="tooltip-text" translatable="yes">Force CSS</property>
+                  </object>
+                </child>
+                <child type="end">
+                  <object class="GtkButton" id="zoom_minus">
+                    <property name="icon-name">value-decrease-symbolic</property>
+                    <property name="tooltip-text" translatable="yes">Zoom -</property>
+                  </object>
+                </child>
+                <child type="end">
+                  <object class="GtkToggleButton" id="zoom_plus">
+                    <property name="icon-name">value-increase-symbolic</property>
+                    <property name="tooltip-text" translatable="yes">Zoom +</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <property name="content">
+              <object class="GtkBox" id="vertical_box">
+                <property name="margin-bottom" bind-source="sheet" bind-property="bottom-bar-height" />
+                <property name="hexpand">true</property>
+                <property name="spacing">10</property>
+                <property name="margin-start">10</property>  <!-- Padding à gauche -->
+                <property name="margin-end">10</property>    <!-- Padding à droite -->
+                <property name="margin-top">5</property>     <!-- Padding en haut -->
+                <property name="margin-bottom">5</property>  <!-- Padding en bas -->
+                <property name="orientation">vertical</property>
+
+                <child>
+                  <object class="GtkBox">
+                    <property name="hexpand">true</property>
+                    <property name="orientation">horizontal</property>
+                    <property name="spacing">10</property>
+                    <style>
+                      <class name="title-box" />
+                    </style>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="xalign">0</property>
+                        <property name="halign">start</property>
+                        <property name="width-request">80</property>
+                        <property name="label">From:</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="eml_from">
+                        <property name="hexpand">true</property>
+                        <property name="editable">false</property>
+                        <property name="tooltip-text" translatable="yes">From</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="eml_date">
+                        <property name="width-request">200</property>
+                        <property name="xalign">0.5</property>
+                        <property name="hexpand">false</property>
+                        <property name="editable">false</property>
+                        <property name="tooltip-text" translatable="yes">Date</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkBox">
+                    <property name="hexpand">true</property>
+                    <property name="orientation">horizontal</property>
+                    <property name="spacing">10</property>
+                    <style>
+                      <class name="title-box" />
+                    </style>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="xalign">0</property>
+                        <property name="width-request">80</property>
+                        <property name="halign">start</property>
+                        <property name="label">To:</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="eml_to">
+                        <property name="hexpand">true</property>
+                        <property name="editable">false</property>
+                        <property name="tooltip-text" translatable="yes">To</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkBox">
+                    <property name="hexpand">true</property>
+                    <property name="orientation">horizontal</property>
+                    <property name="spacing">10</property>
+                    <style>
+                      <class name="title-box" />
+                    </style>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="xalign">0</property>
+                        <property name="width-request">80</property>
+                        <property name="halign">start</property>
+                        <property name="label">Subject:</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="eml_subject">
+                        <property name="hexpand">true</property>
+                        <property name="editable">false</property>
+                        <property name="tooltip-text" translatable="yes">Subject</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwViewStack" id="stack">
+                    <child>
+                      <object class="AdwViewStackPage">
+                        <property name="name">html</property>
+                        <property name="title">HTML</property>
+                        <property name="child">
+                          <object class="GtkScrolledWindow" id="placeholder">
+                            <property name="hexpand">true</property>
+                            <property name="vexpand">true</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwViewStackPage">
+                        <property name="name">text</property>
+                        <property name="title">TEXT</property>
+                        <property name="child">
+                          <object class="GtkScrolledWindow" id="advanced_scrolledWindow">
+                            <property name="hscrollbar_policy">never</property>
+                            <child>
+                              <object class="GtkTextView" id="body_text">
+                                <property name="wrap-mode">word</property>
+                                <property name="hexpand">true</property>
+                                <property name="vexpand">true</property>
+                                <property name="editable">false</property>
+                              </object>
+                            </child>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </property>
+        <property name="sheet">
+          <object class="AdwToolbarView">
+            <child type="top">
+              <object class="AdwHeaderBar" />
+            </child>
+            <property name="content">
+
+              <object class="AdwClamp">
+                <child>
+                  <object class="AdwPreferencesGroup" id="attachments">
+                    <property name="separate-rows">True</property>
+                    <property name="margin-bottom">20</property>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </property>
+        <property name="bottom-bar">
+          <object class="GtkBox">
+            <style>
+              <class name="toolbar" />
+            </style>
+            <property name="height-request">40</property>
+            <child>
+              <object class="GtkImage">
+                <property name="icon-name">mail-attachment-symbolic</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="pull_label">
+                <property name="ellipsize">end</property>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+
+
+    </property>
+  </template>
+  <menu id="primary_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">_Preferences</attribute>
+        <attribute name="action">app.preferences</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_Keyboard Shortcuts</attribute>
+        <attribute name="action">win.show-help-overlay</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_About MailViewer</attribute>
+        <attribute name="action">app.about</attribute>
+      </item>
+    </section>
+  </menu>
+</interface>

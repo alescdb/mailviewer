@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Mail Viewer
+Exec=mailviewer %u
+Icon=org.cosinus.mailviewer
+Terminal=false
+Type=Application
+Categories=GTK;Email;
+StartupNotify=true
+MimeType=message/rfc822;
+Comment=Mail Viewer

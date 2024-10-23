@@ -1,0 +1,11 @@
+{
+  "C_Cpp.default.compileCommands": "/home/alex/Sources/MailViewer/builddir/compile_commands.json",
+  "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild",
+  "VsCodeTaskButtons.tasks": [
+    {
+      "label": "$(notebook-execute) MailViewer",
+      "task": "MailViewer"
+    }
+  ],
+  "makefile.configureOnOpen": false
+}

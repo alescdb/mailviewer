@@ -1,0 +1,4 @@
+data/org.cosinus.mailviewer.desktop.in
+data/org.cosinus.mailviewer.metainfo.xml.in
+data/org.cosinus.mailviewer.gschema.xml
+src/window.ui
