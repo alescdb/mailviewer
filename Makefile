@@ -36,6 +36,11 @@ icon:
 build: $(EXECUTABLE)
 	meson install -C $(BUILD_DIR)
 
+docker:
+	rm -rf $(BUILD_DIR)
+	meson setup --strip --buildtype release $(BUILD_DIR)
+	meson install -C $(BUILD_DIR)
+
 reconfigure:
 	meson setup $(BUILD_DIR) --reconfigure --prefix=$(DEBUG)
 
