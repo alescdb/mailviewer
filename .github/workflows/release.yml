@@ -21,6 +21,7 @@ jobs:
         bundle: mailviewer.flatpak
         manifest-path: org.cosinus.mailviewer.json
         cache-key: flatpak-builder-${{ github.sha }}
+        upload-artifact: false
   publish-release:
     name: "Publish Release"
     needs: [flatpak]
