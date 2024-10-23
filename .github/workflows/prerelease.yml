@@ -23,6 +23,9 @@ jobs:
         manifest-path: org.cosinus.mailviewer.json
         cache-key: flatpak-builder-${{ github.sha }}
         upload-artifact: false
+    - uses: actions/download-artifact@v4
+    - name: show files
+      run: find
     - uses: actions/upload-artifact@v4
       with:
         name: flatpak
@@ -36,8 +39,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/download-artifact@v4
-    - name: Show files
-      run: ls -R
+    - name: show files
+      run: find
     - uses: "dciborow/action-github-releases@v1.0.1"
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
