@@ -23,9 +23,6 @@ jobs:
         manifest-path: org.cosinus.mailviewer.json
         cache-key: flatpak-builder-${{ github.sha }}
         upload-artifact: false
-    - uses: actions/download-artifact@v4
-    - name: Show files
-      run: find .
     - uses: actions/upload-artifact@v4
       with:
         name: flatpak
@@ -33,8 +30,8 @@ jobs:
           LICENSE
           *.flatpak
 
-  prerelease:
-    name: prerelease
+  release:
+    name: release
     needs: [flatpak]
     runs-on: ubuntu-latest
     steps:
