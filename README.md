@@ -1,4 +1,5 @@
 [![prerelease](https://github.com/alescdb/mailviewer/actions/workflows/prerelease.yml/badge.svg)](https://github.com/alescdb/mailviewer/actions/workflows/prerelease.yml)
+[![release](https://github.com/alescdb/mailviewer/actions/workflows/release.yml/badge.svg)](https://github.com/alescdb/mailviewer/actions/workflows/release.yml)
 
 # MailViewer
 
