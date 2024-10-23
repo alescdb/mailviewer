@@ -1,0 +1,39 @@
+name: prerelease
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  flatpak:
+    name: flatpak
+    runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:gnome-47
+      options: --privileged
+    steps:
+    - uses: actions/checkout@v4
+    - name: dependencies
+      run: |
+        dnf -y install pkg-config rust-pango-sys0.19+v1_52-devel.noarch nodejs
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      with:
+        bundle: mailviewer.flatpak
+        manifest-path: org.cosinus.mailviewer.json
+        cache-key: flatpak-builder-${{ github.sha }}
+        upload-artifact: false
+  prerelease:
+    name: prerelease
+    needs: [flatpak]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: "dciborow/action-automatic-releases-2@v1.0.0"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "latest"
+        prerelease: true
+        title: "Development Build"
+        files: |
+          LICENSE
+          **/*.flatpak
