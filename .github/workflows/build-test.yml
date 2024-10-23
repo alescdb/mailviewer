@@ -1,59 +1,19 @@
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-
-name: build-test
-
+name: CI
 jobs:
   flatpak:
-    name: Flatpak
+    name: "Flatpak"
     runs-on: ubuntu-latest
     container:
-      image: bilelmoussaoui/flatpak-github-actions:gnome-46
+      image: bilelmoussaoui/flatpak-github-actions:gnome-44
       options: --privileged
     steps:
     - uses: actions/checkout@v4
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
       with:
-        lfs: true
-    - uses: bilelmoussaoui/flatpak-github-actions/flatpak-builder@v6.3
-      with:
-        bundle: toolboxtuner.flatpak
+        bundle: mailviewer.flatpak
         manifest-path: org.cosinus.mailviewer.json
-        run-tests: true
         cache-key: flatpak-builder-${{ github.sha }}
-        upload-artifact: false
-    - uses: actions/upload-artifact@v4
-      with:
-        name: flatpak
-        path: |
-          *.flatpak
-  vendor:
-    name: vendor
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        lfs: true
-    - uses: dtolnay/rust-toolchain@stable
-    - uses: actions/upload-artifact@v4
-      with:
-        name: vendor
-        path: |
-          *.tar.gz
-  publish-release:
-    name: publish-release
-    needs: [flatpak]
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/download-artifact@v4
-    - name: Show files
-      run: ls -R
-    - uses: "dciborow/action-github-releases@v1.0.1"
-      with:
-        repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        prerelease: false
-        files: |
-          **/*.flatpak
-          **/*.tar.gz
