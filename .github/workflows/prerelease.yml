@@ -7,7 +7,7 @@ on:
 
 jobs:
   flatpak:
-    name: flatpak
+    name: "build flatpak"
     runs-on: ubuntu-latest
     container:
       image: bilelmoussaoui/flatpak-github-actions:gnome-47
@@ -23,7 +23,12 @@ jobs:
         manifest-path: org.cosinus.mailviewer.json
         cache-key: flatpak-builder-${{ github.sha }}
         upload-artifact: false
-  
+    - uses: actions/upload-artifact@v4
+      with:
+        name: flatpak
+        path: |
+          *.flatpak
+
   prerelease:
     name: prerelease
     needs: [flatpak]

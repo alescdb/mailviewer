@@ -1,4 +1,4 @@
-[![CI](https://github.com/alescdb/mailviewer/actions/workflows/build-test.yml/badge.svg)](https://github.com/alescdb/mailviewer/actions/workflows/build-test.yml)
+[![prerelease](https://github.com/alescdb/mailviewer/actions/workflows/prerelease.yml/badge.svg)](https://github.com/alescdb/mailviewer/actions/workflows/prerelease.yml)
 
 # MailViewer
 
@@ -16,12 +16,21 @@ MailViewer is a desktop application built with [GTK4](https://www.gtk.org/)/[lib
 
 ## Installation
 
-flatpak
-- TODO
+#### flatpak / flathub
+*TODO*
 
+
+#### Makefile
 
 ```bash
 make install
+```
+
+#### meson
+
+```bash
+meson setup _build
+meson install -C _build
 ```
 
 ## Dependencies
