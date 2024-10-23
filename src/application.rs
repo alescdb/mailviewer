@@ -171,12 +171,11 @@ impl MailViewerApplication {
       .copyright("© 2024 Alexandre Del Bigio")
       .license_type(gtk4::License::Gpl30)
       .developers(vec!["Alexandre Del Bigio"])
-      .issue_url("https://github.com/alescdb")
+      .issue_url("https://github.com/alescdb/mailviewer/issues")
       .support_url("https://github.com/alescdb")
-      .release_notes_version("2.3.0")
       .build();
 
-    dialog.add_link("GitHub", "https://github.com/alescdb");
+    dialog.add_link("GitHub", "https://github.com/alescdb/mailviewer");
     dialog.present(Some(&window));
   }
 }
