@@ -36,7 +36,7 @@ mod imp {
   use std::{cell::OnceCell, sync::OnceLock};
 
   #[derive(Debug, gtk4::CompositeTemplate)]
-  #[template(resource = "/org/cosinus/mailviewer/window.ui")]
+  #[template(resource = "/io/github/alescdb/mailviewer/window.ui")]
   pub struct MailViewerWindow {
     #[template_child]
     pub eml_from: TemplateChild<gtk4::Entry>,

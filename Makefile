@@ -19,7 +19,7 @@ run:
 format:
 	cargo +nightly fmt
 
-gresources:
+gresources: reconfigure
 	mkdir -p $(DEBUG)/share/glib-2.0/schemas $(DEBUG)/share/mailviewer
 	glib-compile-schemas \
 		--targetdir=$(DEBUG)/share/glib-2.0/schemas/ \
@@ -31,7 +31,7 @@ gresources:
 
 icon:
 	mkdir -p ~/.icons
-	cp $(CURRENT_DIR)/data/icons/hicolor/scalable/apps/org.cosinus.mailviewer.svg ~/.icons/
+	cp $(CURRENT_DIR)/data/icons/hicolor/scalable/apps/io.github.alescdb.mailviewer.svg ~/.icons/
 
 build: $(EXECUTABLE)
 	meson install -C $(BUILD_DIR)

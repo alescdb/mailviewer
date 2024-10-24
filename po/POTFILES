@@ -1,4 +1,4 @@
-data/org.cosinus.mailviewer.desktop.in
-data/org.cosinus.mailviewer.metainfo.xml.in
-data/org.cosinus.mailviewer.gschema.xml
+data/io.github.alescdb.mailviewer.desktop.in
+data/io.github.alescdb.mailviewer.metainfo.xml.in
+data/io.github.alescdb.mailviewer.gschema.xml
 src/window.ui

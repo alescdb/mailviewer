@@ -70,7 +70,7 @@ mod imp {
         .expect("Window already set.");
 
       let provider = gtk4::CssProvider::new();
-      provider.load_from_resource("/org/cosinus/mailviewer/css/style.css");
+      provider.load_from_resource("/io/github/alescdb/mailviewer/css/style.css");
 
       // Appliquer le CSS à l'écran par défaut
       if let Some(display) = gtk4::gdk::Display::default() {
