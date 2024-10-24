@@ -129,7 +129,6 @@ impl MailViewerApplication {
       #[weak]
       app,
       move || {
-        println!("Thread eml {:?}", window);
         app.open_eml_file().unwrap_or_else(|err| {
           log::error!("Error : {}", err);
         });
