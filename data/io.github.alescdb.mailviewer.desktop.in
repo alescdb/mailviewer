@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Mail Viewer
 Exec=mailviewer %u
-Icon=org.cosinus.mailviewer
+Icon=io.github.alescdb.mailviewer
 Terminal=false
 Type=Application
 Categories=GTK;Email;

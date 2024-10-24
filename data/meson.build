@@ -1,6 +1,6 @@
 desktop_file = i18n.merge_file(
-        input: 'org.cosinus.mailviewer.desktop.in',
-       output: 'org.cosinus.mailviewer.desktop',
+        input: 'io.github.alescdb.mailviewer.desktop.in',
+       output: 'io.github.alescdb.mailviewer.desktop',
          type: 'desktop',
        po_dir: '../po',
       install: true,
@@ -13,8 +13,8 @@ if desktop_utils.found()
 endif
 
 appstream_file = i18n.merge_file(
-        input: 'org.cosinus.mailviewer.metainfo.xml.in',
-       output: 'org.cosinus.mailviewer.metainfo.xml',
+        input: 'io.github.alescdb.mailviewer.metainfo.xml.in',
+       output: 'io.github.alescdb.mailviewer.metainfo.xml',
        po_dir: '../po',
       install: true,
   install_dir: get_option('datadir') / 'metainfo'
@@ -24,7 +24,7 @@ appstreamcli = find_program('appstreamcli', required: false, disabler: true)
 test('Validate appstream file', appstreamcli,
      args: ['validate', '--no-net', '--explain', appstream_file])
 
-install_data('org.cosinus.mailviewer.gschema.xml',
+install_data('io.github.alescdb.mailviewer.gschema.xml',
   install_dir: get_option('datadir') / 'glib-2.0' / 'schemas'
 )
 

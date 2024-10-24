@@ -6,7 +6,7 @@ fn main() {
   println!("cargo::rerun-if-changed=Makefile");
   println!("cargo::rerun-if-changed=src/window.ui");
   println!("cargo::rerun-if-changed=src/mailviewer.gresource.xml");
-  println!("cargo::rerun-if-changed=data/org.cosinus.mailviewer.gschema.xml");
+  println!("cargo::rerun-if-changed=data/io.github.alescdb.mailviewer.gschema.xml");
 
   // TODO: this causes rebuild every time
   println!("cargo::rerun-if-changed=dist/share/glib-2.0/schemas/gschemas.compiled");

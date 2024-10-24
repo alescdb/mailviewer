@@ -1,4 +1,4 @@
-application_id = 'org.cosinus.mailviewer'
+application_id = 'io.github.alescdb.mailviewer'
 
 scalable_dir = 'hicolor' / 'scalable' / 'apps'
 install_data(

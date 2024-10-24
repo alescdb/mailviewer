@@ -17,9 +17,9 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: data/org.cosinus.mailviewer.desktop.in:3
-#: data/org.cosinus.mailviewer.desktop.in:11
-#: data/org.cosinus.mailviewer.metainfo.xml.in:7
+#: data/io.github.alescdb.mailviewer.desktop.in:3
+#: data/io.github.alescdb.mailviewer.desktop.in:11
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:7
 msgid "Mail Viewer"
 msgstr ""
 

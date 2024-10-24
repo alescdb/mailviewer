@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
-  <schema id="org.cosinus.mailviewer" path="/org/cosinus/mailviewer/">
+  <schema id="io.github.alescdb.mailviewer" path="/io/github/alescdb/mailviewer/">
     <key name="width" type="i">
       <default>800</default>
     </key>
