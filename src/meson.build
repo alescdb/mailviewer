@@ -31,7 +31,6 @@ cargo_opt = ['--manifest-path', meson.project_source_root() / 'Cargo.toml']
 cargo_opt += ['--target-dir', meson.project_build_root() / 'src']
 cargo_env = ['CARGO_HOME=' + meson.project_build_root() / 'cargo-home']
 
-
 if get_option('buildtype') == 'release'
   cargo_opt += ['--release']
   rust_target = 'release'
@@ -49,7 +48,7 @@ if OFFLINE_BUILD == '1'
   cargo_env = ['CARGO_HOME=' + '/run/build/mailviewer/cargo']
 endif
 
-cargo_build = custom_target(
+custom_target(
   'cargo-build',
   build_by_default: true,
   build_always_stale: true,

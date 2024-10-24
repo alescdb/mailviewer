@@ -13,4 +13,4 @@ RUN pacman -Sy --noconfirm && \
 VOLUME [ "/src" ]
 WORKDIR /src
 
-CMD [ "make", "docker" ]
+CMD [ "make", "install" ]
