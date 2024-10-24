@@ -13,18 +13,14 @@
     "--socket=fallback-x11",
     "--device=dri",
     "--socket=wayland",
-    "--filesystem=host",
+    "--filesystem=home",
     "--filesystem=/tmp"
   ],
   "build-options": {
     "append-path": "/usr/lib/sdk/rust-stable/bin",
     "build-args": [
       "--share=network"
-    ],
-    "env": {
-      "RUST_BACKTRACE": "1",
-      "RUST_LOG": "mailviewer=debug"
-    }
+    ]
   },
   "cleanup": [
     "/include",
