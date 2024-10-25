@@ -65,10 +65,10 @@
                 <property name="margin-bottom" bind-source="sheet" bind-property="bottom-bar-height" />
                 <property name="hexpand">true</property>
                 <property name="spacing">10</property>
-                <property name="margin-start">10</property>  <!-- Padding à gauche -->
-                <property name="margin-end">10</property>    <!-- Padding à droite -->
-                <property name="margin-top">5</property>     <!-- Padding en haut -->
-                <property name="margin-bottom">5</property>  <!-- Padding en bas -->
+                <property name="margin-start">10</property>  
+                <property name="margin-end">10</property>    
+                <property name="margin-top">5</property>     
+                <property name="margin-bottom">5</property>  
                 <property name="orientation">vertical</property>
 
                 <child>

@@ -400,7 +400,7 @@ impl MailViewerWindow {
           }
           log::debug!("WebView on_decide_policy(open) => {}", uri);
           if let Err(e) = open::that(uri.to_string()) {
-            eprintln!("Failed to open url: {}", e);
+            self.alert_error("WebView Error", &format!("Failed to open url: {}", e));
           }
         }
 
