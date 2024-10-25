@@ -28,7 +28,7 @@ use adw::{
   prelude::{AlertDialogExt, *},
   subclass::prelude::*,
 };
-use gtk4::{gio, glib};
+use gtk4::{gio, glib, template_callbacks};
 use std::{borrow::BorrowMut, option::Option};
 use webkit6::{
   prelude::{PolicyDecisionExt, WebViewExt},
@@ -37,6 +37,7 @@ use webkit6::{
 
 mod imp {
   use super::*;
+  use adw::subclass::prelude::CompositeTemplateClass;
   use glib::subclass::Signal;
   use gtk4::ScrolledWindow;
   use std::{cell::OnceCell, sync::OnceLock};
@@ -114,17 +115,14 @@ mod imp {
   #[glib::object_subclass]
   impl ObjectSubclass for MailViewerWindow {
     const NAME: &'static str = "MailViewerWindow";
+    const ABSTRACT: bool = false;
     type Type = super::MailViewerWindow;
     type ParentType = adw::ApplicationWindow;
     type Interfaces = ();
 
     fn class_init(klass: &mut Self::Class) {
       klass.bind_template();
-      // TODO: use actions
-      //
-      // klass.install_action("attachment.save", None, move |a, b, c| {
-      //   log::debug!("attachment.save {:?} => {:?} => {:?}", a, b, c);
-      // });
+      klass.bind_template_instance_callbacks();
     }
 
     fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -149,6 +147,7 @@ glib::wrapper! {
         @extends gtk4::Widget, gtk4::Window, gtk4::ApplicationWindow, adw::ApplicationWindow, @implements gio::ActionGroup, gio::ActionMap;
 }
 
+#[template_callbacks]
 impl MailViewerWindow {
   pub fn new<P: IsA<gtk4::Application>>(application: &P) -> Self {
     let window: Self = glib::Object::builder()
@@ -164,6 +163,38 @@ impl MailViewerWindow {
     window.set_title(Some(&format!("Mail Viewer v{}", VERSION)));
     window.initialize();
     window
+  }
+
+  #[template_callback]
+  pub fn on_force_css_clicked(&self) {
+    log::debug!("on_force_css_clicked()");
+    self.load_html(self.imp().force_css.is_active());
+  }
+
+  #[template_callback]
+  pub fn on_show_text_clicked(&self) {
+    let show = self.imp().show_text.is_active();
+    log::debug!("on_show_text_clicked({})", show);
+    self.on_show_text(show);
+  }
+
+  #[template_callback]
+  pub fn on_show_images_clicked(&self) {
+    let show = self.imp().show_images.is_active();
+    log::debug!("on_show_images_clicked({})", show);
+    self.imp().web_settings.set_auto_load_images(show);
+  }
+
+  #[template_callback]
+  pub fn on_zoom_minus_clicked(&self) {
+    log::debug!("on_zoom_minus_clicked()");
+    self.set_zoom_level(self.imp().web_view.zoom_level() - 0.1);
+  }
+
+  #[template_callback]
+  pub fn on_zoom_plus_clicked(&self) {
+    log::debug!("on_zoom_plus_clicked()");
+    self.set_zoom_level(self.imp().web_view.zoom_level() + 0.1);
   }
 
   fn initialize(&self) {
@@ -182,43 +213,6 @@ impl MailViewerWindow {
     let win = self;
     let imp = self.imp();
 
-    imp.force_css.connect_clicked(clone!(
-      #[strong]
-      win,
-      move |btn| {
-        win.load_html(btn.is_active());
-      }
-    ));
-    imp.show_text.connect_clicked(clone!(
-      #[strong]
-      win,
-      move |btn| {
-        win.on_show_text(btn.is_active());
-      }
-    ));
-    imp.zoom_minus.connect_clicked(clone!(
-      #[strong]
-      win,
-      move |_| {
-        win.set_zoom_level(win.imp().web_view.zoom_level() - 0.1);
-      }
-    ));
-    imp.zoom_plus.connect_clicked(clone!(
-      #[strong]
-      win,
-      move |_| {
-        win.set_zoom_level(win.imp().web_view.zoom_level() + 0.1);
-      }
-    ));
-    imp.show_images.connect_clicked(clone!(
-      #[strong]
-      win,
-      move |button| {
-        let show = button.is_active();
-        log::debug!("show_images: {}", show);
-        win.imp().web_settings.set_auto_load_images(show);
-      }
-    ));
     imp.web_view.connect_decide_policy(clone!(
       #[strong]
       win,

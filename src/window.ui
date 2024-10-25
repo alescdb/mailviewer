@@ -27,30 +27,35 @@
                   <object class="GtkToggleButton" id="show_text">
                     <property name="icon-name">text-x-generic-symbolic</property>
                     <property name="tooltip-text" translatable="yes">Show plain text</property>
+                    <signal name="clicked" handler="on_show_text_clicked" swapped="true" />
                   </object>
                 </child>
                 <child type="end">
                   <object class="GtkToggleButton" id="show_images">
                     <property name="icon-name">image-x-generic-symbolic</property>
                     <property name="tooltip-text" translatable="yes">Show Images</property>
+                    <signal name="clicked" handler="on_show_images_clicked" swapped="true" />
                   </object>
                 </child>
                 <child type="end">
                   <object class="GtkToggleButton" id="force_css">
                     <property name="icon-name">font-x-generic-symbolic</property>
                     <property name="tooltip-text" translatable="yes">Force CSS</property>
+                    <signal name="clicked" handler="on_force_css_clicked" swapped="true" />
                   </object>
                 </child>
                 <child type="end">
                   <object class="GtkButton" id="zoom_minus">
                     <property name="icon-name">value-decrease-symbolic</property>
                     <property name="tooltip-text" translatable="yes">Zoom -</property>
+                    <signal name="clicked" handler="on_zoom_minus_clicked" swapped="true" />
                   </object>
                 </child>
                 <child type="end">
                   <object class="GtkToggleButton" id="zoom_plus">
                     <property name="icon-name">value-increase-symbolic</property>
                     <property name="tooltip-text" translatable="yes">Zoom +</property>
+                    <signal name="clicked" handler="on_zoom_plus_clicked" swapped="true" />
                   </object>
                 </child>
               </object>
