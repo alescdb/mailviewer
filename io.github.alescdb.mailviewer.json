@@ -14,7 +14,7 @@
     "--device=dri",
     "--socket=wayland",
     "--filesystem=home",
-    "--filesystem=/tmp"
+    "--filesystem=/tmp/mailviewer:create"
   ],
   "build-options": {
     "append-path": "/usr/lib/sdk/rust-stable/bin",
