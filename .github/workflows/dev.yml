@@ -35,3 +35,12 @@ jobs:
         manifest-path: io.github.alescdb.mailviewer.json
         cache-key: flatpak-builder-${{ github.sha }}
         arch: ${{ matrix.arch }}
+    - uses: actions/download-artifact@v4
+    - name: show files
+      run: find
+    - uses: actions/upload-artifact@v4
+      with:
+        name: flatpak
+        path: |
+          LICENSE
+          *.flatpak
