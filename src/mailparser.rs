@@ -116,6 +116,7 @@ impl MailParser {
     path.push(format!(".mailviewer.{}", pid));
     path
   }
+  
   fn get_temp_name(file: &str) -> String {
     let mut path = MailParser::get_temp_folder();
     if path.exists() == false {
