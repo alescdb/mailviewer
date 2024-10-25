@@ -18,15 +18,21 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 use crate::{
-  application::MailViewerApplication, config::VERSION, html::Html, mailparser::{Attachment, MailParser}
+  application::MailViewerApplication,
+  config::VERSION,
+  html::Html,
+  mailparser::{Attachment, MailParser},
 };
 use adw::{
-  glib::clone, prelude::{AlertDialogExt, *}, subclass::prelude::*
+  glib::clone,
+  prelude::{AlertDialogExt, *},
+  subclass::prelude::*,
 };
 use gtk4::{gio, glib};
 use std::{borrow::BorrowMut, option::Option};
 use webkit6::{
-  prelude::{PolicyDecisionExt, WebViewExt}, NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, WebView
+  prelude::{PolicyDecisionExt, WebViewExt},
+  NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, WebView,
 };
 
 mod imp {
@@ -114,6 +120,9 @@ mod imp {
 
     fn class_init(klass: &mut Self::Class) {
       klass.bind_template();
+      klass.install_action("attachment.save", None, move |a, b, c| {
+        log::debug!("attachment.save {:?} => {:?} => {:?}", a, b, c);
+      });
     }
 
     fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -246,12 +255,44 @@ impl MailViewerWindow {
       .build();
   }
 
+  fn add_attachment_v2(&self, attachment: &Attachment) {
+    let mime = &attachment
+      .clone()
+      .mime_type
+      .unwrap_or("Unknown".to_string());
+    let icon = if mime.starts_with("image") {
+      "image-x-generic-symbolic"
+    } else {
+      "document-open"
+    };
+
+    let open = gtk4::Button::new();
+    let save = gtk4::Button::new();
+    open.set_valign(gtk4::Align::Center);
+    open.set_icon_name("document-open");
+    save.set_valign(gtk4::Align::Center);
+    save.set_icon_name("document-save-as-symbolic");
+    save.set_action_name(Some("attachment.save"));
+    #[allow(deprecated)]
+    let btn = adw::ActionRow::builder()
+      .title(attachment.filename.to_string())
+      .subtitle(mime)
+      .icon_name(icon)
+      .activatable(true)
+      .action_name("attachment.save")
+      .build();
+
+    btn.add_suffix(&open);
+    self.imp().attachments.add(&btn);
+  }
+
   fn add_attachment(&self, attachment: &Attachment) {
     log::debug!("add_attachment({})", attachment);
 
     let mime = &attachment.clone().mime_type.unwrap_or("None".to_string());
     let tooltip_string = format!("{} ({})", mime, attachment.content_id);
 
+    self.add_attachment_v2(attachment);
     let icon = if mime.starts_with("image") {
       "image-x-generic-symbolic"
     } else {
