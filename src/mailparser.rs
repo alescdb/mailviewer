@@ -77,6 +77,7 @@ impl fmt::Display for Attachment {
 #[derive(Debug, Default)]
 pub struct MailParser {
   file: String,
+  temp: PathBuf,
   pub from: String,
   pub to: String,
   pub date: String,
@@ -92,11 +93,10 @@ impl Drop for MailParser {
       gmime::ffi::g_mime_shutdown();
     }
 
-    let tmp = MailParser::get_temp_folder();
-    if tmp.exists() {
-      log::debug!("remove_dir_all({:?})", &tmp);
-      fs::remove_dir_all(&tmp).unwrap_or_else(|err| {
-        log::error!("Error while removing {:?} : {}", tmp, err);
+    if self.temp.exists() {
+      log::debug!("remove_dir_all({:?})", &self.temp);
+      fs::remove_dir_all(&self.temp).unwrap_or_else(|err| {
+        log::error!("Error while removing {:?} : {}", self.temp, err);
       });
     }
   }
@@ -109,6 +109,7 @@ impl MailParser {
     }
     MailParser {
       file: file.to_string(),
+      temp: Self::get_temp_folder(),
       from: String::new(),
       to: String::new(),
       subject: String::new(),
@@ -120,18 +121,19 @@ impl MailParser {
   }
 
   fn get_temp_folder() -> PathBuf {
-    let pid = std::process::id();
     let mut path = std::env::temp_dir();
     path.push("mailviewer");
-    path.push(pid.to_string());
     path
   }
 
-  fn get_temp_name(file: &str) -> String {
-    let mut path = MailParser::get_temp_folder();
+  fn get_temp_name(&self, file: &str) -> String {
+    let mut path = self.temp.clone();
     if path.exists() == false {
       log::debug!("create_dir_all({:?}) for {}", &path.to_str(), file);
-      fs::create_dir_all(&path).unwrap();
+      match fs::create_dir(&path) {
+       Ok(_) => log::debug!("Folder created {:?}", &path),
+       Err(e) => log::error!("Error while creating folder {:?} : {}", &path, e),
+      }
     }
     path.push(file);
     path.to_str().unwrap().to_string()
@@ -261,7 +263,7 @@ impl MailParser {
           stream.close();
 
           return Some(Attachment {
-            temp: MailParser::get_temp_name(&filename),
+            temp: self.get_temp_name(&filename),
             content_id,
             filename,
             mime_type,

@@ -338,11 +338,11 @@ impl MailViewerWindow {
     log::debug!("on_button_clicked({})", attachment.filename);
     match attachment.write_to_tmp() {
       Ok(file) => {
-        log::debug!("write_to_tmp({})", &file);
+        log::debug!("write_to_tmp({}) success", &file);
         if let Err(e) = open::that(&file) {
           log::error!("failed to open file ({}): {}", &file, e);
         }
-      }
+      } 
       Err(e) => log::error!("write_to_tmp({})", e),
     };
   }
