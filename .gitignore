@@ -1,11 +1,13 @@
-/*.flatpak
+/_build
 /.flatpak
 /.flatpak-builder
 /.idea
 /.repo
-/_build
+/.venv
+/*.flatpak
 /body.html
 /dist
+/flatpak-cargo-generator.py
 /gmime
 /gmime-rs
 /repo
