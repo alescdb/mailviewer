@@ -120,9 +120,11 @@ mod imp {
 
     fn class_init(klass: &mut Self::Class) {
       klass.bind_template();
-      klass.install_action("attachment.save", None, move |a, b, c| {
-        log::debug!("attachment.save {:?} => {:?} => {:?}", a, b, c);
-      });
+      // TODO: use actions
+      //
+      // klass.install_action("attachment.save", None, move |a, b, c| {
+      //   log::debug!("attachment.save {:?} => {:?} => {:?}", a, b, c);
+      // });
     }
 
     fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
