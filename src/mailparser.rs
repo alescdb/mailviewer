@@ -120,9 +120,10 @@ impl MailParser {
   }
 
   fn get_temp_folder() -> PathBuf {
-    let mut path = std::env::temp_dir();
     let pid = std::process::id();
-    path.push(format!(".mailviewer.{}", pid));
+    let mut path = std::env::temp_dir();
+    path.push("mailviewer");
+    path.push(pid.to_string());
     path
   }
 
@@ -130,7 +131,7 @@ impl MailParser {
     let mut path = MailParser::get_temp_folder();
     if path.exists() == false {
       log::debug!("create_dir({:?}) for {}", &path.to_str(), file);
-      fs::create_dir(&path).unwrap();
+      fs::create_dir_all(&path).unwrap();
     }
     path.push(file);
     path.to_str().unwrap().to_string()
