@@ -40,7 +40,7 @@ jobs:
       run: find
     - uses: actions/upload-artifact@v4
       with:
-        name: flatpak
+        name: flatpak-${{ matrix.arch }}
         path: |
           LICENSE
           *.flatpak
