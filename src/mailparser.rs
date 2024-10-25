@@ -130,7 +130,7 @@ impl MailParser {
   fn get_temp_name(file: &str) -> String {
     let mut path = MailParser::get_temp_folder();
     if path.exists() == false {
-      log::debug!("create_dir({:?}) for {}", &path.to_str(), file);
+      log::debug!("create_dir_all({:?}) for {}", &path.to_str(), file);
       fs::create_dir_all(&path).unwrap();
     }
     path.push(file);
