@@ -302,6 +302,8 @@ impl MailViewerWindow {
 
   fn on_attachment_save(&self, attachment: &Attachment) {
     println!("on_attachment_save({})", attachment.filename);
+    let win = self;
+    // TODO: use gtk4::FileChooserNative ?!
     let save_dialog = gtk4::FileChooserDialog::new(
       Some("Save attachment..."),
       Some(self),
@@ -313,13 +315,26 @@ impl MailViewerWindow {
     );
     save_dialog.set_modal(true);
     save_dialog.set_current_name(&attachment.filename);
-    save_dialog.connect_response(move |dialog, response| {
-      if response == gtk4::ResponseType::Accept {
-        let path = dialog.file().unwrap().path().unwrap();
-        println!("Saving attachment to {:?}", path);
+    save_dialog.connect_response(clone!(
+      #[strong]
+      win,
+      #[strong]
+      attachment,
+      move |dialog, response| {
+        if response == gtk4::ResponseType::Accept {
+          let path = dialog.file().unwrap().path().unwrap();
+          println!("Saving attachment to {:?}", path);
+          match attachment.write_to_file(path.to_str().unwrap()) {
+            Ok(_) => log::debug!("write_to_file({:?})", &path),
+            Err(e) => {
+              log::error!("write_to_file({})", e);
+              win.alert_error("File Error", &e.to_string());
+            }
+          };
+        }
+        dialog.close();
       }
-      dialog.close();
-    });
+    ));
     save_dialog.show();
   }
 
@@ -400,17 +415,18 @@ impl MailViewerWindow {
     false
   }
 
-  fn on_show_text(&self, p0: bool) {
-    log::debug!("on_show_text({})", p0);
+  fn on_show_text(&self, show: bool) {
+    log::debug!("on_show_text({})", show);
     let imp = self.imp();
     imp
       .stack
       .get()
-      .set_visible_child_name(if p0 { "text" } else { "html" });
-    imp.show_images.set_visible(!p0);
-    imp.force_css.set_visible(!p0);
-    imp.zoom_minus.set_visible(!p0);
-    imp.zoom_plus.set_visible(!p0);
+      .set_visible_child_name(if show { "text" } else { "html" });
+
+    imp.show_images.set_visible(!show);
+    imp.force_css.set_visible(!show);
+    imp.zoom_minus.set_visible(!show);
+    imp.zoom_plus.set_visible(!show);
   }
 
   pub fn on_eml_parsed(&self) {

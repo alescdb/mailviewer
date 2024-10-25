@@ -19,9 +19,14 @@
  */
 use base64::{engine::general_purpose, Engine};
 use gmime::{
-  glib, prelude::Cast, traits::{
-    ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt, StreamMemExt
-  }, InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part, Stream, StreamFs, StreamMem
+  glib,
+  prelude::Cast,
+  traits::{
+    ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt,
+    StreamMemExt,
+  },
+  InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part, Stream,
+  StreamFs, StreamMem,
 };
 use nipper::Document;
 use std::{error::Error, fmt, fs, path::PathBuf};
@@ -48,8 +53,12 @@ pub struct Attachment {
 
 impl Attachment {
   pub fn write_to_tmp(&self) -> Result<String, Box<dyn Error>> {
-    fs::write(&self.temp, &self.body)?;
+    self.write_to_file(&self.temp)?;
     Ok(self.temp.to_string())
+  }
+
+  pub fn write_to_file(&self, file: &str) -> std::io::Result<()> {
+    fs::write(&file, &self.body)
   }
 }
 
@@ -116,7 +125,7 @@ impl MailParser {
     path.push(format!(".mailviewer.{}", pid));
     path
   }
-  
+
   fn get_temp_name(file: &str) -> String {
     let mut path = MailParser::get_temp_folder();
     if path.exists() == false {
