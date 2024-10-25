@@ -255,7 +255,8 @@ impl MailViewerWindow {
       .build();
   }
 
-  fn add_attachment_v2(&self, attachment: &Attachment) {
+  fn add_attachment(&self, attachment: &Attachment) {
+    let window = self;
     let mime = &attachment
       .clone()
       .mime_type
@@ -266,59 +267,63 @@ impl MailViewerWindow {
       "document-open"
     };
 
-    let open = gtk4::Button::new();
     let save = gtk4::Button::new();
-    open.set_valign(gtk4::Align::Center);
-    open.set_icon_name("document-open");
     save.set_valign(gtk4::Align::Center);
     save.set_icon_name("document-save-as-symbolic");
-    save.set_action_name(Some("attachment.save"));
-    #[allow(deprecated)]
+    save.set_tooltip_text(Some("Save as..."));
+    save.connect_clicked(clone!(
+      #[strong]
+      window,
+      #[strong]
+      attachment,
+      move |_| {
+        window.on_attachment_save(&attachment);
+      }
+    ));
     let btn = adw::ActionRow::builder()
       .title(attachment.filename.to_string())
       .subtitle(mime)
-      .icon_name(icon)
       .activatable(true)
-      .action_name("attachment.save")
       .build();
+    btn.add_prefix(&gtk4::Image::from_icon_name(icon));
+    btn.add_suffix(&save);
 
-    btn.add_suffix(&open);
-    self.imp().attachments.add(&btn);
-  }
-
-  fn add_attachment(&self, attachment: &Attachment) {
-    log::debug!("add_attachment({})", attachment);
-
-    let mime = &attachment.clone().mime_type.unwrap_or("None".to_string());
-    let tooltip_string = format!("{} ({})", mime, attachment.content_id);
-
-    self.add_attachment_v2(attachment);
-    let icon = if mime.starts_with("image") {
-      "image-x-generic-symbolic"
-    } else {
-      "document-open"
-    };
-    let btn = adw::ButtonRow::builder()
-      .title(attachment.filename.to_string())
-      .start_icon_name(icon)
-      .tooltip_text(tooltip_string)
-      .build();
-    // btn.set_css_classes(&["cid"]);
-    self.imp().attachments.add(&btn);
-
-    let window = self;
     btn.connect_activated(clone!(
       #[strong]
       window,
       #[strong]
       attachment,
       move |_| {
-        window.on_button_clicked(&attachment);
+        window.on_attachment_open(&attachment);
       }
     ));
+    self.imp().attachments.add(&btn);
   }
 
-  fn on_button_clicked(&self, attachment: &Attachment) {
+  fn on_attachment_save(&self, attachment: &Attachment) {
+    println!("on_attachment_save({})", attachment.filename);
+    let save_dialog = gtk4::FileChooserDialog::new(
+      Some("Save attachment..."),
+      Some(self),
+      gtk4::FileChooserAction::Save,
+      &[
+        ("_Cancel", gtk4::ResponseType::Cancel),
+        ("_Save", gtk4::ResponseType::Accept),
+      ],
+    );
+    save_dialog.set_modal(true);
+    save_dialog.set_current_name(&attachment.filename);
+    save_dialog.connect_response(move |dialog, response| {
+      if response == gtk4::ResponseType::Accept {
+        let path = dialog.file().unwrap().path().unwrap();
+        println!("Saving attachment to {:?}", path);
+      }
+      dialog.close();
+    });
+    save_dialog.show();
+  }
+
+  fn on_attachment_open(&self, attachment: &Attachment) {
     log::debug!("on_button_clicked({})", attachment.filename);
     match attachment.write_to_tmp() {
       Ok(file) => {
@@ -472,6 +477,7 @@ impl MailViewerWindow {
         self.add_attachment(&attachment);
       }
       let label: String = format!("{} attachment{}", total, if total == 1 { "" } else { "s" });
+      imp.attachments.set_title(&label);
       imp.pull_label.set_text(&label);
     } else {
       imp.pull_label.set_text("No attachments");

@@ -195,7 +195,6 @@
               <object class="AdwHeaderBar" />
             </child>
             <property name="content">
-
               <object class="AdwClamp">
                 <child>
                   <object class="AdwPreferencesGroup" id="attachments">
