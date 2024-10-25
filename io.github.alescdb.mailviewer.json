@@ -14,13 +14,13 @@
     "--device=dri",
     "--socket=wayland",
     "--filesystem=home",
-    "--filesystem=/tmp"
+    "--filesystem=/tmp/mailviewer:create"
   ],
   "build-options": {
-    "append-path": "/usr/lib/sdk/rust-stable/bin",
-    "build-args": [
-      "--share=network"
-    ]
+    "append-path": "/usr/lib/sdk/rust-stable/bin:/usr/lib/sdk/llvm16/bin",
+    "env": {
+      "CARGO_HOME": "/run/build/mailviewer/cargo"
+    }
   },
   "cleanup": [
     "/include",
@@ -48,7 +48,14 @@
       "name": "mailviewer",
       "builddir": true,
       "buildsystem": "meson",
+      "build-options": {
+        "env": {
+          "CARGO_HOME": "/run/build/mailviewer/cargo",
+          "OFFLINE_BUILD": "1"
+        }
+      },
       "sources": [
+        "mailviewer-sources.json",
         {
           "type": "dir",
           "path": "./"
