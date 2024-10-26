@@ -14,7 +14,7 @@
     "--device=dri",
     "--socket=wayland",
     "--filesystem=home",
-    "--filesystem=/tmp/mailviewer:create"
+    "--filesystem=xdg-run/mailviewer"
   ],
   "build-options": {
     "append-path": "/usr/lib/sdk/rust-stable/bin:/usr/lib/sdk/llvm16/bin",
