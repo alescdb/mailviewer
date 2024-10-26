@@ -121,8 +121,14 @@ impl MailParser {
   }
 
   fn get_temp_folder() -> PathBuf {
-    let mut path = std::env::temp_dir();
+    let mut path = PathBuf::from(std::env::var("XDG_RUNTIME_DIR").unwrap());
     path.push("mailviewer");
+    if path.exists() == false {
+      log::debug!("create_dir_all({:?})", &path);
+      fs::create_dir_all(&path).unwrap_or_else(|err| {
+        log::error!("Error while creating folder {:?} : {}", &path, err);
+      });
+    }
     path
   }
 
