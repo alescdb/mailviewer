@@ -45,8 +45,8 @@ jobs:
           LICENSE
           *.flatpak
 
-  dev:
-    name: dev
+  development:
+    name: "development build"
     needs: [flatpak]
     runs-on: ubuntu-latest
     steps:
@@ -57,8 +57,8 @@ jobs:
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         prerelease: true
-        automatic_release_tag: "latest"
-        title: "Prerelease"
+        automatic_release_tag: "dev"
+        title: "Development build"
         files: |
-          **/LICENSE
+          ./flatpak-x86_64/LICENSE
           **/*.flatpak
