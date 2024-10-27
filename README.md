@@ -8,8 +8,8 @@ MailViewer is a desktop application built with [GTK4](https://www.gtk.org/)/[lib
 ## Features
 
 - **Open and view .eml files**: Display the email's subject, sender, receiver, and content.
-- **Decode email attachments**: View attachments from `.eml` files.
-- **Support for HTML and plain text emails**: Render emails in both formats.
+- **Decode email attachments**: View and/or save attachments.
+- **Support for HTML and plain text emails**: Render emails in both formats (if available).
 
 ## Sceenshot
 
