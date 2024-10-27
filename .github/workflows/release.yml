@@ -4,31 +4,43 @@ on:
   push:
     tags:
       - "[0-9]+.[0-9]+.[0-9]+"
-
 jobs:
   flatpak:
-    name: "build flatpak"
+    name: "Flatpak"
     runs-on: ubuntu-latest
     container:
       image: bilelmoussaoui/flatpak-github-actions:gnome-47
       options: --privileged
+    strategy:
+      matrix:
+        arch: [x86_64, aarch64]
+      # Don't fail the whole workflow if one architecture fails
+      fail-fast: false
     steps:
     - uses: actions/checkout@v4
-    - name: dependencies
+    # Docker is required by the docker/setup-qemu-action which enables emulation
+    - name: Install deps
+      if: ${{ matrix.arch != 'x86_64' }}
       run: |
-        dnf -y install pkg-config rust-pango-sys0.19+v1_52-devel.noarch nodejs
+        dnf -y install docker
+    - name: Set up QEMU
+      if: ${{ matrix.arch != 'x86_64' }}
+      id: qemu
+      uses: docker/setup-qemu-action@v2
+      with:
+        platforms: arm64
     - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
       with:
-        bundle: mailviewer.flatpak
+        bundle: mailviewer-${{ matrix.arch }}.flatpak
         manifest-path: io.github.alescdb.mailviewer.json
         cache-key: flatpak-builder-${{ github.sha }}
-        upload-artifact: false
+        arch: ${{ matrix.arch }}
     - uses: actions/download-artifact@v4
     - name: show files
       run: find
     - uses: actions/upload-artifact@v4
       with:
-        name: flatpak
+        name: flatpak-${{ matrix.arch }}
         path: |
           LICENSE
           *.flatpak
@@ -46,5 +58,5 @@ jobs:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         prerelease: false
         files: |
-          **/LICENSE
+          ./flatpak-x86_64/LICENSE
           **/*.flatpak
