@@ -123,16 +123,16 @@ impl MailParser {
   fn get_temp_folder() -> PathBuf {
     let mut path = PathBuf::from(std::env::var("XDG_RUNTIME_DIR").unwrap());
     path.push("mailviewer");
-    path
+    mktemp::Temp::new_path_in(path).to_path_buf()
   }
 
   fn get_temp_name(&self, file: &str) -> String {
     let mut path = self.temp.clone();
     if path.exists() == false {
       log::debug!("create_dir_all({:?}) for {}", &path.to_str(), file);
-      match fs::create_dir(&path) {
-       Ok(_) => log::debug!("Folder created {:?}", &path),
-       Err(e) => log::error!("Error while creating folder {:?} : {}", &path, e),
+      match fs::create_dir_all(&path) {
+        Ok(_) => log::debug!("Folder created {:?}", &path),
+        Err(e) => log::error!("Error while create_dir_all() folder {:?} : {}", &path, e),
       }
     }
     path.push(file);
