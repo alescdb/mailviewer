@@ -11,19 +11,19 @@ all: gresources
 	cargo build
 
 run: gresources
-	cargo run -- sample.eml
+	cargo run -- ../sample.eml
 
 format:
 	cargo +nightly fmt
 
-$(RESOURCES): $(CURRENT_DIR)/src/mailviewer.gresource.xml
+$(RESOURCES): $(CURRENT_DIR)/src/mailviewer.gresource.xml src/**.ui
 	mkdir -p $(DEBUG)/share/mailviewer
 	glib-compile-resources \
 		--sourcedir=$(CURRENT_DIR)/src \
 		--target=$(DEBUG)/share/mailviewer/mailviewer.gresource \
 		$(CURRENT_DIR)/src/mailviewer.gresource.xml
 
-$(SCHEMAS): $(CURRENT_DIR)/data/io.github.alescdb.mailviewer.gschema.xml
+$(SCHEMAS): $(CURRENT_DIR)/data/io.github.alescdb.mailviewer.gschema.xml 
 	mkdir -p $(DEBUG)/share/glib-2.0/schemas
 	glib-compile-schemas \
 		--targetdir=$(DEBUG)/share/glib-2.0/schemas/ \
