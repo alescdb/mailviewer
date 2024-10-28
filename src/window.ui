@@ -65,10 +65,10 @@
                 <property name="margin-bottom" bind-source="sheet" bind-property="bottom-bar-height" />
                 <property name="hexpand">true</property>
                 <property name="spacing">10</property>
-                <property name="margin-start">10</property>  
-                <property name="margin-end">10</property>    
-                <property name="margin-top">5</property>     
-                <property name="margin-bottom">5</property>  
+                <property name="margin-start">10</property>
+                <property name="margin-end">10</property>
+                <property name="margin-top">5</property>
+                <property name="margin-bottom">5</property>
                 <property name="orientation">vertical</property>
 
                 <child>
@@ -200,11 +200,16 @@
               <object class="AdwHeaderBar" />
             </child>
             <property name="content">
-              <object class="AdwClamp">
+              <object class="GtkScrolledWindow">
+                <property name="height-request">300</property>
                 <child>
-                  <object class="AdwPreferencesGroup" id="attachments">
-                    <property name="separate-rows">True</property>
-                    <property name="margin-bottom">20</property>
+                  <object class="AdwClamp">
+                    <child>
+                      <object class="AdwPreferencesGroup" id="attachments">
+                        <property name="separate-rows">True</property>
+                        <property name="margin-bottom">20</property>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>
