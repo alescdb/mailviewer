@@ -8,10 +8,12 @@ SCHEMAS     := $(DEBUG)/dist/share/glib-2.0/schemas/gschemas.compiled
 MANIFEST    := $(CURRENT_DIR)/io.github.alescdb.mailviewer.json
 
 all: gresources
+	make reconfigure
 	cargo build
 
 run: gresources
-	cargo run -- ../sample.eml
+	make reconfigure
+	cargo run -- sample.eml
 
 format:
 	cargo +nightly fmt
