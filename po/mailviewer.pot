@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailviewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-20 17:49+0200\n"
+"POT-Creation-Date: 2024-10-28 09:06+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,8 +19,27 @@ msgstr ""
 
 #: data/io.github.alescdb.mailviewer.desktop.in:3
 #: data/io.github.alescdb.mailviewer.desktop.in:11
-#: data/io.github.alescdb.mailviewer.metainfo.xml.in:7
 msgid "Mail Viewer"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:3
+msgid "MailViewer"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:7
+msgid "EML file viewer"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:11
+msgid ""
+"MailViewer is a desktop application built with gtk4/adw and Rust that allows "
+"users to read and decode .eml files (email files). It provides a graphical "
+"interface for easy navigation and rendering of email content, including "
+"attachments, HTML, and plain text."
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:18
+msgid "Alexandre Del Bigio"
 msgstr ""
 
 #: src/window.ui:22
@@ -31,46 +50,46 @@ msgstr ""
 msgid "Show plain text"
 msgstr ""
 
-#: src/window.ui:35
+#: src/window.ui:36
 msgid "Show Images"
 msgstr ""
 
-#: src/window.ui:41
+#: src/window.ui:43
 msgid "Force CSS"
 msgstr ""
 
-#: src/window.ui:47
+#: src/window.ui:50
 msgid "Zoom -"
 msgstr ""
 
-#: src/window.ui:53
+#: src/window.ui:57
 msgid "Zoom +"
 msgstr ""
 
-#: src/window.ui:89
+#: src/window.ui:94
 msgid "From"
 msgstr ""
 
-#: src/window.ui:98
+#: src/window.ui:103
 msgid "Date"
 msgstr ""
 
-#: src/window.ui:123
+#: src/window.ui:128
 msgid "To"
 msgstr ""
 
-#: src/window.ui:148
+#: src/window.ui:153
 msgid "Subject"
 msgstr ""
 
-#: src/window.ui:235
+#: src/window.ui:240
 msgid "_Preferences"
 msgstr ""
 
-#: src/window.ui:239
+#: src/window.ui:244
 msgid "_Keyboard Shortcuts"
 msgstr ""
 
-#: src/window.ui:243
+#: src/window.ui:248
 msgid "_About MailViewer"
 msgstr ""
