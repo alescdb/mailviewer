@@ -1,5 +1,5 @@
 pub static APP_ID: &str = "io.github.alescdb.mailviewer";
-pub static VERSION: &str = "0.9.3";
+pub static VERSION: &str = "0.9.4";
 #[allow(dead_code)]
 pub static GETTEXT_PACKAGE: &str = "mailviewer";
 #[allow(dead_code)]
