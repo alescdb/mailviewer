@@ -428,6 +428,21 @@ impl MailViewerWindow {
     let window = self;
     let filename = file.to_string();
 
+    if std::path::Path::new(&filename).exists() == false {
+      log::error!("File not found : {}", filename);
+      self.alert_error("File Error", &format!("File not found :\n{}", filename)).connect_response(
+        Some("close"),
+        clone!(
+          #[strong]
+          window,
+          move |_, _| {
+            window.close();
+          }
+        ),
+      );
+      return;
+    }
+
     glib::idle_add_local_once(glib::clone!(
       #[weak]
       window,
