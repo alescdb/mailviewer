@@ -64,21 +64,14 @@ mod imp {
         let window = MailViewerWindow::new(&*application);
         window.upcast()
       };
-      self
-        .window
-        .set(window.clone())
-        .expect("Window already set.");
+      self.window.set(window.clone()).expect("Window already set.");
 
       let provider = gtk4::CssProvider::new();
       provider.load_from_resource("/io/github/alescdb/mailviewer/css/style.css");
 
       // Appliquer le CSS à l'écran par défaut
       if let Some(display) = gtk4::gdk::Display::default() {
-        gtk4::style_context_add_provider_for_display(
-          &display,
-          &provider,
-          gtk4::STYLE_PROVIDER_PRIORITY_APPLICATION,
-        );
+        gtk4::style_context_add_provider_for_display(&display, &provider, gtk4::STYLE_PROVIDER_PRIORITY_APPLICATION);
       }
       window.present();
 
@@ -92,10 +85,7 @@ mod imp {
 
       if files.is_empty() == false {
         if let Some(path) = files[0].path() {
-          self
-            .file
-            .set(path.to_str().unwrap().to_string())
-            .expect("File already initialized.");
+          self.file.set(path.to_str().unwrap().to_string()).expect("File already initialized.");
         }
       }
 
@@ -115,10 +105,7 @@ glib::wrapper! {
 
 impl MailViewerApplication {
   pub fn new(application_id: &str, flags: &gio::ApplicationFlags) -> Self {
-    glib::Object::builder()
-      .property("application-id", application_id)
-      .property("flags", flags)
-      .build()
+    glib::Object::builder().property("application-id", application_id).property("flags", flags).build()
   }
 
   fn load_eml(&self, window: &MailViewerWindow) {
@@ -151,12 +138,8 @@ impl MailViewerApplication {
   }
 
   fn setup_gactions(&self) {
-    let quit_action = gio::ActionEntry::builder("quit")
-      .activate(move |app: &Self, _, _| app.quit())
-      .build();
-    let about_action = gio::ActionEntry::builder("about")
-      .activate(move |app: &Self, _, _| app.show_about())
-      .build();
+    let quit_action = gio::ActionEntry::builder("quit").activate(move |app: &Self, _, _| app.quit()).build();
+    let about_action = gio::ActionEntry::builder("about").activate(move |app: &Self, _, _| app.show_about()).build();
     self.add_action_entries([quit_action, about_action]);
   }
 

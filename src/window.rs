@@ -150,9 +150,7 @@ glib::wrapper! {
 #[template_callbacks]
 impl MailViewerWindow {
   pub fn new<P: IsA<gtk4::Application>>(application: &P) -> Self {
-    let window: Self = glib::Object::builder()
-      .property("application", application)
-      .build();
+    let window: Self = glib::Object::builder().property("application", application).build();
 
     window.connect_local("eml-parsed", false, move |values| {
       let obj = values[0].get::<Self>().unwrap();
@@ -225,43 +223,28 @@ impl MailViewerWindow {
   fn initialize_settings(&self) {
     let settings = gio::Settings::new(crate::config::APP_ID);
     let imp = self.imp();
+    let reset_zoom = gio::ActionEntry::builder("zoom-reset").activate(move |win: &Self, _, _| win.reset_zoom()).build();
+    self.add_action_entries([reset_zoom]);
 
     imp.settings.set(settings.clone()).unwrap();
     imp.web_view.set_zoom_level(settings.get::<f64>("zoom"));
 
-    settings
-      .bind("width", self, "default-width")
-      .flags(gio::SettingsBindFlags::DEFAULT)
-      .build();
-    settings
-      .bind("height", self, "default-height")
-      .flags(gio::SettingsBindFlags::DEFAULT)
-      .build();
-    settings
-      .bind("height", self, "default-height")
-      .flags(gio::SettingsBindFlags::DEFAULT)
-      .build();
-    settings
-      .bind("is-maximized", self, "maximized")
-      .flags(gio::SettingsBindFlags::DEFAULT)
-      .build();
-    settings
-      .bind("is-fullscreen", self, "fullscreened")
-      .flags(gio::SettingsBindFlags::DEFAULT)
-      .build();
+    settings.bind("width", self, "default-width").flags(gio::SettingsBindFlags::DEFAULT).build();
+    settings.bind("height", self, "default-height").flags(gio::SettingsBindFlags::DEFAULT).build();
+    settings.bind("height", self, "default-height").flags(gio::SettingsBindFlags::DEFAULT).build();
+    settings.bind("is-maximized", self, "maximized").flags(gio::SettingsBindFlags::DEFAULT).build();
+    settings.bind("is-fullscreen", self, "fullscreened").flags(gio::SettingsBindFlags::DEFAULT).build();
+  }
+
+  fn reset_zoom(&self) {
+    log::debug!("reset_zoom()");
+    self.set_zoom_level(1.0);
   }
 
   fn add_attachment(&self, attachment: &Attachment) {
     let window = self;
-    let mime = &attachment
-      .clone()
-      .mime_type
-      .unwrap_or("Unknown".to_string());
-    let icon = if mime.starts_with("image") {
-      "image-x-generic-symbolic"
-    } else {
-      "document-open"
-    };
+    let mime = &attachment.clone().mime_type.unwrap_or("Unknown".to_string());
+    let icon = if mime.starts_with("image") { "image-x-generic-symbolic" } else { "document-open" };
 
     let save = gtk4::Button::new();
     save.set_valign(gtk4::Align::Center);
@@ -276,11 +259,7 @@ impl MailViewerWindow {
         window.on_attachment_save(&attachment);
       }
     ));
-    let btn = adw::ActionRow::builder()
-      .title(attachment.filename.to_string())
-      .subtitle(mime)
-      .activatable(true)
-      .build();
+    let btn = adw::ActionRow::builder().title(attachment.filename.to_string()).subtitle(mime).activatable(true).build();
     btn.add_prefix(&gtk4::Image::from_icon_name(icon));
     btn.add_suffix(&save);
 
@@ -304,10 +283,7 @@ impl MailViewerWindow {
       Some("Save attachment..."),
       Some(self),
       gtk4::FileChooserAction::Save,
-      &[
-        ("_Cancel", gtk4::ResponseType::Cancel),
-        ("_Save", gtk4::ResponseType::Accept),
-      ],
+      &[("_Cancel", gtk4::ResponseType::Cancel), ("_Save", gtk4::ResponseType::Accept)],
     );
     save_dialog.set_modal(true);
     save_dialog.set_current_name(&attachment.filename);
@@ -342,7 +318,7 @@ impl MailViewerWindow {
         if let Err(e) = open::that(&file) {
           log::error!("failed to open file ({}): {}", &file, e);
         }
-      } 
+      }
       Err(e) => log::error!("write_to_tmp({})", e),
     };
   }
@@ -350,22 +326,14 @@ impl MailViewerWindow {
   fn set_zoom_level(&self, zoom: f64) {
     log::debug!("set_zoom({})", zoom);
     self.imp().web_view.set_zoom_level(zoom);
-    let _ = self
-      .imp()
-      .settings
-      .get()
-      .expect("Error settings !")
-      .set("zoom", zoom);
+    let _ = self.imp().settings.get().expect("Error settings !").set("zoom", zoom);
   }
 
   fn load_html(&self, force_css: bool) {
     log::debug!("load_html({})", force_css);
     match self.imp().html.get() {
       Some(html) => {
-        self
-          .imp()
-          .web_view
-          .load_html(&*Html::new(html, force_css).safe(), None);
+        self.imp().web_view.load_html(&*Html::new(html, force_css).safe(), None);
       }
       None => {
         log::error!("HTML not set");
@@ -374,25 +342,12 @@ impl MailViewerWindow {
     }
   }
 
-  fn on_decide_policy(
-    &self,
-    _webview: &WebView,
-    policy: &PolicyDecision,
-    decision_type: PolicyDecisionType,
-  ) -> bool {
-    if decision_type == PolicyDecisionType::NavigationAction
-      || decision_type == PolicyDecisionType::NewWindowAction
-    {
-      let policy = policy
-        .clone()
-        .downcast::<NavigationPolicyDecision>()
-        .expect("Unable to cast policy");
+  fn on_decide_policy(&self, _webview: &WebView, policy: &PolicyDecision, decision_type: PolicyDecisionType) -> bool {
+    if decision_type == PolicyDecisionType::NavigationAction || decision_type == PolicyDecisionType::NewWindowAction {
+      let policy = policy.clone().downcast::<NavigationPolicyDecision>().expect("Unable to cast policy");
       let navigation_action = policy.navigation_action();
       if let Some(mut navigation_action) = navigation_action {
-        let request = navigation_action
-          .borrow_mut()
-          .request()
-          .expect("Unable to get request");
+        let request = navigation_action.borrow_mut().request().expect("Unable to get request");
         let uri = request.uri();
         if let Some(uri) = uri {
           if uri.starts_with("about:") {
@@ -414,10 +369,7 @@ impl MailViewerWindow {
   fn on_show_text(&self, show: bool) {
     log::debug!("on_show_text({})", show);
     let imp = self.imp();
-    imp
-      .stack
-      .get()
-      .set_visible_child_name(if show { "text" } else { "html" });
+    imp.stack.get().set_visible_child_name(if show { "text" } else { "html" });
 
     imp.show_images.set_visible(!show);
     imp.force_css.set_visible(!show);
@@ -436,18 +388,16 @@ impl MailViewerWindow {
       }
     }
     let win = self;
-    self
-      .alert_error("File Error", "No file provided")
-      .connect_response(
-        Some("close"),
-        clone!(
-          #[strong]
-          win,
-          move |_, _| {
-            win.close();
-          }
-        ),
-      );
+    self.alert_error("File Error", "No file provided").connect_response(
+      Some("close"),
+      clone!(
+        #[strong]
+        win,
+        move |_, _| {
+          win.close();
+        }
+      ),
+    );
   }
 
   pub fn show_eml(&self, parser: &MailParser) {
@@ -470,9 +420,7 @@ impl MailViewerWindow {
 
     if let Some(html) = parser.body_html.clone() {
       imp.html.set(html.clone()).expect("HTML already set.");
-      imp
-        .web_view
-        .load_html(&Html::new(&html, false).safe(), None);
+      imp.web_view.load_html(&Html::new(&html, false).safe(), None);
       has_html = true;
     }
 

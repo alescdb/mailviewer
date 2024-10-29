@@ -58,10 +58,7 @@ This is a test email body.
     assert_eq!(parser.to, "recipient@example.com");
     assert_eq!(parser.subject, "Test Email");
     assert_eq!(parser.date, "2023-09-27 14:28:00");
-    assert_eq!(
-      parser.body_text,
-      Some("This is a test email body.\n".to_string())
-    );
+    assert_eq!(parser.body_text, Some("This is a test email body.\n".to_string()));
     assert_eq!(parser.body_html, None);
     assert!(parser.attachments.is_empty());
 
@@ -161,16 +158,10 @@ This email has multiple recipients.
 
     // Assert that the parsed fields match the expected values
     assert_eq!(parser.from, "sender@example.com");
-    assert_eq!(
-      parser.to,
-      "recipient1@example.com, recipient2@example.com, cc1@example.com, bcc1@example.com"
-    );
+    assert_eq!(parser.to, "recipient1@example.com, recipient2@example.com, cc1@example.com, bcc1@example.com");
     assert_eq!(parser.subject, "Test Email with Multiple Recipients");
     assert_eq!(parser.date, "2023-09-27 14:28:00");
-    assert_eq!(
-      parser.body_text,
-      Some("This email has multiple recipients.\n".to_string())
-    );
+    assert_eq!(parser.body_text, Some("This email has multiple recipients.\n".to_string()));
     assert_eq!(parser.body_html, None);
     assert!(parser.attachments.is_empty());
 
