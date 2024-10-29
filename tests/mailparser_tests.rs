@@ -1,4 +1,4 @@
-/* main.rs
+/* mailparser_tests.rs
  *
  * Copyright 2024 Alexandre Del Bigio
  *
@@ -23,7 +23,31 @@
 mod tests {
   use base64::{engine::general_purpose, Engine};
   use mailviewer::MailParser;
-  use std::{error::Error, fs::File, io::Write};
+  use std::{cell::OnceCell, error::Error, fs::File, io::Write, path::Path};
+  #[test]
+  fn sample() -> Result<(), Box<dyn Error>> {
+    let temp: OnceCell<&Path> = OnceCell::new();
+    let file: String;
+    {
+      let mut parser = MailParser::new("sample.eml");
+      parser.parse()?;
+      assert_eq!(parser.from, "John Doe <john@moon.space>");
+      assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
+      assert_eq!(parser.subject, "Lorem ipsum");
+      assert_eq!(parser.date, "2024-10-23 12:27:21");
+      assert_eq!(parser.attachments.len(), 1);
+      let attachment = &parser.attachments[0];
+      assert_eq!(attachment.filename, "Deus_Gnome.png");
+      assert_eq!(attachment.content_id, "ii_m2lqbrhv0");
+      assert_eq!(attachment.mime_type.as_ref().unwrap(), "image/png");
+      file = attachment.write_to_tmp()?;
+      temp.set(Path::new(&file)).expect("Failed !");
+      assert!(temp.get().unwrap().is_file());
+    }
+    assert!(temp.get().unwrap().exists() == false);
+
+    Ok(())
+  }
 
   #[test]
   fn test_parse_simple_email() -> Result<(), Box<dyn Error>> {
