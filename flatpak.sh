@@ -1,5 +1,8 @@
 #!/bin/bash
 
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m'
 ##
 ## Create file "mailviewer-sources.json"
 ##
@@ -40,7 +43,9 @@ flatpak run org.flatpak.Builder \
   ## Linter
   ##
   flatpak run --command=flatpak-builder-lint org.flatpak.Builder repo repo && {
-    rm -rf /tmp/mailviewer
-    RUST_LOG=mailviewer=debug flatpak run io.github.alescdb.mailviewer sample.eml
+    echo -e "${GREEN}Lint Success${NC}"
+  } || {
+    echo -e "${RED}Lint Failed${NC}"
   }
+  RUST_LOG=mailviewer=debug flatpak run io.github.alescdb.mailviewer
 }
