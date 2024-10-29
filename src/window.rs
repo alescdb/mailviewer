@@ -391,7 +391,7 @@ impl MailViewerWindow {
         Some("Open file..."),
         Some(self),
         gtk4::FileChooserAction::Open,
-        &[("_Cancel", gtk4::ResponseType::Cancel), ("_Save", gtk4::ResponseType::Accept)],
+        &[("_Cancel", gtk4::ResponseType::Cancel), ("_Open", gtk4::ResponseType::Accept)],
       );
       save_dialog.set_modal(true);
       save_dialog.connect_response(clone!(
@@ -400,8 +400,9 @@ impl MailViewerWindow {
         move |dialog, response| {
           if response == gtk4::ResponseType::Accept {
             let path = dialog.file().unwrap().path().unwrap();
-            log::debug!("Open eml file : {:?}", path);
             win.open_file(path.to_str().unwrap());
+          } if response == gtk4::ResponseType::Cancel {
+            win.close();
           }
           dialog.close();
         }
@@ -414,6 +415,7 @@ impl MailViewerWindow {
     let window = self;
     let filename = file.to_string();
 
+    log::debug!("open_file({})", file);
     if std::path::Path::new(&filename).exists() == false {
       log::error!("File not found : {}", filename);
       self.alert_error("File Error", &format!("File not found :\n{}", filename)).connect_response(
