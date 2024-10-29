@@ -21,20 +21,18 @@ use adw::subclass::prelude::*;
 use gtk4::{gio, glib, prelude::*};
 
 use crate::{
-  config::{APP_ID, VERSION}, mailparser::MailParser, MailViewerWindow
+  config::{APP_ID, VERSION}, MailViewerWindow
 };
 use adw::prelude::AdwDialogExt;
 
 mod imp {
   use super::*;
-  use crate::mailparser::MailParser;
   use std::cell::OnceCell;
 
   #[derive(Debug, Default)]
   pub struct MailViewerApplication {
     pub window: OnceCell<MailViewerWindow>,
-    pub parser: OnceCell<MailParser>,
-    pub file: OnceCell<String>,
+    pub filename: OnceCell<String>,
   }
 
   #[glib::object_subclass]
@@ -74,8 +72,6 @@ mod imp {
         gtk4::style_context_add_provider_for_display(&display, &provider, gtk4::STYLE_PROVIDER_PRIORITY_APPLICATION);
       }
       window.present();
-
-      self.obj().load_eml(&window);
     }
 
     fn open(&self, files: &[gio::File], hint: &str) {
@@ -85,7 +81,7 @@ mod imp {
 
       if files.is_empty() == false {
         if let Some(path) = files[0].path() {
-          self.file.set(path.to_str().unwrap().to_string()).expect("File already initialized.");
+          self.filename.set(path.to_str().unwrap().to_string()).expect("File already initialized.");
         }
       }
 
@@ -106,35 +102,6 @@ glib::wrapper! {
 impl MailViewerApplication {
   pub fn new(application_id: &str, flags: &gio::ApplicationFlags) -> Self {
     glib::Object::builder().property("application-id", application_id).property("flags", flags).build()
-  }
-
-  fn load_eml(&self, window: &MailViewerWindow) {
-    let app = self;
-    glib::idle_add_local_once(glib::clone!(
-      #[weak]
-      window,
-      #[weak]
-      app,
-      move || {
-        app.open_eml_file().unwrap_or_else(|err| {
-          log::error!("Error : {}", err);
-        });
-        window.emit_by_name::<()>("eml-parsed", &[]);
-      }
-    ));
-  }
-
-  fn open_eml_file(&self) -> Result<(), std::boxed::Box<dyn std::error::Error>> {
-    let imp = self.imp();
-    if let Some(file) = imp.file.get() {
-      let mut parser = MailParser::new(&file);
-      parser.parse()?;
-      match imp.parser.set(parser) {
-        Ok(it) => it,
-        Err(_) => return Err("Failed to set parser".into()),
-      };
-    }
-    Ok(())
   }
 
   fn setup_gactions(&self) {
