@@ -39,7 +39,7 @@ mod imp {
   use super::*;
   use adw::subclass::prelude::CompositeTemplateClass;
   use gtk4::ScrolledWindow;
-  use std::cell::OnceCell;
+  use std::cell::{OnceCell, RefCell};
 
   #[derive(Debug, gtk4::CompositeTemplate)]
   #[template(resource = "/io/github/alescdb/mailviewer/window.ui")]
@@ -84,6 +84,7 @@ mod imp {
     pub html: OnceCell<String>,
     pub settings: OnceCell<gio::Settings>,
     pub filename: OnceCell<String>,
+    pub parser: RefCell<Option<MailParser>>,
   }
 
   impl Default for MailViewerWindow {
@@ -111,6 +112,7 @@ mod imp {
         sheet: TemplateChild::default(),
         settings: OnceCell::new(),
         filename: OnceCell::new(),
+        parser: RefCell::new(None),
       };
       window
     }
@@ -436,6 +438,7 @@ impl MailViewerWindow {
         match parser.parse() {
           Ok(_) => {
             window.show_eml(&parser);
+            window.imp().parser.borrow_mut().replace(parser);
           }
           Err(e) => {
             log::error!("Error : {}", e);
