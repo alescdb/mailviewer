@@ -37,20 +37,14 @@ pub struct Html {
 
 impl Html {
   pub fn new(body: &str, strip_css: bool) -> Self {
-    Self {
-      body: body.to_string(),
-      strip_css,
-    }
+    Self { body: body.to_string(), strip_css }
   }
 
   pub fn safe(&self) -> String {
     let document = Document::from(&self.body);
-    document
-      .select("script,meta,audio,video,iframe,link,object,embed,applet,form")
-      .iter()
-      .for_each(|mut node| {
-        node.remove();
-      });
+    document.select("script,meta,audio,video,iframe,link,object,embed,applet,form").iter().for_each(|mut node| {
+      node.remove();
+    });
     self.parse(&document.root());
     if self.strip_css {
       document.select("html").first().append_html(CSS);
@@ -66,12 +60,7 @@ impl Html {
           node.remove_attr("class");
         }
         // Collect attribute names that start with "on"
-        let attrs_to_remove: Vec<String> = node
-          .attrs()
-          .iter()
-          .filter(|attr| Self::starts_with_on(&attr.name.local))
-          .map(|attr| attr.name.local.as_ref().to_string())
-          .collect();
+        let attrs_to_remove: Vec<String> = node.attrs().iter().filter(|attr| Self::starts_with_on(&attr.name.local)).map(|attr| attr.name.local.as_ref().to_string()).collect();
 
         for attr_name in attrs_to_remove {
           node.remove_attr(&attr_name);
@@ -82,9 +71,7 @@ impl Html {
   }
 
   fn starts_with_on(s: &str) -> bool {
-    s.len() >= 2
-      && s.as_bytes()[0].eq_ignore_ascii_case(&b'o')
-      && s.as_bytes()[1].eq_ignore_ascii_case(&b'n')
+    s.len() >= 2 && s.as_bytes()[0].eq_ignore_ascii_case(&b'o') && s.as_bytes()[1].eq_ignore_ascii_case(&b'n')
   }
 }
 

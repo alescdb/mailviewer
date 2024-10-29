@@ -19,14 +19,7 @@
  */
 use base64::{engine::general_purpose, Engine};
 use gmime::{
-  glib,
-  prelude::Cast,
-  traits::{
-    ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt,
-    StreamMemExt,
-  },
-  InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part, Stream,
-  StreamFs, StreamMem,
+  glib, prelude::Cast, traits::{ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt, StreamMemExt}, InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part, Stream, StreamFs, StreamMem
 };
 use nipper::Document;
 use std::{error::Error, fmt, fs, path::PathBuf};
@@ -64,13 +57,7 @@ impl Attachment {
 
 impl fmt::Display for Attachment {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(
-      f,
-      "Attachment(content_id: {}, filename: {}, mime_type: {})",
-      self.content_id,
-      self.filename,
-      self.mime_type.as_deref().unwrap_or("None")
-    )
+    write!(f, "Attachment(content_id: {}, filename: {}, mime_type: {})", self.content_id, self.filename, self.mime_type.as_deref().unwrap_or("None"))
   }
 }
 
@@ -154,7 +141,8 @@ impl MailParser {
       if let Some(subject) = &eml.subject() {
         self.subject = subject.to_string();
       }
-      if let Some(date) = &eml.date() {
+      // Note : if not cloned() => GLib-CRITICAL g_date_time_unref: assertion 'datetime->ref_count > 0' failed
+      if let Some(date) = eml.date().clone() {
         self.date = match date.format("%Y-%m-%d %H:%M:%S") {
           Ok(s) => s.to_string(),
           Err(e) => e.to_string(),
@@ -312,18 +300,9 @@ impl MailParser {
   fn get_content(&self, part: &Part) -> String {
     let mut charset: Option<glib::GString> = None;
 
-    log::debug!(
-      "get_content() => part.content_type() {:?}",
-      part.content_type()
-    );
-    log::debug!(
-      "get_content() => part.content_encoding() {:?}",
-      part.content_encoding()
-    );
-    log::debug!(
-      "get_content() => part.content_disposition() {:?}",
-      part.content_disposition()
-    );
+    log::debug!("get_content() => part.content_type() {:?}", part.content_type());
+    log::debug!("get_content() => part.content_encoding() {:?}", part.content_encoding());
+    log::debug!("get_content() => part.content_disposition() {:?}", part.content_disposition());
 
     if let Some(content_type) = part.content_type() {
       charset = content_type.parameter("charset");
@@ -356,16 +335,10 @@ impl MailParser {
 
   fn add_attachment(&mut self, part: &Part) {
     if let Some(attachment) = self.get_attachment(part) {
-      log::debug!(
-        "add_attachment() => added attachment => {}",
-        attachment.filename
-      );
+      log::debug!("add_attachment() => added attachment => {}", attachment.filename);
       self.attachments.push(attachment);
     } else {
-      log::error!(
-        "add_attachment() => no attachment => {:?}",
-        part.content_id()
-      );
+      log::error!("add_attachment() => no attachment => {:?}", part.content_id());
     }
   }
 }
