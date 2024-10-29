@@ -16,6 +16,7 @@ struct Config {
 
 fn main() {
   let profile: String = env::var("PROFILE").unwrap();
+  println!("cargo:warning=profile => {:?}", &profile);
   if profile != "debug" {
     return;
   }

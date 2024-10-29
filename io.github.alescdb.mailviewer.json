@@ -54,6 +54,9 @@
           "OFFLINE_BUILD": "1"
         }
       },
+      "config-opts": [
+        "--buildtype=release"
+      ],
       "sources": [
         "mailviewer-sources.json",
         {

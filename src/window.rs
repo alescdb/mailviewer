@@ -75,6 +75,8 @@ mod imp {
     pub pull_label: TemplateChild<gtk4::Label>,
     #[template_child]
     pub attachments: TemplateChild<adw::PreferencesGroup>,
+    #[template_child]
+    pub sheet: TemplateChild<adw::BottomSheet>,
 
     //
     pub scrolled_window: ScrolledWindow,
@@ -106,6 +108,7 @@ mod imp {
         stack: TemplateChild::default(),
         pull_label: TemplateChild::default(),
         attachments: TemplateChild::default(),
+        sheet: TemplateChild::default(),
         settings: OnceCell::new(),
       };
       window
@@ -440,8 +443,17 @@ impl MailViewerWindow {
       imp.attachments.set_title(&label);
       imp.pull_label.set_text(&label);
     } else {
+      // never shown
       imp.pull_label.set_text("No attachments");
     }
+
+    if let Some(widget) = imp.sheet.bottom_bar() {
+      if total > 0 {
+        widget.set_visible(true)
+      } else {
+        widget.set_visible(false)
+      }
+    };
   }
   pub fn alert_error(&self, title: &str, message: &str) -> adw::AlertDialog {
     let alert = adw::AlertDialog::new(Some(title), Some(message));
