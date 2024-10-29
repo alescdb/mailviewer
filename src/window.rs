@@ -38,9 +38,8 @@ use webkit6::{
 mod imp {
   use super::*;
   use adw::subclass::prelude::CompositeTemplateClass;
-  use glib::subclass::Signal;
   use gtk4::ScrolledWindow;
-  use std::{cell::OnceCell, sync::OnceLock};
+  use std::cell::OnceCell;
 
   #[derive(Debug, gtk4::CompositeTemplate)]
   #[template(resource = "/io/github/alescdb/mailviewer/window.ui")]
@@ -84,6 +83,7 @@ mod imp {
     pub web_settings: webkit6::Settings,
     pub html: OnceCell<String>,
     pub settings: OnceCell<gio::Settings>,
+    pub filename: OnceCell<String>,
   }
 
   impl Default for MailViewerWindow {
@@ -110,6 +110,7 @@ mod imp {
         attachments: TemplateChild::default(),
         sheet: TemplateChild::default(),
         settings: OnceCell::new(),
+        filename: OnceCell::new(),
       };
       window
     }
@@ -133,12 +134,7 @@ mod imp {
     }
   }
 
-  impl ObjectImpl for MailViewerWindow {
-    fn signals() -> &'static [Signal] {
-      static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
-      SIGNALS.get_or_init(|| vec![Signal::builder("eml-parsed").build()])
-    }
-  }
+  impl ObjectImpl for MailViewerWindow {}
   impl WidgetImpl for MailViewerWindow {}
   impl WindowImpl for MailViewerWindow {}
   impl ApplicationWindowImpl for MailViewerWindow {}
@@ -154,13 +150,6 @@ glib::wrapper! {
 impl MailViewerWindow {
   pub fn new<P: IsA<gtk4::Application>>(application: &P) -> Self {
     let window: Self = glib::Object::builder().property("application", application).build();
-
-    window.connect_local("eml-parsed", false, move |values| {
-      let obj = values[0].get::<Self>().unwrap();
-      obj.on_eml_parsed();
-      None
-    });
-
     window.set_title(Some(&format!("Mail Viewer v{}", VERSION)));
     window.initialize();
     window
@@ -208,6 +197,8 @@ impl MailViewerWindow {
     imp.web_settings.set_auto_load_images(false);
     imp.web_view.set_settings(&imp.web_settings);
     imp.placeholder.set_child(Some(&imp.web_view));
+
+    self.open_or_ask();
   }
 
   fn initialize_actions(&self) {
@@ -380,18 +371,45 @@ impl MailViewerWindow {
     imp.zoom_plus.set_visible(!show);
   }
 
-  pub fn on_eml_parsed(&self) {
+  pub fn open_or_ask(&self) {
     let app = self.application();
     if let Some(app) = app {
       if let Ok(app) = app.downcast::<MailViewerApplication>() {
-        if let Some(parser) = app.imp().parser.get() {
-          self.show_eml(parser);
+        if let Some(filename) = app.imp().filename.get() {
+          self.imp().filename.set(filename.to_string()).expect("Error setting filename !");
+          self.open_file(filename);
           return;
         }
       }
     }
+
     let win = self;
-    self.alert_error("File Error", "No file provided").connect_response(
+    if !self.imp().filename.get().is_some() {
+      let save_dialog = gtk4::FileChooserDialog::new(
+        Some("Open file..."),
+        Some(self),
+        gtk4::FileChooserAction::Open,
+        &[("_Cancel", gtk4::ResponseType::Cancel), ("_Save", gtk4::ResponseType::Accept)],
+      );
+      save_dialog.set_modal(true);
+      save_dialog.connect_response(clone!(
+        #[strong]
+        win,
+        move |dialog, response| {
+          if response == gtk4::ResponseType::Accept {
+            let path = dialog.file().unwrap().path().unwrap();
+            log::debug!("Open eml file : {:?}", path);
+            win.open_file(path.to_str().unwrap());
+          }
+          dialog.close();
+        }
+      ));
+      save_dialog.show();
+    }
+
+    /*
+    let filename = if self.imp().filename.get().is_some() { self.imp().filename.get().unwrap() } else { &"<unkown>".to_string() };
+    self.alert_error("File Error", &format!("File not found :\n{}", filename)).connect_response(
       Some("close"),
       clone!(
         #[strong]
@@ -401,9 +419,34 @@ impl MailViewerWindow {
         }
       ),
     );
+     */
+  }
+
+  fn open_file(&self, file: &str) {
+    let window = self;
+    let filename = file.to_string();
+
+    glib::idle_add_local_once(glib::clone!(
+      #[weak]
+      window,
+      #[strong]
+      filename,
+      move || {
+        let mut parser = MailParser::new(&filename);
+        match parser.parse() {
+          Ok(_) => {
+            window.show_eml(&parser);
+          }
+          Err(e) => {
+            log::error!("Error : {}", e);
+          }
+        };
+      }
+    ));
   }
 
   pub fn show_eml(&self, parser: &MailParser) {
+    log::debug!("show_eml()");
     let imp = self.imp();
 
     imp.eml_from.set_text(parser.from.as_str());
@@ -455,6 +498,7 @@ impl MailViewerWindow {
       }
     };
   }
+
   pub fn alert_error(&self, title: &str, message: &str) -> adw::AlertDialog {
     let alert = adw::AlertDialog::new(Some(title), Some(message));
     alert.add_response("close", "Close");
