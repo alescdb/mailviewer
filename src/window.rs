@@ -408,20 +408,6 @@ impl MailViewerWindow {
       ));
       save_dialog.show();
     }
-
-    /*
-    let filename = if self.imp().filename.get().is_some() { self.imp().filename.get().unwrap() } else { &"<unkown>".to_string() };
-    self.alert_error("File Error", &format!("File not found :\n{}", filename)).connect_response(
-      Some("close"),
-      clone!(
-        #[strong]
-        win,
-        move |_, _| {
-          win.close();
-        }
-      ),
-    );
-     */
   }
 
   fn open_file(&self, file: &str) {

@@ -1,7 +1,7 @@
 project(
   'mailviewer',
   'rust',
-  version: '0.9.5',
+  version: '0.9.6',
   meson_version: '>= 0.62.0',
   default_options: [
     'warning_level=2',
