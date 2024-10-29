@@ -7,31 +7,14 @@ RESOURCES   := $(DEBUG)/share/mailviewer/mailviewer.gresource
 SCHEMAS     := $(DEBUG)/dist/share/glib-2.0/schemas/gschemas.compiled
 MANIFEST    := $(CURRENT_DIR)/io.github.alescdb.mailviewer.json
 
-all: gresources
-	make reconfigure
+all:
 	cargo build
 
-run: gresources
-	make reconfigure
+run:
 	cargo run -- sample.eml
 
 format:
 	cargo +nightly fmt
-
-$(RESOURCES): $(CURRENT_DIR)/src/mailviewer.gresource.xml src/**.ui
-	mkdir -p $(DEBUG)/share/mailviewer
-	glib-compile-resources \
-		--sourcedir=$(CURRENT_DIR)/src \
-		--target=$(DEBUG)/share/mailviewer/mailviewer.gresource \
-		$(CURRENT_DIR)/src/mailviewer.gresource.xml
-
-$(SCHEMAS): $(CURRENT_DIR)/data/io.github.alescdb.mailviewer.gschema.xml 
-	mkdir -p $(DEBUG)/share/glib-2.0/schemas
-	glib-compile-schemas \
-		--targetdir=$(DEBUG)/share/glib-2.0/schemas/ \
-		$(CURRENT_DIR)/data/
-
-gresources: $(RESOURCES) $(SCHEMAS)
 
 flatpak: $(SOURCES) $(MANIFEST)
 	flatpak run org.flatpak.Builder \
