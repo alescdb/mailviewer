@@ -48,6 +48,13 @@ if OFFLINE_BUILD == '1'
   cargo_env = ['CARGO_HOME=' + '/run/build/mailviewer/cargo']
 endif
 
+message('OFFLINE_BUILD=' + OFFLINE_BUILD)
+message('rust_target=' + rust_target)
+message('buildtype=' + get_option('buildtype'))
+
+message('cargo_opt=')
+message(cargo_opt)
+
 custom_target(
   'cargo-build',
   build_by_default: true,

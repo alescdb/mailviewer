@@ -141,8 +141,7 @@ impl MailParser {
       if let Some(subject) = &eml.subject() {
         self.subject = subject.to_string();
       }
-      // Note : if not cloned() => GLib-CRITICAL g_date_time_unref: assertion 'datetime->ref_count > 0' failed
-      if let Some(date) = eml.date().clone() {
+      if let Some(date) = &eml.date() {
         self.date = match date.format("%Y-%m-%d %H:%M:%S") {
           Ok(s) => s.to_string(),
           Err(e) => e.to_string(),
