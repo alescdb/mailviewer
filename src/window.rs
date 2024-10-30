@@ -28,7 +28,7 @@ use adw::{
   prelude::{AlertDialogExt, *},
   subclass::prelude::*,
 };
-use gtk4::{gio, glib, template_callbacks};
+use gtk4::{gio, glib, prelude::FileChooserExt, template_callbacks, ResponseType};
 use std::{borrow::BorrowMut, option::Option};
 use webkit6::{
   prelude::{PolicyDecisionExt, WebViewExt},
@@ -129,6 +129,20 @@ mod imp {
     fn class_init(klass: &mut Self::Class) {
       klass.bind_template();
       klass.bind_template_instance_callbacks();
+      klass.install_action_async(
+        "open.file",
+        None,
+        |window, _, parameter: Option<glib::Variant>| async move {
+          let mut close = false;
+          if let Some(param) = parameter {
+            close = param.get::<bool>().unwrap_or(false);
+          }
+          let _ = window.open_file_dialog(close).await;
+        },
+      );
+      klass.install_action("win.preferences", None, move |win, _, _| {
+        win.show_preferences();
+      });
     }
 
     fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -151,8 +165,11 @@ glib::wrapper! {
 #[template_callbacks]
 impl MailViewerWindow {
   pub fn new<P: IsA<gtk4::Application>>(application: &P) -> Self {
-    let window: Self = glib::Object::builder().property("application", application).build();
-    window.set_title(Some(&format!("Mail Viewer v{}", VERSION)));
+    let window: Self = glib::Object::builder()
+      .property("application", application)
+      .build();
+
+    window.set_window_title(Some(false));
     window.initialize();
     window
   }
@@ -219,17 +236,34 @@ impl MailViewerWindow {
   fn initialize_settings(&self) {
     let settings = gio::Settings::new(crate::config::APP_ID);
     let imp = self.imp();
-    let reset_zoom = gio::ActionEntry::builder("zoom-reset").activate(move |win: &Self, _, _| win.reset_zoom()).build();
+    let reset_zoom = gio::ActionEntry::builder("zoom-reset")
+      .activate(move |win: &Self, _, _| win.reset_zoom())
+      .build();
     self.add_action_entries([reset_zoom]);
 
     imp.settings.set(settings.clone()).unwrap();
     imp.web_view.set_zoom_level(settings.get::<f64>("zoom"));
 
-    settings.bind("width", self, "default-width").flags(gio::SettingsBindFlags::DEFAULT).build();
-    settings.bind("height", self, "default-height").flags(gio::SettingsBindFlags::DEFAULT).build();
-    settings.bind("height", self, "default-height").flags(gio::SettingsBindFlags::DEFAULT).build();
-    settings.bind("is-maximized", self, "maximized").flags(gio::SettingsBindFlags::DEFAULT).build();
-    settings.bind("is-fullscreen", self, "fullscreened").flags(gio::SettingsBindFlags::DEFAULT).build();
+    settings
+      .bind("width", self, "default-width")
+      .flags(gio::SettingsBindFlags::DEFAULT)
+      .build();
+    settings
+      .bind("height", self, "default-height")
+      .flags(gio::SettingsBindFlags::DEFAULT)
+      .build();
+    settings
+      .bind("height", self, "default-height")
+      .flags(gio::SettingsBindFlags::DEFAULT)
+      .build();
+    settings
+      .bind("is-maximized", self, "maximized")
+      .flags(gio::SettingsBindFlags::DEFAULT)
+      .build();
+    settings
+      .bind("is-fullscreen", self, "fullscreened")
+      .flags(gio::SettingsBindFlags::DEFAULT)
+      .build();
   }
 
   fn reset_zoom(&self) {
@@ -239,8 +273,15 @@ impl MailViewerWindow {
 
   fn add_attachment(&self, attachment: &Attachment) {
     let window = self;
-    let mime = &attachment.clone().mime_type.unwrap_or("Unknown".to_string());
-    let icon = if mime.starts_with("image") { "image-x-generic-symbolic" } else { "document-open" };
+    let mime = &attachment
+      .clone()
+      .mime_type
+      .unwrap_or("Unknown".to_string());
+    let icon = if mime.starts_with("image") {
+      "image-x-generic-symbolic"
+    } else {
+      "document-open"
+    };
 
     let save = gtk4::Button::new();
     save.set_valign(gtk4::Align::Center);
@@ -255,7 +296,11 @@ impl MailViewerWindow {
         window.on_attachment_save(&attachment);
       }
     ));
-    let btn = adw::ActionRow::builder().title(attachment.filename.to_string()).subtitle(mime).activatable(true).build();
+    let btn = adw::ActionRow::builder()
+      .title(attachment.filename.to_string())
+      .subtitle(mime)
+      .activatable(true)
+      .build();
     btn.add_prefix(&gtk4::Image::from_icon_name(icon));
     btn.add_suffix(&save);
 
@@ -279,7 +324,10 @@ impl MailViewerWindow {
       Some("Save attachment..."),
       Some(self),
       gtk4::FileChooserAction::Save,
-      &[("_Cancel", gtk4::ResponseType::Cancel), ("_Save", gtk4::ResponseType::Accept)],
+      &[
+        ("_Cancel", gtk4::ResponseType::Cancel),
+        ("_Save", gtk4::ResponseType::Accept),
+      ],
     );
     save_dialog.set_modal(true);
     save_dialog.set_current_name(&attachment.filename);
@@ -322,14 +370,22 @@ impl MailViewerWindow {
   fn set_zoom_level(&self, zoom: f64) {
     log::debug!("set_zoom({})", zoom);
     self.imp().web_view.set_zoom_level(zoom);
-    let _ = self.imp().settings.get().expect("Error settings !").set("zoom", zoom);
+    let _ = self
+      .imp()
+      .settings
+      .get()
+      .expect("Error settings !")
+      .set("zoom", zoom);
   }
 
   fn load_html(&self, force_css: bool) {
     log::debug!("load_html({})", force_css);
     match self.imp().html.get() {
       Some(html) => {
-        self.imp().web_view.load_html(&*Html::new(html, force_css).safe(), None);
+        self
+          .imp()
+          .web_view
+          .load_html(&*Html::new(html, force_css).safe(), None);
       }
       None => {
         log::error!("HTML not set");
@@ -338,12 +394,25 @@ impl MailViewerWindow {
     }
   }
 
-  fn on_decide_policy(&self, _webview: &WebView, policy: &PolicyDecision, decision_type: PolicyDecisionType) -> bool {
-    if decision_type == PolicyDecisionType::NavigationAction || decision_type == PolicyDecisionType::NewWindowAction {
-      let policy = policy.clone().downcast::<NavigationPolicyDecision>().expect("Unable to cast policy");
+  fn on_decide_policy(
+    &self,
+    _webview: &WebView,
+    policy: &PolicyDecision,
+    decision_type: PolicyDecisionType,
+  ) -> bool {
+    if decision_type == PolicyDecisionType::NavigationAction
+      || decision_type == PolicyDecisionType::NewWindowAction
+    {
+      let policy = policy
+        .clone()
+        .downcast::<NavigationPolicyDecision>()
+        .expect("Unable to cast policy");
       let navigation_action = policy.navigation_action();
       if let Some(mut navigation_action) = navigation_action {
-        let request = navigation_action.borrow_mut().request().expect("Unable to get request");
+        let request = navigation_action
+          .borrow_mut()
+          .request()
+          .expect("Unable to get request");
         let uri = request.uri();
         if let Some(uri) = uri {
           if uri.starts_with("about:") {
@@ -365,7 +434,10 @@ impl MailViewerWindow {
   fn on_show_text(&self, show: bool) {
     log::debug!("on_show_text({})", show);
     let imp = self.imp();
-    imp.stack.get().set_visible_child_name(if show { "text" } else { "html" });
+    imp
+      .stack
+      .get()
+      .set_visible_child_name(if show { "text" } else { "html" });
 
     imp.show_images.set_visible(!show);
     imp.force_css.set_visible(!show);
@@ -373,42 +445,58 @@ impl MailViewerWindow {
     imp.zoom_plus.set_visible(!show);
   }
 
+  pub async fn open_file_dialog(
+    &self,
+    _close_on_cancel: bool,
+  ) -> Result<(), Box<dyn std::error::Error>> {
+    log::debug!("open_file_dialog()");
+    let load_dialog = gtk4::FileChooserDialog::new(
+      Some("Open EML File"),
+      Some(self),
+      gtk4::FileChooserAction::Open,
+      &[
+        ("_Cancel", gtk4::ResponseType::Cancel),
+        ("_Open", gtk4::ResponseType::Accept),
+      ],
+    );
+    let filter = gtk4::FileFilter::new();
+    filter.add_pattern("*.eml");
+    filter.set_name(Some("EML Files"));
+    load_dialog.set_filter(&filter);
+    load_dialog.set_modal(true);
+    let response: ResponseType = load_dialog.run_future().await;
+    log::debug!("open_file_dialog() => {:?}", response);
+    if response == gtk4::ResponseType::Accept {
+      if let Some(file) = load_dialog.file() {
+        if let Some(path) = file.path() {
+          self.open_file(path.to_str().unwrap());
+        }
+      }
+    } else if _close_on_cancel {
+      self.close();
+    }
+    load_dialog.close();
+    Ok(())
+  }
+
   pub fn open_or_ask(&self) {
     let app = self.application();
     if let Some(app) = app {
       if let Ok(app) = app.downcast::<MailViewerApplication>() {
         if let Some(filename) = app.imp().filename.get() {
-          self.imp().filename.set(filename.to_string()).expect("Error setting filename !");
+          self
+            .imp()
+            .filename
+            .set(filename.to_string())
+            .expect("Error setting filename !");
           self.open_file(filename);
           return;
         }
       }
     }
 
-    let win = self;
-    if !self.imp().filename.get().is_some() {
-      let save_dialog = gtk4::FileChooserDialog::new(
-        Some("Open file..."),
-        Some(self),
-        gtk4::FileChooserAction::Open,
-        &[("_Cancel", gtk4::ResponseType::Cancel), ("_Open", gtk4::ResponseType::Accept)],
-      );
-      save_dialog.set_modal(true);
-      save_dialog.connect_response(clone!(
-        #[strong]
-        win,
-        move |dialog, response| {
-          if response == gtk4::ResponseType::Accept {
-            let path = dialog.file().unwrap().path().unwrap();
-            win.open_file(path.to_str().unwrap());
-          } if response == gtk4::ResponseType::Cancel {
-            win.close();
-          }
-          dialog.close();
-        }
-      ));
-      save_dialog.show();
-    }
+    adw::prelude::WidgetExt::activate_action(self, "open.file", Some(&glib::Variant::from(true)))
+      .expect("Error opening file dialog !");
   }
 
   fn open_file(&self, file: &str) {
@@ -418,16 +506,19 @@ impl MailViewerWindow {
     log::debug!("open_file({})", file);
     if std::path::Path::new(&filename).exists() == false {
       log::error!("File not found : {}", filename);
-      self.alert_error("File Error", &format!("File not found :\n{}", filename)).connect_response(
-        Some("close"),
-        clone!(
-          #[strong]
-          window,
-          move |_, _| {
-            window.close();
-          }
-        ),
-      );
+
+      self
+        .alert_error("File Error", &format!("File not found :\n{}", filename))
+        .connect_response(
+          Some("close"),
+          clone!(
+            #[strong]
+            window,
+            move |_, _| {
+              window.close();
+            }
+          ),
+        );
       return;
     }
 
@@ -455,6 +546,7 @@ impl MailViewerWindow {
     log::debug!("show_eml()");
     let imp = self.imp();
 
+    self.set_window_title(None);
     imp.eml_from.set_text(parser.from.as_str());
     imp.eml_date.set_text(parser.date.as_str());
     imp.eml_to.set_text(parser.to.as_str());
@@ -472,7 +564,9 @@ impl MailViewerWindow {
 
     if let Some(html) = parser.body_html.clone() {
       imp.html.set(html.clone()).expect("HTML already set.");
-      imp.web_view.load_html(&Html::new(&html, false).safe(), None);
+      imp
+        .web_view
+        .load_html(&Html::new(&html, false).safe(), None);
       has_html = true;
     }
 
@@ -511,5 +605,60 @@ impl MailViewerWindow {
     alert.set_response_appearance("close", adw::ResponseAppearance::Destructive);
     alert.present(Some(self));
     alert
+  }
+
+  fn show_preferences(&self) {
+    log::debug!("show_preferences()");
+
+    let settings = self.imp().settings.get().expect("Error settings !");
+    let builder = gtk4::Builder::from_resource("/io/github/alescdb/mailviewer/preferences.ui");
+    let show_file_name: adw::SwitchRow = builder.object("show_file_name").unwrap();
+    settings
+      .bind("show-file-name", &show_file_name, "active")
+      .build();
+
+    let prefs: adw::PreferencesDialog = builder.object("preferences").unwrap();
+    prefs.present(Some(self));
+    prefs.connect_closed(clone!(
+      #[weak(rename_to = win)]
+      self,
+      #[weak]
+      settings,
+      move |_| {
+        log::debug!("show_preferences() => done");
+        win.set_window_title(Some(settings.get::<bool>("show-file-name")));
+      }
+    ));
+  }
+
+  fn set_window_title(&self, show_file: Option<bool>) {
+    self.set_title(Some(&self.get_window_title(show_file)));
+  }
+
+  fn get_window_title(&self, show_file: Option<bool>) -> String {
+    let mut show = false;
+
+    if let Some(show_file) = show_file {
+      show = show_file;
+    } else {
+      let settings = self.imp().settings.get();
+      if let Some(settings) = settings.as_ref() {
+        show = settings.get::<bool>("show-file-name");
+      }
+    }
+
+    if show {
+      if let Some(fullpath) = self.imp().filename.get() {
+        let filename = std::path::Path::new(&fullpath)
+          .file_name() // Récupère le nom de fichier (optionnel)
+          .and_then(|name| name.to_str());
+
+        if let Some(filename) = filename {
+          return filename.to_string();
+        }
+      }
+    }
+
+    format!("Mail Viewer v{}", VERSION)
   }
 }

@@ -16,5 +16,8 @@
     <key name="zoom" type="d">
       <default>1.0</default>
     </key>
+    <key name="show-file-name" type="b">
+      <default>true</default>
+    </key>
   </schema>
 </schemalist>

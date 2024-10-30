@@ -47,15 +47,9 @@ impl Html {
     });
     self.parse(&document.root());
     if self.strip_css {
-      document
-        .select("html")
-        .select("head")
-        .first()
-        .append_html(CSS);
+      document.select("html").select("head").first().append_html(CSS);
     }
-    document
-      .html()
-      .to_string()
+    document.html().to_string()
   }
 
   fn parse(&self, root: &Node) {
