@@ -49,6 +49,8 @@ mod imp {
       let obj = self.obj();
       obj.setup_gactions();
       obj.set_accels_for_action("app.quit", &["<primary>q"]);
+      obj.set_accels_for_action("win.open-file", &["<primary>o"]);
+      obj.set_accels_for_action("win.reset-zoom", &["<primary>r"]);
     }
   }
 
@@ -84,7 +86,6 @@ mod imp {
           self.filename.set(path.to_str().unwrap().to_string()).expect("File already initialized.");
         }
       }
-
       self.activate();
     }
   }

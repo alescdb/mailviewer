@@ -81,9 +81,9 @@ mod imp {
     pub scrolled_window: ScrolledWindow,
     pub web_view: webkit6::WebView,
     pub web_settings: webkit6::Settings,
-    pub html: OnceCell<String>,
     pub settings: OnceCell<gio::Settings>,
-    pub filename: OnceCell<String>,
+    pub html: RefCell<String>,
+    pub filename: RefCell<Option<String>>,
     pub parser: RefCell<Option<MailParser>>,
   }
 
@@ -93,7 +93,6 @@ mod imp {
         web_view: WebView::new(),
         web_settings: webkit6::Settings::new(),
         scrolled_window: ScrolledWindow::new(),
-        html: OnceCell::new(),
         eml_from: TemplateChild::default(),
         eml_to: TemplateChild::default(),
         eml_subject: TemplateChild::default(),
@@ -111,7 +110,8 @@ mod imp {
         attachments: TemplateChild::default(),
         sheet: TemplateChild::default(),
         settings: OnceCell::new(),
-        filename: OnceCell::new(),
+        html: RefCell::new(String::new()),
+        filename: RefCell::new(None),
         parser: RefCell::new(None),
       };
       window
@@ -130,18 +130,21 @@ mod imp {
       klass.bind_template();
       klass.bind_template_instance_callbacks();
       klass.install_action_async(
-        "open.file",
+        "win.open-file",
         None,
         |window, _, parameter: Option<glib::Variant>| async move {
           let mut close = false;
           if let Some(param) = parameter {
             close = param.get::<bool>().unwrap_or(false);
           }
-          let _ = window.open_file_dialog(close).await;
+          window.open_file_dialog(close).await.expect("Error open_file_dialog()");
         },
       );
       klass.install_action("win.preferences", None, move |win, _, _| {
         win.show_preferences();
+      });
+      klass.install_action("win.reset-zoom", None, move |win, _, _| {
+        win.reset_zoom();
       });
     }
 
@@ -169,8 +172,8 @@ impl MailViewerWindow {
       .property("application", application)
       .build();
 
-    window.set_window_title(Some(false));
     window.initialize();
+    window.set_window_title(Some(false));
     window
   }
 
@@ -211,7 +214,6 @@ impl MailViewerWindow {
     let imp = self.imp();
     self.initialize_settings();
     self.initialize_actions();
-
     imp.web_settings.set_enable_javascript(false);
     imp.web_settings.set_auto_load_images(false);
     imp.web_view.set_settings(&imp.web_settings);
@@ -223,6 +225,16 @@ impl MailViewerWindow {
   fn initialize_actions(&self) {
     let win = self;
     let imp = self.imp();
+
+    /*
+    let shortcut_controller = gtk4::ShortcutController::new();
+    let shortcut: gtk4::Shortcut = gtk4::Shortcut::new(
+      gtk4::ShortcutTrigger::parse_string("<Primary>o"),
+      gtk4::ShortcutAction::parse_string("action(open.file)")
+    );
+    shortcut_controller.add_shortcut(shortcut);
+    self.add_controller(shortcut_controller);
+    */
 
     imp.web_view.connect_decide_policy(clone!(
       #[strong]
@@ -380,18 +392,10 @@ impl MailViewerWindow {
 
   fn load_html(&self, force_css: bool) {
     log::debug!("load_html({})", force_css);
-    match self.imp().html.get() {
-      Some(html) => {
-        self
-          .imp()
-          .web_view
-          .load_html(&*Html::new(html, force_css).safe(), None);
-      }
-      None => {
-        log::error!("HTML not set");
-        self.alert_error("Error", "HTML not set");
-      }
-    }
+    self.imp().web_view.load_html(
+      &*Html::new(&self.imp().html.borrow(), force_css).safe(),
+      None,
+    );
   }
 
   fn on_decide_policy(
@@ -484,19 +488,18 @@ impl MailViewerWindow {
     if let Some(app) = app {
       if let Ok(app) = app.downcast::<MailViewerApplication>() {
         if let Some(filename) = app.imp().filename.get() {
-          self
-            .imp()
-            .filename
-            .set(filename.to_string())
-            .expect("Error setting filename !");
           self.open_file(filename);
           return;
         }
       }
     }
 
-    adw::prelude::WidgetExt::activate_action(self, "open.file", Some(&glib::Variant::from(true)))
-      .expect("Error opening file dialog !");
+    adw::prelude::WidgetExt::activate_action(
+      self,
+      "win.open-file",
+      Some(&glib::Variant::from(true)),
+    )
+    .expect("Error opening file dialog !");
   }
 
   fn open_file(&self, file: &str) {
@@ -522,6 +525,11 @@ impl MailViewerWindow {
       return;
     }
 
+    self
+      .imp()
+      .filename
+      .borrow_mut()
+      .replace(filename.to_string());
     glib::idle_add_local_once(glib::clone!(
       #[weak]
       window,
@@ -563,11 +571,13 @@ impl MailViewerWindow {
     }
 
     if let Some(html) = parser.body_html.clone() {
-      imp.html.set(html.clone()).expect("HTML already set.");
+      imp.html.replace(html.clone());
       imp
         .web_view
         .load_html(&Html::new(&html, false).safe(), None);
       has_html = true;
+    } else {
+      imp.html.replace(String::new());
     }
 
     if has_text && !has_html {
@@ -640,15 +650,19 @@ impl MailViewerWindow {
 
     if let Some(show_file) = show_file {
       show = show_file;
+      log::debug!("show_file_name (parameter) = {}", show);
     } else {
       let settings = self.imp().settings.get();
       if let Some(settings) = settings.as_ref() {
         show = settings.get::<bool>("show-file-name");
+        log::debug!("show_file_name (settings) = {}", show);
       }
     }
 
+    log::debug!("show_file_name (final) = {}", show);
     if show {
-      if let Some(fullpath) = self.imp().filename.get() {
+      if let Some(fullpath) = &*self.imp().filename.borrow() {
+        log::debug!("show_file_name (file) = {}", fullpath);
         let filename = std::path::Path::new(&fullpath)
           .file_name() // Récupère le nom de fichier (optionnel)
           .and_then(|name| name.to_str());
@@ -656,6 +670,8 @@ impl MailViewerWindow {
         if let Some(filename) = filename {
           return filename.to_string();
         }
+      } else {
+        log::error!("show_file_name (filename is empty)");
       }
     }
 
