@@ -7,4 +7,4 @@ overflow_delimited_expr = true
 remove_nested_parens = true
 imports_layout = "Horizontal"
 imports_granularity = "Crate"
-max_width = 240
+max_width = 100

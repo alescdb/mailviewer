@@ -19,7 +19,14 @@
  */
 use base64::{engine::general_purpose, Engine};
 use gmime::{
-  glib, prelude::Cast, traits::{ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt, StreamMemExt}, InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part, Stream, StreamFs, StreamMem
+  glib,
+  prelude::Cast,
+  traits::{
+    ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt,
+    StreamMemExt,
+  },
+  InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part,
+  Stream, StreamFs, StreamMem,
 };
 use nipper::Document;
 use std::{error::Error, fmt, fs, path::PathBuf};
@@ -57,7 +64,13 @@ impl Attachment {
 
 impl fmt::Display for Attachment {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "Attachment(content_id: {}, filename: {}, mime_type: {})", self.content_id, self.filename, self.mime_type.as_deref().unwrap_or("None"))
+    write!(
+      f,
+      "Attachment(content_id: {}, filename: {}, mime_type: {})",
+      self.content_id,
+      self.filename,
+      self.mime_type.as_deref().unwrap_or("None")
+    )
   }
 }
 
@@ -107,6 +120,10 @@ impl MailParser {
     }
   }
 
+  pub fn get_filename(&self) -> String {
+    self.file.to_string()
+  }
+  
   fn get_temp_folder() -> PathBuf {
     let mut path = PathBuf::from(std::env::var("XDG_RUNTIME_DIR").unwrap());
     path.push("mailviewer");
@@ -282,7 +299,8 @@ impl MailParser {
         if src.starts_with("cid:") {
           let cid = src.split_at(4).1;
           log::debug!("Found CID => {}", cid);
-          if let Some(attachment) = self.attachments.iter().find(|a| a.content_id == cid) {
+          if let Some(attachment) = self.attachments.iter().find(|a| a.content_id == cid)
+          {
             log::debug!("Found CID Attachment => {}", attachment.filename);
             if let Some(mime_type) = attachment.mime_type.as_deref() {
               let b64 = general_purpose::STANDARD.encode(&attachment.body);
@@ -299,9 +317,18 @@ impl MailParser {
   fn get_content(&self, part: &Part) -> String {
     let mut charset: Option<glib::GString> = None;
 
-    log::debug!("get_content() => part.content_type() {:?}", part.content_type());
-    log::debug!("get_content() => part.content_encoding() {:?}", part.content_encoding());
-    log::debug!("get_content() => part.content_disposition() {:?}", part.content_disposition());
+    log::debug!(
+      "get_content() => part.content_type() {:?}",
+      part.content_type()
+    );
+    log::debug!(
+      "get_content() => part.content_encoding() {:?}",
+      part.content_encoding()
+    );
+    log::debug!(
+      "get_content() => part.content_disposition() {:?}",
+      part.content_disposition()
+    );
 
     if let Some(content_type) = part.content_type() {
       charset = content_type.parameter("charset");
@@ -334,10 +361,16 @@ impl MailParser {
 
   fn add_attachment(&mut self, part: &Part) {
     if let Some(attachment) = self.get_attachment(part) {
-      log::debug!("add_attachment() => added attachment => {}", attachment.filename);
+      log::debug!(
+        "add_attachment() => added attachment => {}",
+        attachment.filename
+      );
       self.attachments.push(attachment);
     } else {
-      log::error!("add_attachment() => no attachment => {:?}", part.content_id());
+      log::error!(
+        "add_attachment() => no attachment => {:?}",
+        part.content_id()
+      );
     }
   }
 }

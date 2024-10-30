@@ -46,7 +46,7 @@ mod tests {
     assert!(!body.contains("<embed>"));
     assert!(!body.contains("<applet>"));
     assert!(!body.contains("<form>"));
-    
+
     assert!(body.contains(&mailviewer::html::CSS.to_lowercase()));
 
     Ok(())
