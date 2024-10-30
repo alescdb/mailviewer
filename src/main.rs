@@ -22,6 +22,7 @@ mod application;
 mod config;
 mod html;
 mod mailparser;
+mod mailservice;
 mod window;
 
 use self::{application::MailViewerApplication, window::MailViewerWindow};

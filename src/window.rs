@@ -22,6 +22,7 @@ use crate::{
   config::VERSION,
   html::Html,
   mailparser::{Attachment, MailParser},
+  mailservice::MailService,
 };
 use adw::{
   glib::clone,
@@ -85,6 +86,7 @@ mod imp {
     pub html: RefCell<String>,
     pub filename: RefCell<Option<String>>,
     pub parser: RefCell<Option<MailParser>>,
+    pub service: MailService,
   }
 
   impl Default for MailViewerWindow {
@@ -113,6 +115,7 @@ mod imp {
         html: RefCell::new(String::new()),
         filename: RefCell::new(None),
         parser: RefCell::new(None),
+        service: MailService::new(),
       };
       window
     }
@@ -137,7 +140,10 @@ mod imp {
           if let Some(param) = parameter {
             close = param.get::<bool>().unwrap_or(false);
           }
-          window.open_file_dialog(close).await.expect("Error open_file_dialog()");
+          window
+            .open_file_dialog(close)
+            .await
+            .expect("Error open_file_dialog()");
         },
       );
       klass.install_action("win.preferences", None, move |win, _, _| {
@@ -212,8 +218,10 @@ impl MailViewerWindow {
   fn initialize(&self) {
     log::debug!("initialize()");
     let imp = self.imp();
+
     self.initialize_settings();
     self.initialize_actions();
+
     imp.web_settings.set_enable_javascript(false);
     imp.web_settings.set_auto_load_images(false);
     imp.web_view.set_settings(&imp.web_settings);
@@ -276,6 +284,18 @@ impl MailViewerWindow {
       .bind("is-fullscreen", self, "fullscreened")
       .flags(gio::SettingsBindFlags::DEFAULT)
       .build();
+
+    self
+      .imp()
+      .service
+      .set_show_file_name(settings.get::<bool>("show-file-name"));
+    imp.service.connect_title_changed(clone!(
+      #[weak(rename_to = window)]
+      self,
+      move |_, title| {
+        window.set_title(Some(title));
+      }
+    ));
   }
 
   fn reset_zoom(&self) {
@@ -484,7 +504,7 @@ impl MailViewerWindow {
   }
 
   pub fn open_or_ask(&self) {
-    let app = self.application();
+    let app: Option<gtk4::Application> = self.application();
     if let Some(app) = app {
       if let Ok(app) = app.downcast::<MailViewerApplication>() {
         if let Some(filename) = app.imp().filename.get() {
@@ -646,7 +666,7 @@ impl MailViewerWindow {
   }
 
   fn get_window_title(&self, show_file: Option<bool>) -> String {
-    let mut show = false;
+    let mut show: bool = false;
 
     if let Some(show_file) = show_file {
       show = show_file;

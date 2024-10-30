@@ -74,7 +74,7 @@ impl fmt::Display for Attachment {
   }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct MailParser {
   file: String,
   temp: PathBuf,
