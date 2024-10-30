@@ -7,5 +7,6 @@
       "task": "MailViewer"
     }
   ],
-  "makefile.configureOnOpen": false
+  "makefile.configureOnOpen": false,
+  "mesonbuild.configureOnOpen": false
 }
