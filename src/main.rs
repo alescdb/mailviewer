@@ -33,10 +33,10 @@ use gtk4::{gio, glib, prelude::*};
 fn main() -> glib::ExitCode {
   env_logger::init();
 
-  let resources = gio::Resource::load(PKGDATADIR.to_owned() + "/mailviewer.gresource").expect("Could not load resources");
+  let resources = gio::Resource::load(PKGDATADIR.to_owned() + "/mailviewer.gresource")
+    .expect("Could not load resources");
   gio::resources_register(&resources);
 
   let app = MailViewerApplication::new(APP_ID, &gio::ApplicationFlags::HANDLES_OPEN);
-
   app.run()
 }

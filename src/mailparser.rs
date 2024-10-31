@@ -25,8 +25,8 @@ use gmime::{
     ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt,
     StreamMemExt,
   },
-  InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part,
-  Stream, StreamFs, StreamMem,
+  InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part, Stream,
+  StreamFs, StreamMem,
 };
 use nipper::Document;
 use std::{error::Error, fmt, fs, path::PathBuf};
@@ -120,10 +120,6 @@ impl MailParser {
     }
   }
 
-  pub fn get_filename(&self) -> String {
-    self.file.to_string()
-  }
-  
   fn get_temp_folder() -> PathBuf {
     let mut path = PathBuf::from(std::env::var("XDG_RUNTIME_DIR").unwrap());
     path.push("mailviewer");
@@ -144,12 +140,10 @@ impl MailParser {
   }
 
   pub fn parse(&mut self) -> Result<(), Box<dyn Error>> {
-    log::debug!("[MailParser] FILE : {}", self.file);
     let stream: Stream = StreamFs::open(&self.file, O_RDONLY, 0644)?;
     let parser = Parser::with_stream(&stream);
     let message = parser.construct_message(None);
 
-    log::debug!("[MailParser] EML MESSAGE {:?}", message);
     if let Some(eml) = &message {
       if let Some(from) = &eml.from() {
         self.from = self.internet_list(from);
@@ -165,11 +159,8 @@ impl MailParser {
         }
       }
       self.parse_body(&eml);
-    } else {
-      log::debug!("[MailParser] EML IS NULL !");
-    }
+    } 
     stream.close();
-    log::debug!("[MailParser] EML FROM : '{}'", self.from);
 
     Ok(())
   }
@@ -299,8 +290,7 @@ impl MailParser {
         if src.starts_with("cid:") {
           let cid = src.split_at(4).1;
           log::debug!("Found CID => {}", cid);
-          if let Some(attachment) = self.attachments.iter().find(|a| a.content_id == cid)
-          {
+          if let Some(attachment) = self.attachments.iter().find(|a| a.content_id == cid) {
             log::debug!("Found CID Attachment => {}", attachment.filename);
             if let Some(mime_type) = attachment.mime_type.as_deref() {
               let b64 = general_purpose::STANDARD.encode(&attachment.body);
@@ -372,5 +362,36 @@ impl MailParser {
         part.content_id()
       );
     }
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use crate::mailparser::MailParser;
+  use std::{cell::OnceCell, error::Error, path::Path};
+
+  #[test]
+  fn sample() -> Result<(), Box<dyn Error>> {
+    let temp: OnceCell<&Path> = OnceCell::new();
+    let file: String;
+    {
+      let mut parser = MailParser::new("sample.eml");
+      parser.parse()?;
+      assert_eq!(parser.from, "John Doe <john@moon.space>");
+      assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
+      assert_eq!(parser.subject, "Lorem ipsum");
+      assert_eq!(parser.date, "2024-10-23 12:27:21");
+      assert_eq!(parser.attachments.len(), 1);
+      let attachment = &parser.attachments[0];
+      assert_eq!(attachment.filename, "Deus_Gnome.png");
+      assert_eq!(attachment.content_id, "ii_m2lqbrhv0");
+      assert_eq!(attachment.mime_type.as_ref().unwrap(), "image/png");
+      file = attachment.write_to_tmp()?;
+      temp.set(Path::new(&file)).expect("Failed !");
+      assert!(temp.get().unwrap().is_file());
+    }
+    assert!(temp.get().unwrap().exists() == false);
+
+    Ok(())
   }
 }

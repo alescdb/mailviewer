@@ -74,3 +74,36 @@ impl Html {
     s.len() >= 2 && s.as_bytes()[0].eq_ignore_ascii_case(&b'o') && s.as_bytes()[1].eq_ignore_ascii_case(&b'n')
   }
 }
+
+#[cfg(test)]
+mod tests {
+  use std::{error::Error, fs};
+
+  #[test]
+  fn html() -> Result<(), Box<dyn Error>> {
+    let html = crate::html::Html::new(&fs::read_to_string("tests/test.html")?, true);
+    let body = html.safe().to_lowercase();
+
+    eprintln!("{}", &body);
+    assert!(!body.contains("onblur="));
+    assert!(!body.contains("onclick="));
+    assert!(!body.contains("onchange="));
+    assert!(!body.contains("style="));
+    assert!(!body.contains("class="));
+
+    assert!(!body.contains("<script>"));
+    assert!(!body.contains("<meta>"));
+    assert!(!body.contains("<audio>"));
+    assert!(!body.contains("<video>"));
+    assert!(!body.contains("<iframe>"));
+    assert!(!body.contains("<link>"));
+    assert!(!body.contains("<object>"));
+    assert!(!body.contains("<embed>"));
+    assert!(!body.contains("<applet>"));
+    assert!(!body.contains("<form>"));
+
+    assert!(body.contains(&crate::html::CSS.to_lowercase()));
+
+    Ok(())
+  }
+}
