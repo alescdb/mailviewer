@@ -18,11 +18,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 use crate::{
-  application::MailViewerApplication,
-  config::VERSION,
-  html::Html,
-  mailparser::{Attachment, MailParser},
-  mailservice::MailService,
+  application::MailViewerApplication, html::Html, mailparser::Attachment, mailservice::MailService,
 };
 use adw::{
   glib::clone,
@@ -36,11 +32,13 @@ use webkit6::{
   NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, WebView,
 };
 
+const SETTINGS_SHOW_FILE_NAME: &str = "show-file-name";
+
 mod imp {
   use super::*;
   use adw::subclass::prelude::CompositeTemplateClass;
   use gtk4::ScrolledWindow;
-  use std::cell::{OnceCell, RefCell};
+  use std::cell::OnceCell;
 
   #[derive(Debug, gtk4::CompositeTemplate)]
   #[template(resource = "/io/github/alescdb/mailviewer/window.ui")]
@@ -53,8 +51,6 @@ mod imp {
     pub eml_subject: TemplateChild<gtk4::Entry>,
     #[template_child]
     pub eml_date: TemplateChild<gtk4::Entry>,
-    #[template_child]
-    pub header_bar: TemplateChild<adw::HeaderBar>,
     #[template_child]
     pub placeholder: TemplateChild<gtk4::ScrolledWindow>,
     #[template_child]
@@ -74,18 +70,14 @@ mod imp {
     #[template_child]
     pub pull_label: TemplateChild<gtk4::Label>,
     #[template_child]
-    pub attachments: TemplateChild<adw::PreferencesGroup>,
-    #[template_child]
     pub sheet: TemplateChild<adw::BottomSheet>,
-
+    #[template_child]
+    pub attachments_clamp: TemplateChild<adw::Clamp>,
     //
     pub scrolled_window: ScrolledWindow,
     pub web_view: webkit6::WebView,
     pub web_settings: webkit6::Settings,
     pub settings: OnceCell<gio::Settings>,
-    pub html: RefCell<String>,
-    pub filename: RefCell<Option<String>>,
-    pub parser: RefCell<Option<MailParser>>,
     pub service: MailService,
   }
 
@@ -99,7 +91,6 @@ mod imp {
         eml_to: TemplateChild::default(),
         eml_subject: TemplateChild::default(),
         eml_date: TemplateChild::default(),
-        header_bar: TemplateChild::default(),
         placeholder: TemplateChild::default(),
         show_images: TemplateChild::default(),
         force_css: TemplateChild::default(),
@@ -109,12 +100,9 @@ mod imp {
         body_text: TemplateChild::default(),
         stack: TemplateChild::default(),
         pull_label: TemplateChild::default(),
-        attachments: TemplateChild::default(),
+        attachments_clamp: TemplateChild::default(),
         sheet: TemplateChild::default(),
         settings: OnceCell::new(),
-        html: RefCell::new(String::new()),
-        filename: RefCell::new(None),
-        parser: RefCell::new(None),
         service: MailService::new(),
       };
       window
@@ -179,7 +167,6 @@ impl MailViewerWindow {
       .build();
 
     window.initialize();
-    window.set_window_title(Some(false));
     window
   }
 
@@ -234,16 +221,6 @@ impl MailViewerWindow {
     let win = self;
     let imp = self.imp();
 
-    /*
-    let shortcut_controller = gtk4::ShortcutController::new();
-    let shortcut: gtk4::Shortcut = gtk4::Shortcut::new(
-      gtk4::ShortcutTrigger::parse_string("<Primary>o"),
-      gtk4::ShortcutAction::parse_string("action(open.file)")
-    );
-    shortcut_controller.add_shortcut(shortcut);
-    self.add_controller(shortcut_controller);
-    */
-
     imp.web_view.connect_decide_policy(clone!(
       #[strong]
       win,
@@ -256,10 +233,6 @@ impl MailViewerWindow {
   fn initialize_settings(&self) {
     let settings = gio::Settings::new(crate::config::APP_ID);
     let imp = self.imp();
-    let reset_zoom = gio::ActionEntry::builder("zoom-reset")
-      .activate(move |win: &Self, _, _| win.reset_zoom())
-      .build();
-    self.add_action_entries([reset_zoom]);
 
     imp.settings.set(settings.clone()).unwrap();
     imp.web_view.set_zoom_level(settings.get::<f64>("zoom"));
@@ -285,10 +258,6 @@ impl MailViewerWindow {
       .flags(gio::SettingsBindFlags::DEFAULT)
       .build();
 
-    self
-      .imp()
-      .service
-      .set_show_file_name(settings.get::<bool>("show-file-name"));
     imp.service.connect_title_changed(clone!(
       #[weak(rename_to = window)]
       self,
@@ -296,6 +265,7 @@ impl MailViewerWindow {
         window.set_title(Some(title));
       }
     ));
+    imp.service.set_show_file_name(self.get_show_file_name());
   }
 
   fn reset_zoom(&self) {
@@ -303,7 +273,7 @@ impl MailViewerWindow {
     self.set_zoom_level(1.0);
   }
 
-  fn add_attachment(&self, attachment: &Attachment) {
+  fn add_attachment(&self, attachment: &Attachment, preferences_group: &adw::PreferencesGroup) {
     let window = self;
     let mime = &attachment
       .clone()
@@ -345,7 +315,7 @@ impl MailViewerWindow {
         window.on_attachment_open(&attachment);
       }
     ));
-    self.imp().attachments.add(&btn);
+    preferences_group.add(&btn);
   }
 
   fn on_attachment_save(&self, attachment: &Attachment) {
@@ -412,10 +382,11 @@ impl MailViewerWindow {
 
   fn load_html(&self, force_css: bool) {
     log::debug!("load_html({})", force_css);
-    self.imp().web_view.load_html(
-      &*Html::new(&self.imp().html.borrow(), force_css).safe(),
-      None,
-    );
+    let html = self.imp().service.get_html().unwrap_or(String::new());
+    self
+      .imp()
+      .web_view
+      .load_html(&*Html::new(&html, force_css).safe(), None);
   }
 
   fn on_decide_policy(
@@ -505,6 +476,7 @@ impl MailViewerWindow {
 
   pub fn open_or_ask(&self) {
     let app: Option<gtk4::Application> = self.application();
+
     if let Some(app) = app {
       if let Ok(app) = app.downcast::<MailViewerApplication>() {
         if let Some(filename) = app.imp().filename.get() {
@@ -523,81 +495,59 @@ impl MailViewerWindow {
   }
 
   fn open_file(&self, file: &str) {
-    let window = self;
-    let filename = file.to_string();
-
     log::debug!("open_file({})", file);
-    if std::path::Path::new(&filename).exists() == false {
-      log::error!("File not found : {}", filename);
-
-      self
-        .alert_error("File Error", &format!("File not found :\n{}", filename))
-        .connect_response(
-          Some("close"),
-          clone!(
-            #[strong]
-            window,
-            move |_, _| {
-              window.close();
-            }
-          ),
-        );
-      return;
-    }
-
-    self
-      .imp()
-      .filename
-      .borrow_mut()
-      .replace(filename.to_string());
     glib::idle_add_local_once(glib::clone!(
-      #[weak]
-      window,
-      #[strong]
-      filename,
+      #[weak(rename_to = window)]
+      self,
+      #[strong(rename_to = filename)]
+      file.to_string(),
       move || {
-        let mut parser = MailParser::new(&filename);
-        match parser.parse() {
+        match window.imp().service.open_mail(&filename) {
           Ok(_) => {
-            window.show_eml(&parser);
-            window.imp().parser.borrow_mut().replace(parser);
+            window.display_eml();
           }
           Err(e) => {
-            log::error!("Error : {}", e);
+            log::error!("service(ERR) : {}", e);
+            window
+              .alert_error("File Error", &format!("Failed to open file :\n{}", e))
+              .connect_response(
+                Some("close"),
+                clone!(
+                  #[strong]
+                  window,
+                  move |_, _| {
+                    window.close();
+                  }
+                ),
+              );
           }
-        };
+        }
       }
     ));
   }
 
-  pub fn show_eml(&self, parser: &MailParser) {
-    log::debug!("show_eml()");
+  pub fn display_eml(&self) {
+    log::debug!("display_eml()");
     let imp = self.imp();
 
-    self.set_window_title(None);
-    imp.eml_from.set_text(parser.from.as_str());
-    imp.eml_date.set_text(parser.date.as_str());
-    imp.eml_to.set_text(parser.to.as_str());
-    imp.eml_subject.set_text(parser.subject.as_str());
+    imp.eml_from.set_text(imp.service.get_from().as_str());
+    imp.eml_date.set_text(imp.service.get_date().as_str());
+    imp.eml_to.set_text(imp.service.get_to().as_str());
+    imp.eml_subject.set_text(imp.service.get_subject().as_str());
 
     let mut has_text: bool = false;
     let mut has_html: bool = false;
 
-    if let Some(text) = parser.body_text.clone() {
-      let proper = text.replace("\r\n", "\n");
-      let buffer = imp.body_text.buffer();
-      buffer.set_text(&proper);
+    if let Some(text) = imp.service.get_text() {
+      imp.body_text.buffer().set_text(&text);
       has_text = true;
     }
 
-    if let Some(html) = parser.body_html.clone() {
-      imp.html.replace(html.clone());
+    if let Some(html) = imp.service.get_html() {
       imp
         .web_view
         .load_html(&Html::new(&html, false).safe(), None);
       has_html = true;
-    } else {
-      imp.html.replace(String::new());
     }
 
     if has_text && !has_html {
@@ -607,13 +557,20 @@ impl MailViewerWindow {
       imp.show_text.set_visible(false);
     }
 
-    let total = parser.attachments.len();
+    let preferences_group: adw::PreferencesGroup = adw::PreferencesGroup::new();
+    self
+      .imp()
+      .attachments_clamp
+      .set_child(Some(&preferences_group));
+
+    let attachments = imp.service.get_attachments();
+    let total = attachments.len();
     if total > 0 {
-      for attachment in &parser.attachments {
-        self.add_attachment(&attachment);
+      for attachment in &attachments {
+        self.add_attachment(&attachment, &preferences_group);
       }
       let label: String = format!("{} attachment{}", total, if total == 1 { "" } else { "s" });
-      imp.attachments.set_title(&label);
+      preferences_group.set_title(&label);
       imp.pull_label.set_text(&label);
     } else {
       // never shown
@@ -626,7 +583,7 @@ impl MailViewerWindow {
       } else {
         widget.set_visible(false)
       }
-    };
+    }
   }
 
   pub fn alert_error(&self, title: &str, message: &str) -> adw::AlertDialog {
@@ -637,6 +594,15 @@ impl MailViewerWindow {
     alert
   }
 
+  fn get_show_file_name(&self) -> bool {
+    self
+      .imp()
+      .settings
+      .get()
+      .expect("Error settings !")
+      .get::<bool>(SETTINGS_SHOW_FILE_NAME)
+  }
+
   fn show_preferences(&self) {
     log::debug!("show_preferences()");
 
@@ -644,7 +610,7 @@ impl MailViewerWindow {
     let builder = gtk4::Builder::from_resource("/io/github/alescdb/mailviewer/preferences.ui");
     let show_file_name: adw::SwitchRow = builder.object("show_file_name").unwrap();
     settings
-      .bind("show-file-name", &show_file_name, "active")
+      .bind(SETTINGS_SHOW_FILE_NAME, &show_file_name, "active")
       .build();
 
     let prefs: adw::PreferencesDialog = builder.object("preferences").unwrap();
@@ -652,49 +618,13 @@ impl MailViewerWindow {
     prefs.connect_closed(clone!(
       #[weak(rename_to = win)]
       self,
-      #[weak]
-      settings,
       move |_| {
         log::debug!("show_preferences() => done");
-        win.set_window_title(Some(settings.get::<bool>("show-file-name")));
+        win
+          .imp()
+          .service
+          .set_show_file_name(win.get_show_file_name());
       }
     ));
-  }
-
-  fn set_window_title(&self, show_file: Option<bool>) {
-    self.set_title(Some(&self.get_window_title(show_file)));
-  }
-
-  fn get_window_title(&self, show_file: Option<bool>) -> String {
-    let mut show: bool = false;
-
-    if let Some(show_file) = show_file {
-      show = show_file;
-      log::debug!("show_file_name (parameter) = {}", show);
-    } else {
-      let settings = self.imp().settings.get();
-      if let Some(settings) = settings.as_ref() {
-        show = settings.get::<bool>("show-file-name");
-        log::debug!("show_file_name (settings) = {}", show);
-      }
-    }
-
-    log::debug!("show_file_name (final) = {}", show);
-    if show {
-      if let Some(fullpath) = &*self.imp().filename.borrow() {
-        log::debug!("show_file_name (file) = {}", fullpath);
-        let filename = std::path::Path::new(&fullpath)
-          .file_name() // Récupère le nom de fichier (optionnel)
-          .and_then(|name| name.to_str());
-
-        if let Some(filename) = filename {
-          return filename.to_string();
-        }
-      } else {
-        log::error!("show_file_name (filename is empty)");
-      }
-    }
-
-    format!("Mail Viewer v{}", VERSION)
   }
 }
