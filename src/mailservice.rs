@@ -6,7 +6,7 @@ use std::{cell::RefCell, path::Path};
 
 pub struct MailService {
   parser: RefCell<Option<MailParser>>,
-  fullpath: RefCell<Option<String>>,
+  full_path: RefCell<Option<String>>,
   show_file_name: RefCell<bool>,
   signal_title_changed: RefCell<Option<Box<dyn Fn(&Self, &str) + 'static>>>,
 }
@@ -15,7 +15,7 @@ impl MailService {
   pub fn new() -> Self {
     Self {
       parser: RefCell::new(None),
-      fullpath: RefCell::new(None),
+      full_path: RefCell::new(None),
       show_file_name: RefCell::new(true),
       signal_title_changed: RefCell::new(None),
     }
@@ -25,7 +25,7 @@ impl MailService {
     if Path::new(fullpath).exists() == false {
       return Err(format!("File not found : {}", fullpath).into());
     }
-    self.fullpath.borrow_mut().replace(fullpath.to_string());
+    self.full_path.borrow_mut().replace(fullpath.to_string());
     let mut parser = MailParser::new(fullpath);
     parser.parse()?;
     self.parser.borrow_mut().replace(parser);
@@ -94,7 +94,7 @@ impl MailService {
   }
 
   pub fn get_fullpath(&self) -> Option<String> {
-    self.fullpath.borrow().clone()
+    self.full_path.borrow().clone()
   }
 
   pub fn connect_title_changed<F: Fn(&Self, &str) + 'static>(&self, f: F) {
@@ -103,7 +103,7 @@ impl MailService {
 
   fn update_title(&self) {
     if let Some(callback) = self.signal_title_changed.borrow().as_ref() {
-      if let Some(fullpath) = self.fullpath.borrow().as_ref() {
+      if let Some(fullpath) = self.full_path.borrow().as_ref() {
         let title = self.get_title(fullpath);
         callback(self, &title);
       }
@@ -124,7 +124,7 @@ impl std::fmt::Debug for MailService {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     f.debug_struct("MailService")
       .field("parser", &self.parser)
-      .field("fullpath", &self.fullpath)
+      .field("fullpath", &self.full_path)
       .field("show_file_name", &self.show_file_name)
       .finish()
   }
@@ -140,7 +140,7 @@ mod tests {
     let service = MailService::new();
     
     assert!(service.parser.borrow().is_none());
-    assert!(service.fullpath.borrow().is_none());
+    assert!(service.full_path.borrow().is_none());
     assert_eq!(*service.show_file_name.borrow(), true);
   }
 
