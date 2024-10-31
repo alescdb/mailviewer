@@ -12,10 +12,6 @@ if [[ "$1" == "--deps" ]]; then
     wget https://raw.githubusercontent.com/flatpak/flatpak-builder-tools/refs/heads/master/cargo/flatpak-cargo-generator.py
   fi
 
-  if [[ ! -f Cargo.lock ]]; then
-    wget https://raw.githubusercontent.com/alescdb/mailviewer/refs/heads/main/Cargo.lock
-  fi
-
   if [[ ! -d .venv ]]; then
     python -m venv .venv
     .venv/bin/pip install aiohttp toml
