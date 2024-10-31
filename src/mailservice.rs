@@ -138,6 +138,7 @@ mod tests {
   #[test]
   fn new_mail_service() {
     let service = MailService::new();
+    
     assert!(service.parser.borrow().is_none());
     assert!(service.fullpath.borrow().is_none());
     assert_eq!(*service.show_file_name.borrow(), true);
@@ -161,6 +162,7 @@ mod tests {
   fn open_mail_file_not_found() {
     let service = MailService::new();
     let result = service.open_mail("path/to/nonexistent.eml");
+
     assert!(result.is_err());
     assert_eq!(
       format!("{}", result.unwrap_err()),
@@ -189,6 +191,7 @@ mod tests {
   #[test]
   fn get_attachments() {
     let service = MailService::new();
+    
     service.open_mail("sample.eml").unwrap();
     let attachments = service.get_attachments();
 
@@ -200,7 +203,6 @@ mod tests {
   fn update_title_with_show_file_name() {
     let service = MailService::new();
     service.open_mail("sample.eml").unwrap();
-
     service.set_show_file_name(true);
     assert_eq!(service.get_title("sample.eml"), "sample.eml");
   }
@@ -216,18 +218,12 @@ mod tests {
   fn connect_title_changed() {
     let service = MailService::new();
     let title_changed_called = Rc::new(std::cell::RefCell::new(false));
-
-    // Clone pour partager le compteur de référence
     let title_changed_called_clone = Rc::clone(&title_changed_called);
-
     service.connect_title_changed(move |_, _| {
       *title_changed_called_clone.borrow_mut() = true;
     });
-
     service.open_mail("sample.eml").unwrap();
     service.set_show_file_name(false);
-
-    // On peut maintenant accéder à `title_changed_called` après la fermeture
     assert!(*title_changed_called.borrow());
   }
 }
