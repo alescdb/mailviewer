@@ -1,4 +1,7 @@
-use crate::{config::VERSION, mailparser::{Attachment, MailParser}};
+use crate::{
+  config::VERSION,
+  mailparser::{Attachment, MailParser},
+};
 use std::{cell::RefCell, path::Path};
 
 pub struct MailService {
@@ -15,8 +18,6 @@ impl MailService {
       fullpath: RefCell::new(None),
       show_file_name: RefCell::new(true),
       signal_title_changed: RefCell::new(None),
-
-      
     }
   }
 
@@ -62,9 +63,9 @@ impl MailService {
 
   pub fn get_text(&self) -> Option<String> {
     if let Some(parser) = self.parser.borrow().as_ref() {
-      if let Some(text) = parser.body_text.clone() { 
+      if let Some(text) = parser.body_text.clone() {
         let proper = text.replace("\r\n", "\n");
-        return Some(proper);          
+        return Some(proper);
       }
     }
     None
@@ -126,5 +127,107 @@ impl std::fmt::Debug for MailService {
       .field("fullpath", &self.fullpath)
       .field("show_file_name", &self.show_file_name)
       .finish()
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use std::rc::Rc;
+  use crate::mailservice::MailService;
+  
+  #[test]
+  fn new_mail_service() {
+    let service = MailService::new();
+    assert!(service.parser.borrow().is_none());
+    assert!(service.fullpath.borrow().is_none());
+    assert_eq!(*service.show_file_name.borrow(), true);
+  }
+
+  #[test]
+  fn open_mail_success() {
+    let mail_service = MailService::new();
+    let service = mail_service;
+    let fullpath = "sample.eml";
+
+    assert!(service.open_mail(fullpath).is_ok());
+    assert_eq!(service.get_fullpath().unwrap(), fullpath.to_string());
+    assert_eq!(service.get_from(), "John Doe <john@moon.space>");
+    assert_eq!(service.get_to(), "Lucas <lucas@mercure.space>");
+    assert_eq!(service.get_subject(), "Lorem ipsum");
+    assert_eq!(service.get_date(), "2024-10-23 12:27:21");
+  }
+
+  #[test]
+  fn open_mail_file_not_found() {
+    let service = MailService::new();
+    let result = service.open_mail("path/to/nonexistent.eml");
+    assert!(result.is_err());
+    assert_eq!(
+      format!("{}", result.unwrap_err()),
+      "File not found : path/to/nonexistent.eml"
+    );
+  }
+
+  #[test]
+  fn get_text() {
+    let service = MailService::new();
+    service.open_mail("sample.eml").unwrap();
+    let text = service.get_text().unwrap();
+
+    assert!(text.contains("Lorem ipsum dolor sit amet, consectetur adipiscing elit"));
+  }
+
+  #[test]
+  fn get_html() {
+    let service = MailService::new();
+    service.open_mail("sample.eml").unwrap();
+    let html = service.get_html().unwrap();
+
+    assert!(html.contains("Hello Lucas,"));
+  }
+
+  #[test]
+  fn get_attachments() {
+    let service = MailService::new();
+    service.open_mail("sample.eml").unwrap();
+    let attachments = service.get_attachments();
+
+    assert_eq!(attachments.len(), 1);
+    assert_eq!(attachments[0].filename, "Deus_Gnome.png");
+  }
+
+  #[test]
+  fn update_title_with_show_file_name() {
+    let service = MailService::new();
+    service.open_mail("sample.eml").unwrap();
+
+    service.set_show_file_name(true);
+    assert_eq!(service.get_title("sample.eml"), "sample.eml");
+  }
+
+  #[test]
+  fn update_title_without_show_file_name() {
+    let service = MailService::new();
+    service.set_show_file_name(false);
+    assert_eq!(service.get_title("sample.eml"), format!("Mail Viewer v{}", crate::config::VERSION));
+  }
+
+  #[test]
+  fn connect_title_changed() {
+    let service = MailService::new();
+    let title_changed_called = Rc::new(std::cell::RefCell::new(false));
+
+    // Clone pour partager le compteur de référence
+    let title_changed_called_clone = Rc::clone(&title_changed_called);
+
+    service.connect_title_changed(move |_, _| {
+      *title_changed_called_clone.borrow_mut() = true;
+    });
+
+    service.open_mail("sample.eml").unwrap();
+    service.set_show_file_name(false);
+
+    // On peut maintenant accéder à `title_changed_called` après la fermeture
+    assert!(*title_changed_called.borrow());
   }
 }
