@@ -84,7 +84,7 @@ mod tests {
     let html = crate::html::Html::new(&fs::read_to_string("tests/test.html")?, true);
     let body = html.safe().to_lowercase();
 
-    eprintln!("{}", &body);
+    // eprintln!("{}", &body);
     assert!(!body.contains("onblur="));
     assert!(!body.contains("onclick="));
     assert!(!body.contains("onchange="));
