@@ -11,6 +11,7 @@ MailViewer is a desktop application built with [GTK4](https://www.gtk.org/)/[lib
 - **Decode email attachments**: View and/or save attachments.
 - **Support for HTML and plain text emails**: Render emails in both formats (if available).
 
+
 ## Sceenshot
 
 ![Screenshot](images/mailviewer.png)
@@ -18,21 +19,37 @@ MailViewer is a desktop application built with [GTK4](https://www.gtk.org/)/[lib
 ## Installation
 
 #### flatpak / flathub
-*TODO*
 
+[![](https://flathub.org/api/badge?svg&locale=en 'Get it on Flathub')](https://flathub.org/apps/io.github.alescdb.mailviewer)
 
-#### Makefile
-
-```bash
-make install
+```
+flatpak install --user io.github.alescdb.mailviewer
 ```
 
-#### meson
+##### Flatpak Permissions
+
+- Network : for fetching remote images (if the Show Images is checked, false by default), safe to disable if you don't wan't to see remote images.
+- xdg-run/mailviewer (`/run/user/<uid>/mailviewer`) : for extracting attachments and opening it with associated program.
+- home:rw : reading eml file and saving attachments.
+
+
+## Building
+
+With cargo :
+```bash
+cargo build
+```
+
+With Makefile
+```bash
+make
+```
+(This is equivalent to `cargo build`)
 
 ```bash
-meson setup _build
-meson install -C _build
+make build
 ```
+(meson build)
 
 ## Dependencies
 
