@@ -18,18 +18,15 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 use crate::{
-  application::MailViewerApplication, html::Html, mailparser::Attachment, mailservice::MailService,
+  application::MailViewerApplication, html::Html, mailparser::Attachment, mailservice::MailService
 };
 use adw::{
-  glib::clone,
-  prelude::{AlertDialogExt, *},
-  subclass::prelude::*,
+  glib::clone, prelude::{AlertDialogExt, *}, subclass::prelude::*
 };
 use gtk4::{gio, glib, prelude::FileChooserExt, template_callbacks, ResponseType};
 use std::{borrow::BorrowMut, option::Option};
 use webkit6::{
-  prelude::{PolicyDecisionExt, WebViewExt},
-  NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, WebView,
+  prelude::{PolicyDecisionExt, WebViewExt}, NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, WebView
 };
 
 const SETTINGS_SHOW_FILE_NAME: &str = "show-file-name";

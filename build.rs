@@ -51,8 +51,14 @@ fn main() {
   println!("cargo::rerun-if-changed=src/preferences.ui");
   println!("cargo::rerun-if-changed=src/mailviewer.gresource.xml");
   println!("cargo::rerun-if-changed=data/io.github.alescdb.mailviewer.gschema.xml");
-  println!("cargo::rerun-if-changed={}", cfg.config_in.to_str().unwrap());
-  println!("cargo::rerun-if-changed={}", cfg.config_rs.to_str().unwrap());
+  println!(
+    "cargo::rerun-if-changed={}",
+    cfg.config_in.to_str().unwrap()
+  );
+  println!(
+    "cargo::rerun-if-changed={}",
+    cfg.config_rs.to_str().unwrap()
+  );
 
   config(&cfg);
   glib_compile_resources(&cfg);
@@ -60,13 +66,23 @@ fn main() {
 }
 
 fn config(cfg: &Config) {
-  let config_in = fs::read_to_string(cfg.config_in.to_str().unwrap()).expect("Failed to read config.rs.in");
+  let config_in =
+    fs::read_to_string(cfg.config_in.to_str().unwrap()).expect("Failed to read config.rs.in");
   let config_out = config_in
     .replace("@APP_ID@", &format!("\"{}\"", APP_ID))
     .replace("@VERSION@", &format!("\"{}\"", &cfg.version))
-    .replace("@GETTEXT_PACKAGE@", &format!("\"{}\"", cfg.out_dir.to_str().unwrap()))
-    .replace("@LOCALEDIR@", &format!("\"{}\"", cfg.out_dir.to_str().unwrap()))
-    .replace("@PKGDATADIR@", &format!("\"{}\"", cfg.out_dir.to_str().unwrap()));
+    .replace(
+      "@GETTEXT_PACKAGE@",
+      &format!("\"{}\"", cfg.out_dir.to_str().unwrap()),
+    )
+    .replace(
+      "@LOCALEDIR@",
+      &format!("\"{}\"", cfg.out_dir.to_str().unwrap()),
+    )
+    .replace(
+      "@PKGDATADIR@",
+      &format!("\"{}\"", cfg.out_dir.to_str().unwrap()),
+    );
 
   fs::write(cfg.config_rs.to_str().unwrap(), config_out).expect("Failed to write config.rs");
 }
@@ -78,7 +94,10 @@ fn glib_compile_resources(cfg: &Config) {
   let _output: std::process::Output = Command::new("glib-compile-resources")
     .arg("--sourcedir=src")
     .arg(format!("--target={}", dest_path.to_str().unwrap()))
-    .arg(format!("{}/mailviewer.gresource.xml", cfg.src.to_str().unwrap()))
+    .arg(format!(
+      "{}/mailviewer.gresource.xml",
+      cfg.src.to_str().unwrap()
+    ))
     .output()
     .expect("Failed to build schema");
 
@@ -92,6 +111,9 @@ fn glib_compile_schemas(cfg: &Config) {
     .output()
     .expect("Failed to build schema");
 
-  println!("cargo:rustc-env=GSETTINGS_SCHEMA_DIR={}", cfg.out_dir.to_str().unwrap());
+  println!(
+    "cargo:rustc-env=GSETTINGS_SCHEMA_DIR={}",
+    cfg.out_dir.to_str().unwrap()
+  );
   println!("cargo:warning=glib_compile_schemas => {:?}", &_output);
 }

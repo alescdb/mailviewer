@@ -19,14 +19,9 @@
  */
 use base64::{engine::general_purpose, Engine};
 use gmime::{
-  glib,
-  prelude::Cast,
-  traits::{
-    ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt,
-    StreamMemExt,
-  },
-  InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part, Stream,
-  StreamFs, StreamMem,
+  glib, prelude::Cast, traits::{
+    ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt, StreamMemExt
+  }, InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part, Stream, StreamFs, StreamMem
 };
 use nipper::Document;
 use std::{error::Error, fmt, fs, path::PathBuf};
@@ -89,10 +84,6 @@ pub struct MailParser {
 
 impl Drop for MailParser {
   fn drop(&mut self) {
-    unsafe {
-      gmime::ffi::g_mime_shutdown();
-    }
-
     if self.temp.exists() {
       log::debug!("remove_dir_all({:?})", &self.temp);
       fs::remove_dir_all(&self.temp).unwrap_or_else(|err| {
@@ -104,9 +95,6 @@ impl Drop for MailParser {
 
 impl MailParser {
   pub fn new(file: &str) -> MailParser {
-    unsafe {
-      gmime::ffi::g_mime_init();
-    }
     MailParser {
       file: file.to_string(),
       temp: Self::get_temp_folder(),
@@ -159,7 +147,7 @@ impl MailParser {
         }
       }
       self.parse_body(&eml);
-    } 
+    }
     stream.close();
 
     Ok(())

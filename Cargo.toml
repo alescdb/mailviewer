@@ -14,3 +14,4 @@ env_logger = "0.11.5"
 base64 = "0.22.1"
 adw = { version = "0.7.1", features = ["v1_6"],  package = "libadwaita" }
 mktemp = "0.5.1"
+ctor = "0.2.8"
