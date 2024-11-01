@@ -17,9 +17,9 @@
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-
 mod application;
 mod config;
+mod gmimeinit;
 mod html;
 mod mailparser;
 mod mailservice;

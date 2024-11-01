@@ -1,6 +1,5 @@
 use crate::{
-  config::VERSION,
-  mailparser::{Attachment, MailParser},
+  config::VERSION, mailparser::{Attachment, MailParser}
 };
 use std::{cell::RefCell, path::Path};
 
@@ -132,13 +131,13 @@ impl std::fmt::Debug for MailService {
 
 #[cfg(test)]
 mod tests {
-  use std::rc::Rc;
   use crate::mailservice::MailService;
-  
+  use std::rc::Rc;
+
   #[test]
   fn new_mail_service() {
     let service = MailService::new();
-    
+
     assert!(service.parser.borrow().is_none());
     assert!(service.full_path.borrow().is_none());
     assert_eq!(*service.show_file_name.borrow(), true);
@@ -191,7 +190,7 @@ mod tests {
   #[test]
   fn get_attachments() {
     let service = MailService::new();
-    
+
     service.open_mail("sample.eml").unwrap();
     let attachments = service.get_attachments();
 
@@ -211,7 +210,10 @@ mod tests {
   fn update_title_without_show_file_name() {
     let service = MailService::new();
     service.set_show_file_name(false);
-    assert_eq!(service.get_title("sample.eml"), format!("Mail Viewer v{}", crate::config::VERSION));
+    assert_eq!(
+      service.get_title("sample.eml"),
+      format!("Mail Viewer v{}", crate::config::VERSION)
+    );
   }
 
   #[test]
