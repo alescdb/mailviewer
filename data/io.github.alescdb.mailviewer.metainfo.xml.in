@@ -27,5 +27,13 @@
         <p>First flatpak release</p>
       </description>
     </release>
+    <release version="0.9.8" date="2024-11-01">
+      <description>
+        <ul>
+          <li>Fix attachment adding up</li>
+          <li>Fix gmime randomly crashing</li>
+        </ul>
+      </description>
+    </release>
   </releases>
 </component>
