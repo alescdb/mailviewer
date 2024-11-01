@@ -288,6 +288,19 @@
     {
         "type": "archive",
         "archive-type": "tar-gzip",
+        "url": "https://static.crates.io/crates/ctor/ctor-0.2.8.crate",
+        "sha256": "edb49164822f3ee45b17acd4a208cfc1251410cf0cad9a833234c9890774dd9f",
+        "dest": "cargo/vendor/ctor-0.2.8"
+    },
+    {
+        "type": "inline",
+        "contents": "{\"package\": \"edb49164822f3ee45b17acd4a208cfc1251410cf0cad9a833234c9890774dd9f\", \"files\": {}}",
+        "dest": "cargo/vendor/ctor-0.2.8",
+        "dest-filename": ".cargo-checksum.json"
+    },
+    {
+        "type": "archive",
+        "archive-type": "tar-gzip",
         "url": "https://static.crates.io/crates/derive_more/derive_more-0.99.18.crate",
         "sha256": "5f33878137e4dafd7fa914ad4e259e18a4e8e532b9617a2d0150262bf53abfce",
         "dest": "cargo/vendor/derive_more-0.99.18"
