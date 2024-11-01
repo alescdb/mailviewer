@@ -318,7 +318,6 @@ impl MailViewerWindow {
   fn on_attachment_save(&self, attachment: &Attachment) {
     log::debug!("on_attachment_save({})", attachment.filename);
     let win = self;
-    // TODO: use gtk4::FileChooserNative ?!
     let save_dialog = gtk4::FileChooserDialog::new(
       Some("Save attachment..."),
       Some(self),
