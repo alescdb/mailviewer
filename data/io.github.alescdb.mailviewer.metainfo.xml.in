@@ -22,9 +22,12 @@
   <content_rating type="oars-1.0" />
   <developer_name>Alexandre Del Bigio</developer_name>
   <releases>
-    <release version="0.9.3" date="2024-10-28">
+    <release version="0.9.9" date="2024-11-01">
       <description>
-        <p>First flatpak release</p>
+        <ul>
+          <li>Fix flatpak version</li>
+          <li>Fix gmime-rs date memory problem</li>
+        </ul>
       </description>
     </release>
     <release version="0.9.8" date="2024-11-01">
@@ -33,6 +36,11 @@
           <li>Fix attachment adding up</li>
           <li>Fix gmime randomly crashing</li>
         </ul>
+      </description>
+    </release>
+    <release version="0.9.3" date="2024-10-28">
+      <description>
+        <p>First flatpak release</p>
       </description>
     </release>
   </releases>

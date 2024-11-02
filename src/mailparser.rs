@@ -145,11 +145,8 @@ impl MailParser {
       if let Some(subject) = &eml.subject() {
         self.subject = subject.to_string();
       }
-      if let Some(date) = &eml.date() {
-        self.date = match date.format("%Y-%m-%d %H:%M:%S") {
-          Ok(s) => s.to_string(),
-          Err(e) => e.to_string(),
-        }
+      if let Some(date) = MailParser::my_mime_message_get_date(&eml) {
+        self.date = date;
       }
       self.parse_body(&eml);
     }
@@ -261,6 +258,24 @@ impl MailParser {
       }
     }
     None
+  }
+
+  // It seems that gmime-rs has a memory free bug with g_mime_message_get_date()
+  fn my_mime_message_get_date(e: &Message) -> Option<String> {
+    let date: Option<glib::DateTime> = unsafe {
+      glib::translate::from_glib_none(gmime::ffi::g_mime_message_get_date(
+        glib::translate::ToGlibPtr::to_glib_none(&e).0,
+      ))
+    };
+    let fmt_date: Option<String> = if let Some(date) = date {
+      match date.format("%Y-%m-%d %H:%M:%S") {
+        Ok(f) => Some(f.into()),
+        Err(_) => None,
+      }
+    } else {
+      None
+    };
+    fmt_date
   }
 
   fn latin1_to_string(s: &[u8]) -> String {
@@ -440,21 +455,39 @@ mod tests {
     parser.parse()?;
     assert_eq!(parser.from, "mlemos <mlemos@acm.org>");
     assert_eq!(parser.to, "Manuel Lemos <mlemos@linux.local>");
-    assert_eq!(parser.subject, "Testing Manuel Lemos' MIME E-mail composing and sending PHP class: HTML message");
+    assert_eq!(
+      parser.subject,
+      "Testing Manuel Lemos' MIME E-mail composing and sending PHP class: HTML message"
+    );
     assert_eq!(parser.date, "2005-04-30 19:28:29");
     assert_ne!(parser.body_text, None);
     assert_ne!(parser.body_html, None);
     assert_eq!(parser.attachments.len(), 3);
     assert_eq!(parser.attachments[0].filename, "logo.gif");
-    assert_eq!(parser.attachments[0].mime_type.as_ref().unwrap(), "image/gif");
-    assert_eq!(parser.attachments[0].content_id, "ae0357e57f04b8347f7621662cb63855.gif");
+    assert_eq!(
+      parser.attachments[0].mime_type.as_ref().unwrap(),
+      "image/gif"
+    );
+    assert_eq!(
+      parser.attachments[0].content_id,
+      "ae0357e57f04b8347f7621662cb63855.gif"
+    );
     assert_eq!(parser.attachments[0].body.len(), 1195);
     assert_eq!(parser.attachments[1].filename, "background.gif");
-    assert_eq!(parser.attachments[1].mime_type.as_ref().unwrap(), "image/gif");
-    assert_eq!(parser.attachments[1].content_id, "4c837ed463ad29c820668e835a270e8a.gif");
+    assert_eq!(
+      parser.attachments[1].mime_type.as_ref().unwrap(),
+      "image/gif"
+    );
+    assert_eq!(
+      parser.attachments[1].content_id,
+      "4c837ed463ad29c820668e835a270e8a.gif"
+    );
     assert_eq!(parser.attachments[1].body.len(), 3265);
     assert_eq!(parser.attachments[2].filename, "attachment.txt");
-    assert_eq!(parser.attachments[2].mime_type.as_ref().unwrap(), "text/plain");
+    assert_eq!(
+      parser.attachments[2].mime_type.as_ref().unwrap(),
+      "text/plain"
+    );
     assert_eq!(parser.attachments[2].content_id, "none");
     assert_eq!(parser.attachments[2].body.len(), 64);
     Ok(())

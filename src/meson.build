@@ -56,18 +56,6 @@ message('cargo_opt=')
 message(cargo_opt)
 
 custom_target(
- 'cargo-test',
- command: [
-    'env',
-    cargo_env,
-    cargo_bin,
-    'test'
-  ],
-  build_by_default: true,
-  output: ['target']
-)
-
-custom_target(
   'cargo-build',
   build_by_default: true,
   build_always_stale: true,

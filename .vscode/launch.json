@@ -7,18 +7,11 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Debug executable 'mailviewer'",
-      "preLaunchTask": "gresources",
+      "name": "Cargo launch",
       "cargo": {
         "args": [
-          "build",
-          "--bin=mailviewer",
-          "--package=mailviewer"
-        ],
-        "filter": {
-          "name": "mailviewer",
-          "kind": "bin"
-        }
+          "run"
+        ]
       },
       "args": [
         "sample.eml"
