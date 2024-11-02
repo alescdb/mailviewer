@@ -53,4 +53,4 @@ $(EXECUTABLE): $(BUILD_DIR) $(SOURCES)
 clean:
 	rm -rf $(BUILD_DIR) $(DEBUG) target buildir .flatpak .flatpak-builder .repo
 
-.PHONY: all format build reconfigure flatpak-run install clean $(BUILD_DIR)
+.PHONY: all format build reconfigure flatpak-run install clean .venv flatpak-cargo-generator.py $(BUILD_DIR)
