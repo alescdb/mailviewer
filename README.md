@@ -51,6 +51,10 @@ make build
 ```
 (meson build)
 
+## Icon
+
+Icon is from [Papirus Icon Theme](https://github.com/PapirusDevelopmentTeam/papirus-icon-theme)
+
 ## Dependencies
 
 - [gtk4](https://docs.gtk.org/gtk4/)
