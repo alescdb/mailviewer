@@ -1,6 +1,4 @@
-use crate::{
-  config::VERSION, mailparser::{Attachment, MailParser}
-};
+use crate::{config::VERSION, mailparser::MailParser, message::attachment::Attachment};
 use std::{cell::RefCell, path::Path};
 
 pub struct MailService {
