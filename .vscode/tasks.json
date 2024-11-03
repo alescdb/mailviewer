@@ -2,15 +2,6 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "type": "shell",
-      "command": "make",
-      "args": [
-        "gresources"
-      ],
-      "label": "gresources",
-      "problemMatcher": []
-    },
-    {
       "env": {
         "RUST_BACKTRACE": "1",
         "RUST_LOG": "mailviewer=debug",
