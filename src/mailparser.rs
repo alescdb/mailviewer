@@ -19,9 +19,14 @@
  */
 use base64::{engine::general_purpose, Engine};
 use gmime::{
-  glib, prelude::Cast, traits::{
-    ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt, StreamMemExt
-  }, InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part, Stream, StreamFs, StreamMem
+  glib,
+  prelude::Cast,
+  traits::{
+    ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt,
+    StreamMemExt,
+  },
+  InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part, Stream,
+  StreamFs, StreamMem,
 };
 use nipper::Document;
 use std::{error::Error, fmt, fs, path::PathBuf};
@@ -140,11 +145,8 @@ impl MailParser {
       if let Some(subject) = &eml.subject() {
         self.subject = subject.to_string();
       }
-      if let Some(date) = &eml.date() {
-        self.date = match date.format("%Y-%m-%d %H:%M:%S") {
-          Ok(s) => s.to_string(),
-          Err(e) => e.to_string(),
-        }
+      if let Some(date) = MailParser::my_mime_message_get_date(&eml) {
+        self.date = date;
       }
       self.parse_body(&eml);
     }
@@ -258,6 +260,24 @@ impl MailParser {
     None
   }
 
+  // It seems that gmime-rs has a memory free bug with g_mime_message_get_date()
+  fn my_mime_message_get_date(e: &Message) -> Option<String> {
+    let date: Option<glib::DateTime> = unsafe {
+      glib::translate::from_glib_none(gmime::ffi::g_mime_message_get_date(
+        glib::translate::ToGlibPtr::to_glib_none(&e).0,
+      ))
+    };
+    let fmt_date: Option<String> = if let Some(date) = date {
+      match date.format("%Y-%m-%d %H:%M:%S") {
+        Ok(f) => Some(f.into()),
+        Err(_) => None,
+      }
+    } else {
+      None
+    };
+    fmt_date
+  }
+
   fn latin1_to_string(s: &[u8]) -> String {
     s.iter().map(|&c| c as char).collect()
   }
@@ -359,7 +379,7 @@ mod tests {
   use std::{cell::OnceCell, error::Error, path::Path};
 
   #[test]
-  fn sample() -> Result<(), Box<dyn Error>> {
+  fn test_sample() -> Result<(), Box<dyn Error>> {
     let temp: OnceCell<&Path> = OnceCell::new();
     let file: String;
     {
@@ -380,6 +400,96 @@ mod tests {
     }
     assert!(temp.get().unwrap().exists() == false);
 
+    Ok(())
+  }
+
+  #[test]
+  fn test_sample_google() -> Result<(), Box<dyn Error>> {
+    let mut parser = MailParser::new("tests/test-google.eml");
+    parser.parse()?;
+    assert_eq!(parser.from, "Bill Jncjkq <jncjkq@gmail.com>");
+    assert_eq!(parser.to, "bookmarks@jncjkq.net");
+    assert_eq!(parser.subject, "Test");
+    assert_eq!(parser.date, "2011-05-11 13:27:12");
+    assert_eq!(parser.attachments.len(), 1);
+    let attachment = &parser.attachments[0];
+    assert_eq!(attachment.filename, "bookmarks-really-short.html");
+    assert_eq!(attachment.content_id, "none");
+    assert_eq!(attachment.mime_type.as_ref().unwrap(), "text/html");
+
+    Ok(())
+  }
+
+  #[test]
+  fn test_sample_text() -> Result<(), Box<dyn Error>> {
+    let mut parser = MailParser::new("tests/text.eml");
+    parser.parse()?;
+    assert_eq!(parser.from, "John Doe <john@moon.space>");
+    assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
+    assert_eq!(parser.subject, "Lorem ipsum");
+    assert_eq!(parser.date, "2024-10-23 12:27:21");
+    assert_ne!(parser.body_text, None);
+    assert_eq!(parser.body_html, None);
+    assert_eq!(parser.attachments.len(), 0);
+
+    Ok(())
+  }
+  #[test]
+  fn test_sample_html() -> Result<(), Box<dyn Error>> {
+    let mut parser = MailParser::new("tests/html.eml");
+    parser.parse()?;
+    assert_eq!(parser.from, "John Doe <john@moon.space>");
+    assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
+    assert_eq!(parser.subject, "Lorem ipsum");
+    assert_eq!(parser.date, "2024-10-23 12:27:21");
+    assert_eq!(parser.body_text, None);
+    assert_ne!(parser.body_html, None);
+    assert_eq!(parser.attachments.len(), 0);
+
+    Ok(())
+  }
+
+  #[test]
+  fn test_sample_php() -> Result<(), Box<dyn Error>> {
+    let mut parser = MailParser::new("tests/test-php.eml");
+    parser.parse()?;
+    assert_eq!(parser.from, "mlemos <mlemos@acm.org>");
+    assert_eq!(parser.to, "Manuel Lemos <mlemos@linux.local>");
+    assert_eq!(
+      parser.subject,
+      "Testing Manuel Lemos' MIME E-mail composing and sending PHP class: HTML message"
+    );
+    assert_eq!(parser.date, "2005-04-30 19:28:29");
+    assert_ne!(parser.body_text, None);
+    assert_ne!(parser.body_html, None);
+    assert_eq!(parser.attachments.len(), 3);
+    assert_eq!(parser.attachments[0].filename, "logo.gif");
+    assert_eq!(
+      parser.attachments[0].mime_type.as_ref().unwrap(),
+      "image/gif"
+    );
+    assert_eq!(
+      parser.attachments[0].content_id,
+      "ae0357e57f04b8347f7621662cb63855.gif"
+    );
+    assert_eq!(parser.attachments[0].body.len(), 1195);
+    assert_eq!(parser.attachments[1].filename, "background.gif");
+    assert_eq!(
+      parser.attachments[1].mime_type.as_ref().unwrap(),
+      "image/gif"
+    );
+    assert_eq!(
+      parser.attachments[1].content_id,
+      "4c837ed463ad29c820668e835a270e8a.gif"
+    );
+    assert_eq!(parser.attachments[1].body.len(), 3265);
+    assert_eq!(parser.attachments[2].filename, "attachment.txt");
+    assert_eq!(
+      parser.attachments[2].mime_type.as_ref().unwrap(),
+      "text/plain"
+    );
+    assert_eq!(parser.attachments[2].content_id, "none");
+    assert_eq!(parser.attachments[2].body.len(), 64);
     Ok(())
   }
 }
