@@ -1,4 +1,4 @@
-/* mailparser.rs
+/* ElectronicMail.rs
  *
  * Copyright 2024 Alexandre Del Bigio
  *
@@ -44,7 +44,7 @@ pub const O_CREAT: i32 = 100;
 const INVALID_CHARS: &[char] = &['<', '>', ':', '"', '/', '\\', '|', '?', '*'];
 
 #[derive(Debug, Default, Clone)]
-pub struct MailParser {
+pub struct ElectronicMail {
   file: String,
   temp: PathBuf,
   pub from: String,
@@ -56,7 +56,7 @@ pub struct MailParser {
   pub attachments: Vec<Attachment>,
 }
 
-impl Drop for MailParser {
+impl Drop for ElectronicMail {
   fn drop(&mut self) {
     if self.temp.exists() {
       log::debug!("remove_dir_all({:?})", &self.temp);
@@ -67,9 +67,9 @@ impl Drop for MailParser {
   }
 }
 
-impl MailParser {
-  pub fn new(file: &str) -> MailParser {
-    MailParser {
+impl ElectronicMail {
+  pub fn new(file: &str) -> ElectronicMail {
+    ElectronicMail {
       file: file.to_string(),
       temp: Self::get_temp_folder(),
       from: String::new(),
@@ -114,7 +114,7 @@ impl MailParser {
       if let Some(subject) = &eml.subject() {
         self.subject = subject.to_string();
       }
-      if let Some(date) = MailParser::my_mime_message_get_date(&eml) {
+      if let Some(date) = ElectronicMail::my_mime_message_get_date(&eml) {
         self.date = date;
       }
       self.parse_body(&eml);
@@ -308,9 +308,9 @@ impl MailParser {
       if size > 0 {
         let array: Vec<u8> = stream.byte_array().unwrap().to_vec();
 
-        if MailParser::is_latin1(charset) {
+        if ElectronicMail::is_latin1(charset) {
           log::debug!("get_content() ISO-8859-1");
-          return MailParser::latin1_to_string(&array);
+          return ElectronicMail::latin1_to_string(&array);
         } else if let Some(body) = String::from_utf8(array).ok() {
           log::debug!("get_content() UTF8");
           return body;
@@ -344,7 +344,7 @@ impl MailParser {
 
 #[cfg(test)]
 mod tests {
-  use crate::mailparser::MailParser;
+  use crate::message::electronicmail::ElectronicMail;
   use std::{cell::OnceCell, error::Error, path::Path};
 
   #[test]
@@ -352,7 +352,7 @@ mod tests {
     let temp: OnceCell<&Path> = OnceCell::new();
     let file: String;
     {
-      let mut parser = MailParser::new("sample.eml");
+      let mut parser = ElectronicMail::new("sample.eml");
       parser.parse()?;
       assert_eq!(parser.from, "John Doe <john@moon.space>");
       assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
@@ -374,7 +374,7 @@ mod tests {
 
   #[test]
   fn test_sample_google() -> Result<(), Box<dyn Error>> {
-    let mut parser = MailParser::new("tests/test-google.eml");
+    let mut parser = ElectronicMail::new("tests/test-google.eml");
     parser.parse()?;
     assert_eq!(parser.from, "Bill Jncjkq <jncjkq@gmail.com>");
     assert_eq!(parser.to, "bookmarks@jncjkq.net");
@@ -391,7 +391,7 @@ mod tests {
 
   #[test]
   fn test_sample_text() -> Result<(), Box<dyn Error>> {
-    let mut parser = MailParser::new("tests/text.eml");
+    let mut parser = ElectronicMail::new("tests/text.eml");
     parser.parse()?;
     assert_eq!(parser.from, "John Doe <john@moon.space>");
     assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
@@ -405,7 +405,7 @@ mod tests {
   }
   #[test]
   fn test_sample_html() -> Result<(), Box<dyn Error>> {
-    let mut parser = MailParser::new("tests/html.eml");
+    let mut parser = ElectronicMail::new("tests/html.eml");
     parser.parse()?;
     assert_eq!(parser.from, "John Doe <john@moon.space>");
     assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
@@ -420,7 +420,7 @@ mod tests {
 
   #[test]
   fn test_sample_php() -> Result<(), Box<dyn Error>> {
-    let mut parser = MailParser::new("tests/test-php.eml");
+    let mut parser = ElectronicMail::new("tests/test-php.eml");
     parser.parse()?;
     assert_eq!(parser.from, "mlemos <mlemos@acm.org>");
     assert_eq!(parser.to, "Manuel Lemos <mlemos@linux.local>");
@@ -460,5 +460,35 @@ mod tests {
     assert_eq!(parser.attachments[2].content_id, "none");
     assert_eq!(parser.attachments[2].body.len(), 64);
     Ok(())
+  }
+}
+
+impl super::message::Message for ElectronicMail {
+  fn from(&self) -> String {
+    self.from.clone()
+  }
+
+  fn to(&self) -> String {
+    self.to.clone()
+  }
+
+  fn subject(&self) -> String {
+    self.subject.clone()
+  }
+
+  fn date(&self) -> String {
+    self.date.clone()
+  }
+
+  fn attachments(&self) -> Vec<Attachment> {
+    self.attachments.clone()
+  }
+
+  fn body_html(&self) -> Option<String> {
+    self.body_html.clone()
+  }
+
+  fn body_text(&self) -> Option<String> {
+    self.body_text.clone()
   }
 }
