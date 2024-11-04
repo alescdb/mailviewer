@@ -30,7 +30,8 @@ use gmime::{
   StreamFs, StreamMem,
 };
 use nipper::Document;
-use std::{error::Error, fs};
+use std::error::Error;
+use std::fs;
 
 #[allow(unused_variables, dead_code)]
 const O_RDONLY: i32 = 0;

@@ -14,8 +14,20 @@
   </description>
   <screenshots>
     <screenshot type="default">
-      <image>https://raw.githubusercontent.com/alescdb/mailviewer/91a20335d8ecda21073da99a9029eb36823637b7/images/mailviewer.png?raw=true</image>
-      <caption>Main Window</caption>
+      <image>https://github.com/alescdb/mailviewer/blob/b6a1c8a703416b3d88a7fcbc66af5a4a26a395fc/images/mailviewer_0.9.92_dark_1.png?raw=true</image>
+      <caption>Main Window (Dark)</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://github.com/alescdb/mailviewer/blob/b6a1c8a703416b3d88a7fcbc66af5a4a26a395fc/images/mailviewer_0.9.92_dark_2.png?raw=true</image>
+      <caption>Attachments (Dark)</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://github.com/alescdb/mailviewer/blob/b6a1c8a703416b3d88a7fcbc66af5a4a26a395fc/images/mailviewer_0.9.92_light_1.png?raw=true</image>
+      <caption>Main Window (Light)</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://github.com/alescdb/mailviewer/blob/b6a1c8a703416b3d88a7fcbc66af5a4a26a395fc/images/mailviewer_0.9.92_light_2.png?raw=true</image>
+      <caption>Attachments (Light)</caption>
     </screenshot>
   </screenshots>
   <content_rating type="oars-1.0" />
