@@ -17,7 +17,10 @@
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-use crate::{application::MailViewerApplication, html::Html, mailservice::MailService, message::attachment::Attachment};
+use crate::{
+  application::MailViewerApplication, html::Html, mailservice::MailService,
+  message::attachment::Attachment,
+};
 use adw::{
   glib::clone,
   prelude::{AlertDialogExt, *},
@@ -42,13 +45,13 @@ mod imp {
   #[template(resource = "/io/github/alescdb/mailviewer/window.ui")]
   pub struct MailViewerWindow {
     #[template_child]
-    pub eml_from: TemplateChild<gtk4::Entry>,
+    pub from: TemplateChild<gtk4::Entry>,
     #[template_child]
-    pub eml_to: TemplateChild<gtk4::Entry>,
+    pub to: TemplateChild<gtk4::Entry>,
     #[template_child]
-    pub eml_subject: TemplateChild<gtk4::Entry>,
+    pub subject: TemplateChild<gtk4::Entry>,
     #[template_child]
-    pub eml_date: TemplateChild<gtk4::Entry>,
+    pub date: TemplateChild<gtk4::Entry>,
     #[template_child]
     pub placeholder: TemplateChild<gtk4::ScrolledWindow>,
     #[template_child]
@@ -85,10 +88,10 @@ mod imp {
         web_view: WebView::new(),
         web_settings: webkit6::Settings::new(),
         scrolled_window: ScrolledWindow::new(),
-        eml_from: TemplateChild::default(),
-        eml_to: TemplateChild::default(),
-        eml_subject: TemplateChild::default(),
-        eml_date: TemplateChild::default(),
+        from: TemplateChild::default(),
+        to: TemplateChild::default(),
+        subject: TemplateChild::default(),
+        date: TemplateChild::default(),
         placeholder: TemplateChild::default(),
         show_images: TemplateChild::default(),
         force_css: TemplateChild::default(),
@@ -276,6 +279,7 @@ impl MailViewerWindow {
     let mime = &attachment
       .clone()
       .mime_type
+      .clone()
       .unwrap_or("Unknown".to_string());
     let icon = if mime.starts_with("image") {
       "image-x-generic-symbolic"
@@ -379,7 +383,7 @@ impl MailViewerWindow {
 
   fn load_html(&self, force_css: bool) {
     log::debug!("load_html({})", force_css);
-    let html = self.imp().service.get_html().unwrap_or(String::new());
+    let html = self.imp().service.body_html().unwrap_or(String::new());
     self
       .imp()
       .web_view
@@ -426,11 +430,15 @@ impl MailViewerWindow {
   fn on_show_text(&self, show: bool) {
     log::debug!("on_show_text({})", show);
     let imp = self.imp();
+
     imp
       .stack
       .get()
       .set_visible_child_name(if show { "text" } else { "html" });
 
+    if imp.show_text.is_active() != show {
+      imp.show_text.set_active(show);
+    }
     imp.show_images.set_visible(!show);
     imp.force_css.set_visible(!show);
     imp.zoom_minus.set_visible(!show);
@@ -454,6 +462,8 @@ impl MailViewerWindow {
     let filter = gtk4::FileFilter::new();
     filter.add_pattern("*.eml");
     filter.set_name(Some("EML Files"));
+    filter.add_pattern("*.msg");
+    filter.set_name(Some("Outlook Files"));
     load_dialog.set_filter(&filter);
     load_dialog.set_modal(true);
     let response: ResponseType = load_dialog.run_future().await;
@@ -499,9 +509,9 @@ impl MailViewerWindow {
       #[strong(rename_to = filename)]
       file.to_string(),
       move || {
-        match window.imp().service.open_mail(&filename) {
+        match window.imp().service.open_message(&filename) {
           Ok(_) => {
-            window.display_eml();
+            window.display_message();
           }
           Err(e) => {
             log::error!("service(ERR) : {}", e);
@@ -523,36 +533,32 @@ impl MailViewerWindow {
     ));
   }
 
-  pub fn display_eml(&self) {
+  pub fn display_message(&self) {
     log::debug!("display_eml()");
     let imp = self.imp();
 
-    imp.eml_from.set_text(imp.service.get_from().as_str());
-    imp.eml_date.set_text(imp.service.get_date().as_str());
-    imp.eml_to.set_text(imp.service.get_to().as_str());
-    imp.eml_subject.set_text(imp.service.get_subject().as_str());
+    imp.from.set_text(imp.service.from().as_str());
+    imp.date.set_text(imp.service.date().as_str());
+    imp.to.set_text(imp.service.to().as_str());
+    imp.subject.set_text(imp.service.subject().as_str());
 
     let mut has_text: bool = false;
     let mut has_html: bool = false;
 
-    if let Some(text) = imp.service.get_text() {
+    if let Some(text) = imp.service.body_text() {
       imp.body_text.buffer().set_text(&text);
       has_text = true;
     }
 
-    if let Some(html) = imp.service.get_html() {
+    if let Some(html) = imp.service.body_html() {
       imp
         .web_view
         .load_html(&Html::new(&html, false).safe(), None);
       has_html = true;
     }
 
-    if has_text && !has_html {
-      self.on_show_text(true);
-      imp.show_text.set_visible(false);
-    } else if !has_text && has_html {
-      imp.show_text.set_visible(false);
-    }
+    imp.show_text.set_visible(has_text && has_html);
+    self.on_show_text(!has_html);
 
     let preferences_group: adw::PreferencesGroup = adw::PreferencesGroup::new();
     self
@@ -560,7 +566,7 @@ impl MailViewerWindow {
       .attachments_clamp
       .set_child(Some(&preferences_group));
 
-    let attachments = imp.service.get_attachments();
+    let attachments = imp.service.attachments();
     let total = attachments.len();
     if total > 0 {
       for attachment in &attachments {

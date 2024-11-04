@@ -17,7 +17,7 @@
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-use crate::message::attachment::Attachment;
+use crate::message::{attachment::Attachment, message::MessageParser};
 use base64::{engine::general_purpose, Engine};
 use gmime::{
   glib,
@@ -30,7 +30,7 @@ use gmime::{
   StreamFs, StreamMem,
 };
 use nipper::Document;
-use std::{error::Error, fs, path::PathBuf};
+use std::{error::Error, fs};
 
 #[allow(unused_variables, dead_code)]
 const O_RDONLY: i32 = 0;
@@ -46,7 +46,6 @@ const INVALID_CHARS: &[char] = &['<', '>', ':', '"', '/', '\\', '|', '?', '*'];
 #[derive(Debug, Default, Clone)]
 pub struct ElectronicMail {
   file: String,
-  temp: PathBuf,
   pub from: String,
   pub to: String,
   pub date: String,
@@ -56,22 +55,10 @@ pub struct ElectronicMail {
   pub attachments: Vec<Attachment>,
 }
 
-impl Drop for ElectronicMail {
-  fn drop(&mut self) {
-    if self.temp.exists() {
-      log::debug!("remove_dir_all({:?})", &self.temp);
-      fs::remove_dir_all(&self.temp).unwrap_or_else(|err| {
-        log::error!("Error while removing {:?} : {}", self.temp, err);
-      });
-    }
-  }
-}
-
 impl ElectronicMail {
   pub fn new(file: &str) -> ElectronicMail {
     ElectronicMail {
       file: file.to_string(),
-      temp: Self::get_temp_folder(),
       from: String::new(),
       to: String::new(),
       subject: String::new(),
@@ -80,48 +67,6 @@ impl ElectronicMail {
       date: String::new(),
       attachments: vec![],
     }
-  }
-
-  fn get_temp_folder() -> PathBuf {
-    let mut path = PathBuf::from(std::env::var("XDG_RUNTIME_DIR").unwrap());
-    path.push("mailviewer");
-    mktemp::Temp::new_path_in(path).to_path_buf()
-  }
-
-  fn get_temp_name(&self, file: &str) -> String {
-    let mut path = self.temp.clone();
-    if path.exists() == false {
-      log::debug!("create_dir_all({:?}) for {}", &path.to_str(), file);
-      match fs::create_dir_all(&path) {
-        Ok(_) => log::debug!("Folder created {:?}", &path),
-        Err(e) => log::error!("Error while create_dir_all() folder {:?} : {}", &path, e),
-      }
-    }
-    path.push(file);
-    path.to_str().unwrap().to_string()
-  }
-
-  pub fn parse(&mut self) -> Result<(), Box<dyn Error>> {
-    let stream: Stream = StreamFs::open(&self.file, O_RDONLY, 0644)?;
-    let parser = Parser::with_stream(&stream);
-    let message = parser.construct_message(None);
-
-    if let Some(eml) = &message {
-      if let Some(from) = &eml.from() {
-        self.from = self.internet_list(from);
-      }
-      self.to = self.internet_list(&self.merge_to(&eml));
-      if let Some(subject) = &eml.subject() {
-        self.subject = subject.to_string();
-      }
-      if let Some(date) = ElectronicMail::my_mime_message_get_date(&eml) {
-        self.date = date;
-      }
-      self.parse_body(&eml);
-    }
-    stream.close();
-
-    Ok(())
   }
 
   fn merge_to(&self, message: &Message) -> InternetAddressList {
@@ -217,7 +162,6 @@ impl ElectronicMail {
           stream.close();
 
           return Some(Attachment {
-            temp: self.get_temp_name(&filename),
             content_id,
             filename,
             mime_type,
@@ -342,32 +286,35 @@ impl ElectronicMail {
   }
 }
 
+impl Drop for ElectronicMail {
+  fn drop(&mut self) {
+    log::debug!("Drop ElectronicMail()");
+    MessageParser::cleanup();
+  }
+}
+
 #[cfg(test)]
 mod tests {
-  use crate::message::electronicmail::ElectronicMail;
-  use std::{cell::OnceCell, error::Error, path::Path};
+  use crate::message::{electronicmail::ElectronicMail, message::Message};
+  use std::{error::Error, path::Path};
 
   #[test]
   fn test_sample() -> Result<(), Box<dyn Error>> {
-    let temp: OnceCell<&Path> = OnceCell::new();
-    let file: String;
-    {
-      let mut parser = ElectronicMail::new("sample.eml");
-      parser.parse()?;
-      assert_eq!(parser.from, "John Doe <john@moon.space>");
-      assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
-      assert_eq!(parser.subject, "Lorem ipsum");
-      assert_eq!(parser.date, "2024-10-23 12:27:21");
-      assert_eq!(parser.attachments.len(), 1);
-      let attachment = &parser.attachments[0];
-      assert_eq!(attachment.filename, "Deus_Gnome.png");
-      assert_eq!(attachment.content_id, "ii_m2lqbrhv0");
-      assert_eq!(attachment.mime_type.as_ref().unwrap(), "image/png");
-      file = attachment.write_to_tmp()?;
-      temp.set(Path::new(&file)).expect("Failed !");
-      assert!(temp.get().unwrap().is_file());
-    }
-    assert!(temp.get().unwrap().exists() == false);
+    let mut parser = ElectronicMail::new("sample.eml");
+    parser.parse()?;
+    assert_eq!(parser.from, "John Doe <john@moon.space>");
+    assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
+    assert_eq!(parser.subject, "Lorem ipsum");
+    assert_eq!(parser.date, "2024-10-23 12:27:21");
+    assert_eq!(parser.attachments.len(), 1);
+    let attachment = &parser.attachments[0];
+    assert_eq!(attachment.filename, "Deus_Gnome.png");
+    assert_eq!(attachment.content_id, "ii_m2lqbrhv0");
+    assert_eq!(attachment.mime_type.as_ref().unwrap(), "image/png");
+    let _name = attachment.write_to_tmp()?;
+    let _file = Path::new(&_name);
+    println!("file => {:?}", _file);
+    assert!(_file.is_file());
 
     Ok(())
   }
@@ -464,6 +411,29 @@ mod tests {
 }
 
 impl super::message::Message for ElectronicMail {
+  fn parse(&mut self) -> Result<(), Box<dyn Error>> {
+    let stream: Stream = StreamFs::open(&self.file, O_RDONLY, 0644)?;
+    let parser = Parser::with_stream(&stream);
+    let message = parser.construct_message(None);
+
+    if let Some(eml) = &message {
+      if let Some(from) = &eml.from() {
+        self.from = self.internet_list(from);
+      }
+      self.to = self.internet_list(&self.merge_to(&eml));
+      if let Some(subject) = &eml.subject() {
+        self.subject = subject.to_string();
+      }
+      if let Some(date) = ElectronicMail::my_mime_message_get_date(&eml) {
+        self.date = date;
+      }
+      self.parse_body(&eml);
+    }
+    stream.close();
+
+    Ok(())
+  }
+
   fn from(&self) -> String {
     self.from.clone()
   }

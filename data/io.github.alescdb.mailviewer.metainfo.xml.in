@@ -5,13 +5,12 @@
   <launchable type="desktop-id">io.github.alescdb.mailviewer.desktop</launchable>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
-  <summary>EML file viewer</summary>
+  <summary>EML and MSG file viewer</summary>
   <url type="homepage">https://github.com/alescdb/mailviewer</url>
   <url type="bugtracker">https://github.com/alescdb/mailviewer/issues</url>
   <description>
-    <p>MailViewer is a desktop application built with gtk4/adw and Rust that allows users to read
-      and decode .eml files (email files). It provides a graphical interface for easy navigation and
-      rendering of email content, including attachments, HTML, and plain text.</p>
+    <p>MailViewer is a GNOME application that allows users to read and decode .eml and .msg files (email files) without having to install any additional software or create an account.</p>
+    <p>It provides a graphical interface for easy navigation and rendering of email content, including attachments, HTML, and plain text.</p>
   </description>
   <screenshots>
     <screenshot type="default">
@@ -22,6 +21,13 @@
   <content_rating type="oars-1.0" />
   <developer_name>Alexandre Del Bigio</developer_name>
   <releases>
+    <release version="0.9.92" date="2024-11-01">
+      <description>
+        <ul>
+          <li>Add support for Outlook .msg</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.9.9" date="2024-11-01">
       <description>
         <ul>
