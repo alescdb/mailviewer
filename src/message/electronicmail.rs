@@ -1,4 +1,4 @@
-/* mailparser.rs
+/* ElectronicMail.rs
  *
  * Copyright 2024 Alexandre Del Bigio
  *
@@ -17,6 +17,7 @@
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
+use crate::message::{attachment::Attachment, message::MessageParser};
 use base64::{engine::general_purpose, Engine};
 use gmime::{
   glib,
@@ -29,7 +30,7 @@ use gmime::{
   StreamFs, StreamMem,
 };
 use nipper::Document;
-use std::{error::Error, fmt, fs, path::PathBuf};
+use std::{error::Error, fs};
 
 #[allow(unused_variables, dead_code)]
 const O_RDONLY: i32 = 0;
@@ -42,42 +43,9 @@ pub const O_CREAT: i32 = 100;
 #[allow(unused_variables, dead_code)]
 const INVALID_CHARS: &[char] = &['<', '>', ':', '"', '/', '\\', '|', '?', '*'];
 
-#[derive(Debug, Clone)]
-pub struct Attachment {
-  temp: String,
-  pub filename: String,
-  pub content_id: String,
-  pub body: Vec<u8>,
-  pub mime_type: Option<String>,
-}
-
-impl Attachment {
-  pub fn write_to_tmp(&self) -> Result<String, Box<dyn Error>> {
-    self.write_to_file(&self.temp)?;
-    Ok(self.temp.to_string())
-  }
-
-  pub fn write_to_file(&self, file: &str) -> std::io::Result<()> {
-    fs::write(&file, &self.body)
-  }
-}
-
-impl fmt::Display for Attachment {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(
-      f,
-      "Attachment(content_id: {}, filename: {}, mime_type: {})",
-      self.content_id,
-      self.filename,
-      self.mime_type.as_deref().unwrap_or("None")
-    )
-  }
-}
-
 #[derive(Debug, Default, Clone)]
-pub struct MailParser {
+pub struct ElectronicMail {
   file: String,
-  temp: PathBuf,
   pub from: String,
   pub to: String,
   pub date: String,
@@ -87,22 +55,10 @@ pub struct MailParser {
   pub attachments: Vec<Attachment>,
 }
 
-impl Drop for MailParser {
-  fn drop(&mut self) {
-    if self.temp.exists() {
-      log::debug!("remove_dir_all({:?})", &self.temp);
-      fs::remove_dir_all(&self.temp).unwrap_or_else(|err| {
-        log::error!("Error while removing {:?} : {}", self.temp, err);
-      });
-    }
-  }
-}
-
-impl MailParser {
-  pub fn new(file: &str) -> MailParser {
-    MailParser {
+impl ElectronicMail {
+  pub fn new(file: &str) -> ElectronicMail {
+    ElectronicMail {
       file: file.to_string(),
-      temp: Self::get_temp_folder(),
       from: String::new(),
       to: String::new(),
       subject: String::new(),
@@ -111,48 +67,6 @@ impl MailParser {
       date: String::new(),
       attachments: vec![],
     }
-  }
-
-  fn get_temp_folder() -> PathBuf {
-    let mut path = PathBuf::from(std::env::var("XDG_RUNTIME_DIR").unwrap());
-    path.push("mailviewer");
-    mktemp::Temp::new_path_in(path).to_path_buf()
-  }
-
-  fn get_temp_name(&self, file: &str) -> String {
-    let mut path = self.temp.clone();
-    if path.exists() == false {
-      log::debug!("create_dir_all({:?}) for {}", &path.to_str(), file);
-      match fs::create_dir_all(&path) {
-        Ok(_) => log::debug!("Folder created {:?}", &path),
-        Err(e) => log::error!("Error while create_dir_all() folder {:?} : {}", &path, e),
-      }
-    }
-    path.push(file);
-    path.to_str().unwrap().to_string()
-  }
-
-  pub fn parse(&mut self) -> Result<(), Box<dyn Error>> {
-    let stream: Stream = StreamFs::open(&self.file, O_RDONLY, 0644)?;
-    let parser = Parser::with_stream(&stream);
-    let message = parser.construct_message(None);
-
-    if let Some(eml) = &message {
-      if let Some(from) = &eml.from() {
-        self.from = self.internet_list(from);
-      }
-      self.to = self.internet_list(&self.merge_to(&eml));
-      if let Some(subject) = &eml.subject() {
-        self.subject = subject.to_string();
-      }
-      if let Some(date) = MailParser::my_mime_message_get_date(&eml) {
-        self.date = date;
-      }
-      self.parse_body(&eml);
-    }
-    stream.close();
-
-    Ok(())
   }
 
   fn merge_to(&self, message: &Message) -> InternetAddressList {
@@ -248,7 +162,6 @@ impl MailParser {
           stream.close();
 
           return Some(Attachment {
-            temp: self.get_temp_name(&filename),
             content_id,
             filename,
             mime_type,
@@ -339,9 +252,9 @@ impl MailParser {
       if size > 0 {
         let array: Vec<u8> = stream.byte_array().unwrap().to_vec();
 
-        if MailParser::is_latin1(charset) {
+        if ElectronicMail::is_latin1(charset) {
           log::debug!("get_content() ISO-8859-1");
-          return MailParser::latin1_to_string(&array);
+          return ElectronicMail::latin1_to_string(&array);
         } else if let Some(body) = String::from_utf8(array).ok() {
           log::debug!("get_content() UTF8");
           return body;
@@ -373,39 +286,42 @@ impl MailParser {
   }
 }
 
+impl Drop for ElectronicMail {
+  fn drop(&mut self) {
+    log::debug!("Drop ElectronicMail()");
+    MessageParser::cleanup();
+  }
+}
+
 #[cfg(test)]
 mod tests {
-  use crate::mailparser::MailParser;
-  use std::{cell::OnceCell, error::Error, path::Path};
+  use crate::message::{electronicmail::ElectronicMail, message::Message};
+  use std::{error::Error, path::Path};
 
   #[test]
   fn test_sample() -> Result<(), Box<dyn Error>> {
-    let temp: OnceCell<&Path> = OnceCell::new();
-    let file: String;
-    {
-      let mut parser = MailParser::new("sample.eml");
-      parser.parse()?;
-      assert_eq!(parser.from, "John Doe <john@moon.space>");
-      assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
-      assert_eq!(parser.subject, "Lorem ipsum");
-      assert_eq!(parser.date, "2024-10-23 12:27:21");
-      assert_eq!(parser.attachments.len(), 1);
-      let attachment = &parser.attachments[0];
-      assert_eq!(attachment.filename, "Deus_Gnome.png");
-      assert_eq!(attachment.content_id, "ii_m2lqbrhv0");
-      assert_eq!(attachment.mime_type.as_ref().unwrap(), "image/png");
-      file = attachment.write_to_tmp()?;
-      temp.set(Path::new(&file)).expect("Failed !");
-      assert!(temp.get().unwrap().is_file());
-    }
-    assert!(temp.get().unwrap().exists() == false);
+    let mut parser = ElectronicMail::new("sample.eml");
+    parser.parse()?;
+    assert_eq!(parser.from, "John Doe <john@moon.space>");
+    assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
+    assert_eq!(parser.subject, "Lorem ipsum");
+    assert_eq!(parser.date, "2024-10-23 12:27:21");
+    assert_eq!(parser.attachments.len(), 1);
+    let attachment = &parser.attachments[0];
+    assert_eq!(attachment.filename, "Deus_Gnome.png");
+    assert_eq!(attachment.content_id, "ii_m2lqbrhv0");
+    assert_eq!(attachment.mime_type.as_ref().unwrap(), "image/png");
+    let _name = attachment.write_to_tmp()?;
+    let _file = Path::new(&_name);
+    println!("file => {:?}", _file);
+    assert!(_file.is_file());
 
     Ok(())
   }
 
   #[test]
   fn test_sample_google() -> Result<(), Box<dyn Error>> {
-    let mut parser = MailParser::new("tests/test-google.eml");
+    let mut parser = ElectronicMail::new("tests/test-google.eml");
     parser.parse()?;
     assert_eq!(parser.from, "Bill Jncjkq <jncjkq@gmail.com>");
     assert_eq!(parser.to, "bookmarks@jncjkq.net");
@@ -422,7 +338,7 @@ mod tests {
 
   #[test]
   fn test_sample_text() -> Result<(), Box<dyn Error>> {
-    let mut parser = MailParser::new("tests/text.eml");
+    let mut parser = ElectronicMail::new("tests/text.eml");
     parser.parse()?;
     assert_eq!(parser.from, "John Doe <john@moon.space>");
     assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
@@ -436,7 +352,7 @@ mod tests {
   }
   #[test]
   fn test_sample_html() -> Result<(), Box<dyn Error>> {
-    let mut parser = MailParser::new("tests/html.eml");
+    let mut parser = ElectronicMail::new("tests/html.eml");
     parser.parse()?;
     assert_eq!(parser.from, "John Doe <john@moon.space>");
     assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
@@ -451,7 +367,7 @@ mod tests {
 
   #[test]
   fn test_sample_php() -> Result<(), Box<dyn Error>> {
-    let mut parser = MailParser::new("tests/test-php.eml");
+    let mut parser = ElectronicMail::new("tests/test-php.eml");
     parser.parse()?;
     assert_eq!(parser.from, "mlemos <mlemos@acm.org>");
     assert_eq!(parser.to, "Manuel Lemos <mlemos@linux.local>");
@@ -491,5 +407,58 @@ mod tests {
     assert_eq!(parser.attachments[2].content_id, "none");
     assert_eq!(parser.attachments[2].body.len(), 64);
     Ok(())
+  }
+}
+
+impl super::message::Message for ElectronicMail {
+  fn parse(&mut self) -> Result<(), Box<dyn Error>> {
+    let stream: Stream = StreamFs::open(&self.file, O_RDONLY, 0644)?;
+    let parser = Parser::with_stream(&stream);
+    let message = parser.construct_message(None);
+
+    if let Some(eml) = &message {
+      if let Some(from) = &eml.from() {
+        self.from = self.internet_list(from);
+      }
+      self.to = self.internet_list(&self.merge_to(&eml));
+      if let Some(subject) = &eml.subject() {
+        self.subject = subject.to_string();
+      }
+      if let Some(date) = ElectronicMail::my_mime_message_get_date(&eml) {
+        self.date = date;
+      }
+      self.parse_body(&eml);
+    }
+    stream.close();
+
+    Ok(())
+  }
+
+  fn from(&self) -> String {
+    self.from.clone()
+  }
+
+  fn to(&self) -> String {
+    self.to.clone()
+  }
+
+  fn subject(&self) -> String {
+    self.subject.clone()
+  }
+
+  fn date(&self) -> String {
+    self.date.clone()
+  }
+
+  fn attachments(&self) -> Vec<Attachment> {
+    self.attachments.clone()
+  }
+
+  fn body_html(&self) -> Option<String> {
+    self.body_html.clone()
+  }
+
+  fn body_text(&self) -> Option<String> {
+    self.body_text.clone()
   }
 }
