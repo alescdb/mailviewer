@@ -1,15 +1,14 @@
-use std::{error::Error, path::PathBuf};
-
-use base64::{engine::general_purpose, Engine};
+use std::error::Error;
 use msg_parser::Outlook;
 use uuid::Uuid;
+
+use crate::message::message::MessageParser;
 
 use super::{attachment::Attachment, message::Message};
 
 #[derive(Debug, Default, Clone)]
 pub struct OutlookMessage {
   file: String,
-  temp: PathBuf,
   pub from: String,
   pub to: String,
   pub date: String,
@@ -23,7 +22,6 @@ impl OutlookMessage {
     Self {
       file: file.to_string(),
       from: String::new(),
-      temp: PathBuf::new(),
       to: String::new(),
       date: String::new(),
       subject: String::new(),
@@ -43,34 +41,23 @@ impl OutlookMessage {
       .collect::<Vec<String>>()
       .join(", ")
   }
+}
 
+impl Message for OutlookMessage {
   fn parse(&mut self) -> Result<(), Box<dyn Error>> {
-    let outlook = Outlook::from_path("tests/sample.msg").unwrap();
+    let outlook = Outlook::from_path(&self.file).unwrap();
     self.from = OutlookMessage::person_to_string(&outlook.sender);
     self.to = OutlookMessage::person_list_to_string(&outlook.to);
     self.subject = outlook.subject;
     self.date = outlook.headers.date;
     self.body = Some(outlook.body.clone());
-    println!("body_html => {:?}", &outlook.body.clone());
-    println!("content_type => {:?}", outlook.headers.content_type);
-    println!("message_id => {:?}", outlook.headers.message_id);
-    println!("reply_to => {:?}", outlook.headers.reply_to);
-    println!(
-      "attachments.capacity => {:?}",
-      outlook.attachments.capacity()
-    );
 
     for i in 0..outlook.attachments.capacity() {
       let att = &outlook.attachments[i];
-      println!("att.file_name => {:?}", att.file_name);
-      println!("att.display_name => {:?}", att.display_name);
-      println!("att.extension => {:?}", att.extension);
-      println!("att.mime_tag => {:?}", att.mime_tag);
       self.attachments.push(Attachment {
-        temp: String::new(),
         filename: att.file_name.clone(),
         content_id: Uuid::new_v4().simple().to_string(),
-        body: match general_purpose::STANDARD.decode(&att.payload) {
+        body: match hex::decode(&att.payload) {
           Ok(body) => body,
           Err(err) => {
             println!("Failed to decode body : {}", err);
@@ -81,7 +68,10 @@ impl OutlookMessage {
       });
     }
     let att = outlook.attachments.first().unwrap();
-    println!("attachments.capacity => {:?}", outlook.attachments.first());
+    println!(
+      "attachments.capacity => {:?}",
+      outlook.attachments.capacity()
+    );
     println!("att.file_name => {:?}", att.file_name);
     println!("att.display_name => {:?}", att.display_name);
     println!("att.extension => {:?}", att.extension);
@@ -89,9 +79,7 @@ impl OutlookMessage {
 
     Ok(())
   }
-}
 
-impl Message for OutlookMessage {
   fn from(&self) -> String {
     self.from.clone()
   }
@@ -121,32 +109,37 @@ impl Message for OutlookMessage {
   }
 }
 
+impl Drop for OutlookMessage {
+  fn drop(&mut self) {
+    log::warn!("OutlookMessage::drop()");
+    MessageParser::cleanup();
+  }
+}
+
+
 #[cfg(test)]
 mod tests {
-  use crate::message::outlook::OutlookMessage;
+  use crate::message::{
+    message::Message,
+    outlook::OutlookMessage,
+  };
   use std::error::Error;
 
   #[test]
   fn test_outlook() -> Result<(), Box<dyn Error>> {
-    let mut parser = OutlookMessage::new("sample.eml");
+    let mut parser = OutlookMessage::new("sample.msg");
     parser.parse()?;
-    assert_eq!(parser.from, "");
-    assert_eq!(
-      parser.to,
-      ""
-    );
-    assert_eq!(
-      parser.subject,
-      ""
-    );
-    assert_eq!(parser.date, "Fri, 25 May 2018 10:31:04 +0000");
-    assert_eq!(parser.attachments.len(), 1);
-    assert_eq!(parser.attachments[0].filename, "image001.jpg");
+    assert_eq!(parser.from, "John Doe <john@moon.space>");
+    assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
+    assert_eq!(parser.subject, "Lorem ipsum");
+    assert_eq!(parser.date, "");
+    assert_eq!(parser.attachments.len(), 3);
+    assert_eq!(parser.attachments[0].filename, "image001.png");
+    assert!(parser.body.clone().unwrap().contains("Hello Lucas"));
     assert_eq!(
       parser.attachments[0].mime_type.clone().unwrap(),
-      "image/jpeg"
+      "image/png"
     );
-
     Ok(())
   }
 }

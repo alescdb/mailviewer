@@ -6,6 +6,7 @@ const APP_ID: &str = "io.github.alescdb.mailviewer";
 
 #[allow(dead_code)]
 struct Config {
+  name: String,
   out_dir: PathBuf,
   project: PathBuf,
   src: PathBuf,
@@ -32,6 +33,7 @@ fn main() {
     src: src.clone(),
     config_in: src.clone().join("config.rs.in"),
     config_rs: src.clone().join("config.rs"),
+    name: env::var("CARGO_PKG_NAME").unwrap(),
     version: env::var("CARGO_PKG_VERSION").unwrap(),
     target: project.clone().join("target").join(&profile),
   };
@@ -69,8 +71,9 @@ fn config(cfg: &Config) {
   let config_in =
     fs::read_to_string(cfg.config_in.to_str().unwrap()).expect("Failed to read config.rs.in");
   let config_out = config_in
-    .replace("@APP_ID@", &format!("\"{}\"", APP_ID))
-    .replace("@VERSION@", &format!("\"{}\"", &cfg.version))
+  .replace("@APP_ID@", &format!("\"{}\"", APP_ID))
+  .replace("@APP_NAME@", &format!("\"{}\"", &cfg.name))
+  .replace("@VERSION@", &format!("\"{}\"", &cfg.version))
     .replace(
       "@GETTEXT_PACKAGE@",
       &format!("\"{}\"", cfg.out_dir.to_str().unwrap()),

@@ -870,6 +870,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "lazy_static"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
+
+[[package]]
 name = "libadwaita"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -930,13 +936,15 @@ checksum = "c41e0c4fef86961ac6d6f8a82609f55f31b05e4fce149ac5710e439df7619ba4"
 
 [[package]]
 name = "mailviewer"
-version = "0.9.9"
+version = "0.9.92"
 dependencies = [
  "base64",
  "ctor",
  "env_logger",
  "gmime",
  "gtk4",
+ "hex",
+ "lazy_static",
  "libadwaita",
  "log",
  "mktemp",

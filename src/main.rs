@@ -21,7 +21,6 @@ mod application;
 mod config;
 mod gmimeinit;
 mod html;
-mod mailparser;
 mod mailservice;
 mod window;
 mod message;
@@ -30,6 +29,7 @@ use self::{application::MailViewerApplication, window::MailViewerWindow};
 
 use config::{APP_ID, PKGDATADIR};
 use gtk4::{gio, glib, prelude::*};
+use message::message::MessageParser;
 
 fn main() -> glib::ExitCode {
   env_logger::init();
@@ -39,5 +39,8 @@ fn main() -> glib::ExitCode {
   gio::resources_register(&resources);
 
   let app = MailViewerApplication::new(APP_ID, &gio::ApplicationFlags::HANDLES_OPEN);
-  app.run()
+  let res = app.run();
+  MessageParser::cleanup();
+
+  res
 }
