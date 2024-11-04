@@ -130,7 +130,6 @@ mod tests {
   fn test_outlook() -> Result<(), Box<dyn Error>> {
     let mut parser = OutlookMessage::new("sample.eml");
     parser.parse()?;
-<<<<<<< HEAD
     assert_eq!(parser.from, "");
     assert_eq!(
       parser.to,
@@ -139,16 +138,6 @@ mod tests {
     assert_eq!(
       parser.subject,
       ""
-=======
-    assert_eq!(parser.from, "Hengoat Gilles <Gilles.Hengoat@fr.gt.com>");
-    assert_eq!(
-      parser.to,
-      "_Liste de diffusion - GT France <GTFrance.all@fr.gt.com>"
-    );
-    assert_eq!(
-      parser.subject,
-      "Direction du Risk Management-Entrée en vigueur du RGPD"
->>>>>>> e6e2115093b98f5e8b9a29fefc64231108fc5979
     );
     assert_eq!(parser.date, "Fri, 25 May 2018 10:31:04 +0000");
     assert_eq!(parser.attachments.len(), 1);
