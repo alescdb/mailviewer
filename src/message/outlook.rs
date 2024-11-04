@@ -130,6 +130,7 @@ mod tests {
   fn test_outlook() -> Result<(), Box<dyn Error>> {
     let mut parser = OutlookMessage::new("sample.eml");
     parser.parse()?;
+<<<<<<< HEAD
     assert_eq!(parser.from, "");
     assert_eq!(
       parser.to,
@@ -138,6 +139,16 @@ mod tests {
     assert_eq!(
       parser.subject,
       ""
+=======
+    assert_eq!(parser.from, "");
+    assert_eq!(
+      parser.to,
+      ""
+    );
+    assert_eq!(
+      parser.subject,
+      ""
+>>>>>>> e6e2115093b98f5e8b9a29fefc64231108fc5979
     );
     assert_eq!(parser.date, "Fri, 25 May 2018 10:31:04 +0000");
     assert_eq!(parser.attachments.len(), 1);
