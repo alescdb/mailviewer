@@ -1,10 +1,14 @@
 use crate::{
-  config::VERSION, mailparser::{Attachment, MailParser}
+  config::VERSION,
+  message::{
+    attachment::Attachment,
+    message::{Message, MessageParser},
+  },
 };
 use std::{cell::RefCell, path::Path};
 
 pub struct MailService {
-  parser: RefCell<Option<MailParser>>,
+  parser: RefCell<Option<MessageParser>>,
   full_path: RefCell<Option<String>>,
   show_file_name: RefCell<bool>,
   signal_title_changed: RefCell<Option<Box<dyn Fn(&Self, &str) + 'static>>>,
@@ -20,68 +24,63 @@ impl MailService {
     }
   }
 
-  pub fn open_mail(&self, fullpath: &str) -> Result<(), Box<dyn std::error::Error>> {
+  pub fn open_message(&self, fullpath: &str) -> Result<(), Box<dyn std::error::Error>> {
     if Path::new(fullpath).exists() == false {
       return Err(format!("File not found : {}", fullpath).into());
     }
     self.full_path.borrow_mut().replace(fullpath.to_string());
-    let mut parser = MailParser::new(fullpath);
+    let mut parser = MessageParser::new(fullpath);
     parser.parse()?;
     self.parser.borrow_mut().replace(parser);
     self.update_title();
     Ok(())
   }
 
-  pub fn get_from(&self) -> String {
+  pub fn from(&self) -> String {
     if let Some(parser) = self.parser.borrow().as_ref() {
-      return parser.from.clone();
+      return parser.from();
     }
     String::new()
   }
 
-  pub fn get_to(&self) -> String {
+  pub fn to(&self) -> String {
     if let Some(parser) = self.parser.borrow().as_ref() {
-      return parser.to.clone();
+      return parser.to();
     }
     String::new()
   }
 
-  pub fn get_subject(&self) -> String {
+  pub fn subject(&self) -> String {
     if let Some(parser) = self.parser.borrow().as_ref() {
-      return parser.subject.clone();
+      return parser.subject();
     }
     String::new()
   }
 
-  pub fn get_date(&self) -> String {
+  pub fn date(&self) -> String {
     if let Some(parser) = self.parser.borrow().as_ref() {
-      return parser.date.clone();
+      return parser.date();
     }
     String::new()
   }
 
-  pub fn get_text(&self) -> Option<String> {
+  pub fn body_text(&self) -> Option<String> {
     if let Some(parser) = self.parser.borrow().as_ref() {
-      if let Some(text) = parser.body_text.clone() {
-        let proper = text.replace("\r\n", "\n");
-        return Some(proper);
-      }
+      return parser.body_text();
     }
     None
   }
 
-  pub fn get_html(&self) -> Option<String> {
+  pub fn body_html(&self) -> Option<String> {
     if let Some(parser) = self.parser.borrow().as_ref() {
-      if let Some(html) = parser.body_html.clone() {
-        return Some(html.clone());
-      }
+      return parser.body_html();
     }
     None
   }
 
-  pub fn get_attachments(&self) -> Vec<Attachment> {
+  pub fn attachments(&self) -> Vec<Attachment> {
     if let Some(parser) = self.parser.borrow().as_ref() {
-      return parser.attachments.clone();
+      return parser.attachments().clone();
     }
     vec![]
   }
@@ -122,7 +121,6 @@ impl MailService {
 impl std::fmt::Debug for MailService {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     f.debug_struct("MailService")
-      .field("parser", &self.parser)
       .field("fullpath", &self.full_path)
       .field("show_file_name", &self.show_file_name)
       .finish()
@@ -149,18 +147,18 @@ mod tests {
     let service = mail_service;
     let fullpath = "sample.eml";
 
-    assert!(service.open_mail(fullpath).is_ok());
+    assert!(service.open_message(fullpath).is_ok());
     assert_eq!(service.get_fullpath().unwrap(), fullpath.to_string());
-    assert_eq!(service.get_from(), "John Doe <john@moon.space>");
-    assert_eq!(service.get_to(), "Lucas <lucas@mercure.space>");
-    assert_eq!(service.get_subject(), "Lorem ipsum");
-    assert_eq!(service.get_date(), "2024-10-23 12:27:21");
+    assert_eq!(service.from(), "John Doe <john@moon.space>");
+    assert_eq!(service.to(), "Lucas <lucas@mercure.space>");
+    assert_eq!(service.subject(), "Lorem ipsum");
+    assert_eq!(service.date(), "2024-10-23 12:27:21");
   }
 
   #[test]
   fn open_mail_file_not_found() {
     let service = MailService::new();
-    let result = service.open_mail("path/to/nonexistent.eml");
+    let result = service.open_message("path/to/nonexistent.eml");
 
     assert!(result.is_err());
     assert_eq!(
@@ -172,8 +170,8 @@ mod tests {
   #[test]
   fn get_text() {
     let service = MailService::new();
-    service.open_mail("sample.eml").unwrap();
-    let text = service.get_text().unwrap();
+    service.open_message("sample.eml").unwrap();
+    let text = service.body_text().unwrap();
 
     assert!(text.contains("Lorem ipsum dolor sit amet, consectetur adipiscing elit"));
   }
@@ -181,8 +179,8 @@ mod tests {
   #[test]
   fn get_html() {
     let service = MailService::new();
-    service.open_mail("sample.eml").unwrap();
-    let html = service.get_html().unwrap();
+    service.open_message("sample.eml").unwrap();
+    let html = service.body_html().unwrap();
 
     assert!(html.contains("Hello Lucas,"));
   }
@@ -191,8 +189,8 @@ mod tests {
   fn get_attachments() {
     let service = MailService::new();
 
-    service.open_mail("sample.eml").unwrap();
-    let attachments = service.get_attachments();
+    service.open_message("sample.eml").unwrap();
+    let attachments = service.attachments();
 
     assert_eq!(attachments.len(), 1);
     assert_eq!(attachments[0].filename, "Deus_Gnome.png");
@@ -201,7 +199,7 @@ mod tests {
   #[test]
   fn update_title_with_show_file_name() {
     let service = MailService::new();
-    service.open_mail("sample.eml").unwrap();
+    service.open_message("sample.eml").unwrap();
     service.set_show_file_name(true);
     assert_eq!(service.get_title("sample.eml"), "sample.eml");
   }
@@ -224,7 +222,7 @@ mod tests {
     service.connect_title_changed(move |_, _| {
       *title_changed_called_clone.borrow_mut() = true;
     });
-    service.open_mail("sample.eml").unwrap();
+    service.open_message("sample.eml").unwrap();
     service.set_show_file_name(false);
     assert!(*title_changed_called.borrow());
   }
