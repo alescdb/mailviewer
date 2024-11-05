@@ -947,7 +947,6 @@ dependencies = [
  "lazy_static",
  "libadwaita",
  "log",
- "mktemp",
  "msg_parser",
  "nipper",
  "open",
@@ -988,15 +987,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "488016bfae457b036d996092f6cb448677611ce4449e970ceaf42695203f218a"
 dependencies = [
  "autocfg",
-]
-
-[[package]]
-name = "mktemp"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69fed8fbcd01affec44ac226784c6476a6006d98d13e33bc0ca7977aaf046bd8"
-dependencies = [
- "uuid",
 ]
 
 [[package]]
