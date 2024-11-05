@@ -30,6 +30,10 @@
       <caption>Attachments (Dark)</caption>
     </screenshot>
   </screenshots>
+  <branding>
+    <color type="primary" scheme_preference="light">#a8ffca</color>
+    <color type="primary" scheme_preference="dark">#002411</color>
+  </branding>
   <content_rating type="oars-1.0" />
   <developer_name>Alexandre Del Bigio</developer_name>
   <releases>
