@@ -22,8 +22,8 @@ mod config;
 mod gmimeinit;
 mod html;
 mod mailservice;
-mod window;
 mod message;
+mod window;
 
 use self::{application::MailViewerApplication, window::MailViewerWindow};
 

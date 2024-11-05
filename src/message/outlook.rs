@@ -1,8 +1,6 @@
-use std::error::Error;
-use msg_parser::Outlook;
-use uuid::Uuid;
-
 use crate::message::message::MessageParser;
+use msg_parser::Outlook;
+use std::error::Error;
 
 use super::{attachment::Attachment, message::Message};
 
@@ -56,7 +54,7 @@ impl Message for OutlookMessage {
       let att = &outlook.attachments[i];
       self.attachments.push(Attachment {
         filename: att.file_name.clone(),
-        content_id: Uuid::new_v4().simple().to_string(),
+        content_id: att.file_name.clone(), // Uuid::new_v4().simple().to_string(),
         body: match hex::decode(&att.payload) {
           Ok(body) => body,
           Err(err) => {
@@ -116,13 +114,9 @@ impl Drop for OutlookMessage {
   }
 }
 
-
 #[cfg(test)]
 mod tests {
-  use crate::message::{
-    message::Message,
-    outlook::OutlookMessage,
-  };
+  use crate::message::{message::Message, outlook::OutlookMessage};
   use std::error::Error;
 
   #[test]

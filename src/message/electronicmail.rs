@@ -20,18 +20,12 @@
 use crate::message::{attachment::Attachment, message::MessageParser};
 use base64::{engine::general_purpose, Engine};
 use gmime::{
-  glib,
-  prelude::Cast,
-  traits::{
-    ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt,
-    StreamMemExt,
-  },
-  InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part, Stream,
-  StreamFs, StreamMem,
+  glib, prelude::Cast, traits::{
+    ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt, StreamMemExt
+  }, InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part, Stream, StreamFs, StreamMem
 };
 use nipper::Document;
-use std::error::Error;
-use std::fs;
+use std::{error::Error, fs};
 
 #[allow(unused_variables, dead_code)]
 const O_RDONLY: i32 = 0;
