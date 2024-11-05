@@ -9,24 +9,30 @@
   <url type="homepage">https://github.com/alescdb/mailviewer</url>
   <url type="bugtracker">https://github.com/alescdb/mailviewer/issues</url>
   <description>
-    <p>MailViewer is a GNOME application that allows users to read and decode .eml and .msg files (email files) without having to install any additional software or create an account.</p>
-    <p>It provides a graphical interface for easy navigation and rendering of email content, including attachments, HTML, and plain text.</p>
+    <p>MailViewer is a GNOME application that allows users to read and decode .eml and .msg files
+      (email files) without having to install any additional software or create an account.</p>
+    <p>It provides a graphical interface for easy navigation and rendering of email content,
+      including attachments, HTML, and plain text.</p>
   </description>
   <screenshots>
     <screenshot type="default">
-      <image>https://github.com/alescdb/mailviewer/blob/b6a1c8a703416b3d88a7fcbc66af5a4a26a395fc/images/mailviewer_0.9.92_light_1.png?raw=true</image>
+      <image>
+        https://github.com/alescdb/mailviewer/blob/b6a1c8a703416b3d88a7fcbc66af5a4a26a395fc/images/mailviewer_0.9.92_light_1.png?raw=true</image>
       <caption>Main Window (Light)</caption>
     </screenshot>
     <screenshot>
-      <image>https://github.com/alescdb/mailviewer/blob/b6a1c8a703416b3d88a7fcbc66af5a4a26a395fc/images/mailviewer_0.9.92_light_2.png?raw=true</image>
+      <image>
+        https://github.com/alescdb/mailviewer/blob/b6a1c8a703416b3d88a7fcbc66af5a4a26a395fc/images/mailviewer_0.9.92_light_2.png?raw=true</image>
       <caption>Attachments (Light)</caption>
     </screenshot>
     <screenshot>
-      <image>https://github.com/alescdb/mailviewer/blob/b6a1c8a703416b3d88a7fcbc66af5a4a26a395fc/images/mailviewer_0.9.92_dark_1.png?raw=true</image>
+      <image>
+        https://github.com/alescdb/mailviewer/blob/b6a1c8a703416b3d88a7fcbc66af5a4a26a395fc/images/mailviewer_0.9.92_dark_1.png?raw=true</image>
       <caption>Main Window (Dark)</caption>
     </screenshot>
     <screenshot>
-      <image>https://github.com/alescdb/mailviewer/blob/b6a1c8a703416b3d88a7fcbc66af5a4a26a395fc/images/mailviewer_0.9.92_dark_2.png?raw=true</image>
+      <image>
+        https://github.com/alescdb/mailviewer/blob/b6a1c8a703416b3d88a7fcbc66af5a4a26a395fc/images/mailviewer_0.9.92_dark_2.png?raw=true</image>
       <caption>Attachments (Dark)</caption>
     </screenshot>
   </screenshots>
@@ -37,6 +43,13 @@
   <content_rating type="oars-1.0" />
   <developer_name>Alexandre Del Bigio</developer_name>
   <releases>
+    <release version="0.9.93" date="2024-11-01">
+      <description>
+        <ul>
+          <li>Correct a crash when .msg has no attachments</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.9.92" date="2024-11-01">
       <description>
         <ul>
