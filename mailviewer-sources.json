@@ -1211,19 +1211,6 @@
     {
         "type": "archive",
         "archive-type": "tar-gzip",
-        "url": "https://static.crates.io/crates/mktemp/mktemp-0.5.1.crate",
-        "sha256": "69fed8fbcd01affec44ac226784c6476a6006d98d13e33bc0ca7977aaf046bd8",
-        "dest": "cargo/vendor/mktemp-0.5.1"
-    },
-    {
-        "type": "inline",
-        "contents": "{\"package\": \"69fed8fbcd01affec44ac226784c6476a6006d98d13e33bc0ca7977aaf046bd8\", \"files\": {}}",
-        "dest": "cargo/vendor/mktemp-0.5.1",
-        "dest-filename": ".cargo-checksum.json"
-    },
-    {
-        "type": "archive",
-        "archive-type": "tar-gzip",
         "url": "https://static.crates.io/crates/msg_parser/msg_parser-0.1.1.crate",
         "sha256": "55f4a66830bf3357952d7ef79021015df7db2b871701cb755b29025876909edd",
         "dest": "cargo/vendor/msg_parser-0.1.1"

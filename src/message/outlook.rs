@@ -43,7 +43,7 @@ impl OutlookMessage {
 
 impl Message for OutlookMessage {
   fn parse(&mut self) -> Result<(), Box<dyn Error>> {
-    let outlook = Outlook::from_path(&self.file).unwrap();
+    let outlook = Outlook::from_path(&self.file)?;
     self.from = OutlookMessage::person_to_string(&outlook.sender);
     self.to = OutlookMessage::person_list_to_string(&outlook.to);
     self.subject = outlook.subject;
@@ -55,25 +55,10 @@ impl Message for OutlookMessage {
       self.attachments.push(Attachment {
         filename: att.file_name.clone(),
         content_id: att.file_name.clone(), // Uuid::new_v4().simple().to_string(),
-        body: match hex::decode(&att.payload) {
-          Ok(body) => body,
-          Err(err) => {
-            println!("Failed to decode body : {}", err);
-            vec![]
-          }
-        },
+        body: hex::decode(&att.payload)?,
         mime_type: Some(att.mime_tag.clone()),
       });
     }
-    let att = outlook.attachments.first().unwrap();
-    println!(
-      "attachments.capacity => {:?}",
-      outlook.attachments.capacity()
-    );
-    println!("att.file_name => {:?}", att.file_name);
-    println!("att.display_name => {:?}", att.display_name);
-    println!("att.extension => {:?}", att.extension);
-    println!("att.mime_tag => {:?}", att.mime_tag);
 
     Ok(())
   }

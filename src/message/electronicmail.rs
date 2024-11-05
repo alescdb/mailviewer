@@ -20,9 +20,14 @@
 use crate::message::{attachment::Attachment, message::MessageParser};
 use base64::{engine::general_purpose, Engine};
 use gmime::{
-  glib, prelude::Cast, traits::{
-    ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt, StreamMemExt
-  }, InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part, Stream, StreamFs, StreamMem
+  glib,
+  prelude::Cast,
+  traits::{
+    ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt,
+    StreamMemExt,
+  },
+  InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part, Stream,
+  StreamFs, StreamMem,
 };
 use nipper::Document;
 use std::{error::Error, fs};
@@ -410,8 +415,10 @@ impl super::message::Message for ElectronicMail {
     let stream: Stream = StreamFs::open(&self.file, O_RDONLY, 0644)?;
     let parser = Parser::with_stream(&stream);
     let message = parser.construct_message(None);
+    let mut isok = false;
 
     if let Some(eml) = &message {
+      isok = true;
       if let Some(from) = &eml.from() {
         self.from = self.internet_list(from);
       }
@@ -426,6 +433,10 @@ impl super::message::Message for ElectronicMail {
     }
     stream.close();
 
+    if !isok {
+      log::error!("parse() => no message");
+      return Err("No message found".into());
+    }
     Ok(())
   }
 
