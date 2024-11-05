@@ -71,9 +71,9 @@ fn config(cfg: &Config) {
   let config_in =
     fs::read_to_string(cfg.config_in.to_str().unwrap()).expect("Failed to read config.rs.in");
   let config_out = config_in
-  .replace("@APP_ID@", &format!("\"{}\"", APP_ID))
-  .replace("@APP_NAME@", &format!("\"{}\"", &cfg.name))
-  .replace("@VERSION@", &format!("\"{}\"", &cfg.version))
+    .replace("@APP_ID@", &format!("\"{}\"", APP_ID))
+    .replace("@APP_NAME@", &format!("\"{}\"", &cfg.name))
+    .replace("@VERSION@", &format!("\"{}\"", &cfg.version))
     .replace(
       "@GETTEXT_PACKAGE@",
       &format!("\"{}\"", cfg.out_dir.to_str().unwrap()),

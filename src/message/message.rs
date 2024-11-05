@@ -2,8 +2,7 @@ use std::{error::Error, fs, path::PathBuf};
 
 use super::attachment::Attachment;
 use crate::{
-  config::APP_NAME,
-  message::{electronicmail::ElectronicMail, outlook::OutlookMessage},
+  config::APP_NAME, message::{electronicmail::ElectronicMail, outlook::OutlookMessage}
 };
 use lazy_static::lazy_static;
 use uuid::Uuid;
@@ -101,7 +100,7 @@ mod tests {
   use super::*;
 
   #[test]
-  fn test_sample() {
+  fn test_sample_eml() {
     let mut message = MessageParser::new("sample.eml");
     message.parse().unwrap();
     assert_eq!(message.from(), "John Doe <john@moon.space>");
@@ -112,6 +111,21 @@ mod tests {
     let attachment = &message.attachments()[0];
     assert_eq!(attachment.filename, "Deus_Gnome.png");
     assert_eq!(attachment.content_id, "ii_m2lqbrhv0");
+    assert_eq!(attachment.mime_type.as_ref().unwrap(), "image/png");
+  }
+
+  #[test]
+  fn test_sample_msg() {
+    let mut message = MessageParser::new("sample.msg");
+    message.parse().unwrap();
+    assert_eq!(message.from(), "John Doe <john@moon.space>");
+    assert_eq!(message.to(), "Lucas <lucas@mercure.space>");
+    assert_eq!(message.subject(), "Lorem ipsum");
+    assert_eq!(message.date(), "");
+    assert_eq!(message.attachments().len(), 3);
+    let attachment = &message.attachments()[0];
+    assert_eq!(attachment.filename, "image001.png");
+    assert_eq!(attachment.content_id, "image001.png"); // same as filename
     assert_eq!(attachment.mime_type.as_ref().unwrap(), "image/png");
   }
 }

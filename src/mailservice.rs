@@ -1,9 +1,7 @@
 use crate::{
-  config::VERSION,
-  message::{
-    attachment::Attachment,
-    message::{Message, MessageParser},
-  },
+  config::VERSION, message::{
+    attachment::Attachment, message::{Message, MessageParser}
+  }
 };
 use std::{cell::RefCell, path::Path};
 
