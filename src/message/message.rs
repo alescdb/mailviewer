@@ -6,12 +6,15 @@ use crate::{
   message::{electronicmail::ElectronicMail, outlook::OutlookMessage},
 };
 use lazy_static::lazy_static;
+use uuid::Uuid;
 
 lazy_static! {
   pub static ref TEMP_FOLDER: PathBuf = {
     let mut path = PathBuf::from(std::env::var("XDG_RUNTIME_DIR").unwrap());
+    let uuid = Uuid::new_v4().simple().to_string();
     path.push(APP_NAME);
-    mktemp::Temp::new_path_in(path).to_path_buf()
+    path.push(uuid);
+    path
   };
 }
 pub trait Message {
