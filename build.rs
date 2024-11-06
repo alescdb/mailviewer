@@ -1,6 +1,6 @@
-use std::{
-  env, fs, path::{Path, PathBuf}, process::Command
-};
+use std::path::{Path, PathBuf};
+use std::process::Command;
+use std::{env, fs};
 
 const APP_ID: &str = "io.github.alescdb.mailviewer";
 

@@ -17,17 +17,18 @@
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-use crate::{
-  application::MailViewerApplication, html::Html, mailservice::MailService, message::attachment::Attachment
-};
-use adw::{
-  glib::clone, prelude::{AlertDialogExt, *}, subclass::prelude::*
-};
-use gtk4::{gio, glib, prelude::FileChooserExt, template_callbacks, ResponseType};
-use std::{borrow::BorrowMut, option::Option};
-use webkit6::{
-  prelude::{PolicyDecisionExt, WebViewExt}, NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, WebView
-};
+use crate::html::Html;
+use crate::mailservice::MailService;
+use crate::message::attachment::Attachment;
+use adw::glib::clone;
+use adw::prelude::{AlertDialogExt, *};
+use adw::subclass::prelude::*;
+use gtk4::prelude::FileChooserExt;
+use gtk4::{gio, glib, template_callbacks, ResponseType};
+use std::borrow::BorrowMut;
+use std::option::Option;
+use webkit6::prelude::{PolicyDecisionExt, WebViewExt};
+use webkit6::{NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, WebView};
 
 const SETTINGS_SHOW_FILE_NAME: &str = "show-file-name";
 
@@ -118,7 +119,7 @@ mod imp {
       klass.bind_template();
       klass.bind_template_instance_callbacks();
       klass.install_action_async(
-        "win.open-file",
+        "win.open-file-dialog",
         None,
         |window, _, parameter: Option<glib::Variant>| async move {
           let mut close = false;
@@ -129,6 +130,39 @@ mod imp {
             .open_file_dialog(close)
             .await
             .expect("Error open_file_dialog()");
+        },
+      );
+      klass.install_action_async(
+        "win.open-file",
+        None,
+        |window, _, parameter: Option<glib::Variant>| async move {
+          let mut filename: Option<String> = None;
+          if let Some(parameter) = parameter {
+            filename = parameter.get::<Option<String>>().unwrap();
+          }
+          if let Some(filename) = filename {
+            window.open_file(&filename);
+          } else {
+            log::debug!("open_file_dialog()");
+            match window.open_file_dialog(true).await {
+              Ok(_) => {}
+              Err(e) => {
+                log::error!("open_file_dialog() => {}", e);
+                window
+                  .alert_error("File Error", &format!("Failed to open file :\n{}", e))
+                  .connect_response(
+                    Some("close"),
+                    clone!(
+                      #[strong]
+                      window,
+                      move |_, _| {
+                        window.close();
+                      }
+                    ),
+                  );
+              }
+            };
+          }
         },
       );
       klass.install_action("win.preferences", None, move |win, _, _| {
@@ -206,17 +240,51 @@ impl MailViewerWindow {
     self.initialize_settings();
     self.initialize_actions();
 
+    imp.web_settings.set_allow_file_access_from_file_urls(false);
+    imp
+      .web_settings
+      .set_enable_back_forward_navigation_gestures(false);
+    imp.web_settings.set_enable_developer_extras(false);
+    imp.web_settings.set_enable_dns_prefetching(false);
+    imp.web_settings.set_allow_modal_dialogs(false);
+    imp
+      .web_settings
+      .set_allow_universal_access_from_file_urls(false);
     imp.web_settings.set_enable_javascript(false);
     imp.web_settings.set_auto_load_images(false);
     imp.web_view.set_settings(&imp.web_settings);
+    imp.web_view.set_editable(false);
+    imp.web_view.set_receives_default(false);
+    imp.web_view.connect_can_target_notify(move |x| {
+      log::debug!("can_target_notify({:?})", x);
+    });
     imp.placeholder.set_child(Some(&imp.web_view));
-
-    self.open_or_ask();
   }
 
   fn initialize_actions(&self) {
     let win = self;
     let imp = self.imp();
+
+    let drop_target = gtk4::DropTarget::new(gio::File::static_type(), gtk4::gdk::DragAction::COPY);
+    imp.body_text.add_controller(drop_target.clone());
+
+    drop_target.connect_drop(clone!(
+      #[strong]
+      win,
+      move |_, data, _, _| {
+        if let Ok(file) = data.get::<gio::File>() {
+          if let Some(filepath) = file.path() {
+            if let Some(filepath) = filepath.to_str() {
+              if filepath.ends_with(".eml") || filepath.ends_with(".msg") {
+                win.open_file(filepath);
+                return true;
+              }
+            }
+          }
+        }
+        false
+      }
+    ));
 
     imp.web_view.connect_decide_policy(clone!(
       #[strong]
@@ -477,27 +545,7 @@ impl MailViewerWindow {
     Ok(())
   }
 
-  pub fn open_or_ask(&self) {
-    let app: Option<gtk4::Application> = self.application();
-
-    if let Some(app) = app {
-      if let Ok(app) = app.downcast::<MailViewerApplication>() {
-        if let Some(filename) = app.imp().filename.get() {
-          self.open_file(filename);
-          return;
-        }
-      }
-    }
-
-    adw::prelude::WidgetExt::activate_action(
-      self,
-      "win.open-file",
-      Some(&glib::Variant::from(true)),
-    )
-    .expect("Error opening file dialog !");
-  }
-
-  fn open_file(&self, file: &str) {
+  pub fn open_file(&self, file: &str) {
     log::debug!("open_file({})", file);
     glib::idle_add_local_once(glib::clone!(
       #[weak(rename_to = window)]
@@ -598,7 +646,7 @@ impl MailViewerWindow {
       .imp()
       .settings
       .get()
-      .expect("Error settings !")
+      .expect("Error get_show_file_name() !")
       .get::<bool>(SETTINGS_SHOW_FILE_NAME)
   }
 

@@ -1,9 +1,27 @@
-use crate::{
-  config::VERSION, message::{
-    attachment::Attachment, message::{Message, MessageParser}
-  }
-};
-use std::{cell::RefCell, path::Path};
+/* mailservice.rs
+ *
+ * Copyright 2024 Alexandre Del Bigio
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+use crate::config::VERSION;
+use crate::message::attachment::Attachment;
+use crate::message::message::{Message, MessageParser};
+use std::cell::RefCell;
+use std::path::Path;
 
 pub struct MailService {
   parser: RefCell<Option<MessageParser>>,

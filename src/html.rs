@@ -94,7 +94,8 @@ impl Html {
 
 #[cfg(test)]
 mod tests {
-  use std::{error::Error, fs};
+  use std::error::Error;
+  use std::fs;
 
   #[test]
   fn html() -> Result<(), Box<dyn Error>> {
