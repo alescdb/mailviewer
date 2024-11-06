@@ -17,11 +17,12 @@
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
+use std::cell::RefCell;
+use std::path::Path;
+
 use crate::config::VERSION;
 use crate::message::attachment::Attachment;
 use crate::message::message::{Message, MessageParser};
-use std::cell::RefCell;
-use std::path::Path;
 
 pub struct MailService {
   parser: RefCell<Option<MessageParser>>,
@@ -145,8 +146,9 @@ impl std::fmt::Debug for MailService {
 
 #[cfg(test)]
 mod tests {
-  use crate::mailservice::MailService;
   use std::rc::Rc;
+
+  use crate::mailservice::MailService;
 
   #[test]
   fn new_mail_service() {

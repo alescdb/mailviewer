@@ -21,12 +21,13 @@ use std::error::Error;
 use std::fs;
 use std::path::PathBuf;
 
+use lazy_static::lazy_static;
+use uuid::Uuid;
+
 use super::attachment::Attachment;
 use crate::config::APP_NAME;
 use crate::message::electronicmail::ElectronicMail;
 use crate::message::outlook::OutlookMessage;
-use lazy_static::lazy_static;
-use uuid::Uuid;
 
 lazy_static! {
   pub static ref TEMP_FOLDER: PathBuf = {
