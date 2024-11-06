@@ -15,6 +15,25 @@ Written in [Rust](https://www.rust-lang.org/) with [GTK4](https://www.gtk.org/)/
 - **Decode email attachments**: View and/or save attachments.
 - **Support for HTML and plain text emails**: Render emails in both formats (if available).
 
+## Q&A
+
+### I can't access files outside of `$HOME` or on an USB stick
+
+This is a flatpak/sandbox issue, you can grant it access to the `host` filesystem with the following command:
+
+```bash
+flatpak override --user --filesystem=host io.github.alescdb.mailviewer
+```
+
+If you also need access to files on a USB stick, use this command:
+
+```bash
+flatpak override --user --device=all io.github.alescdb.mailviewer
+```
+
+Alternatively, you can install [Flatseal](https://flathub.org/apps/com.github.tchx84.Flatseal) to adjust permissions.
+
+
 ## Sceenshots
 
 ![Main](images/mailviewer_0.9.92_dark_1.png)
