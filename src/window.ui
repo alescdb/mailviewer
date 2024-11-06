@@ -237,7 +237,7 @@
     <section>
       <item>
         <attribute name="label" translatable="yes">_Open...</attribute>
-        <attribute name="action">win.open-file</attribute>
+        <attribute name="action">win.open-file-dialog</attribute>
       </item>
       <item>
         <attribute name="label" translatable="yes">_Preferences</attribute>

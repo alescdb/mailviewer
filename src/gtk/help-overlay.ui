@@ -12,7 +12,7 @@
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="title" translatable="yes" context="shortcut window">Open File</property>
-                <property name="action-name">win.open-file</property>
+                <property name="action-name">win.open-file-dialog</property>
               </object>
             </child>
             <child>

@@ -1,4 +1,4 @@
-/* ElectronicMail.rs
+/* electronicmail.rs
  *
  * Copyright 2024 Alexandre Del Bigio
  *
@@ -17,20 +17,20 @@
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-use crate::message::{attachment::Attachment, message::MessageParser};
-use base64::{engine::general_purpose, Engine};
+use crate::message::attachment::Attachment;
+use crate::message::message::MessageParser;
+use base64::engine::general_purpose;
+use base64::Engine;
+use gmime::prelude::Cast;
+use gmime::traits::{
+  ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt, StreamMemExt
+};
 use gmime::{
-  glib,
-  prelude::Cast,
-  traits::{
-    ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt,
-    StreamMemExt,
-  },
-  InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part, Stream,
-  StreamFs, StreamMem,
+  glib, InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part, Stream, StreamFs, StreamMem
 };
 use nipper::Document;
-use std::{error::Error, fs};
+use std::error::Error;
+use std::fs;
 
 #[allow(unused_variables, dead_code)]
 const O_RDONLY: i32 = 0;
@@ -295,8 +295,10 @@ impl Drop for ElectronicMail {
 
 #[cfg(test)]
 mod tests {
-  use crate::message::{electronicmail::ElectronicMail, message::Message};
-  use std::{error::Error, path::Path};
+  use crate::message::electronicmail::ElectronicMail;
+  use crate::message::message::Message;
+  use std::error::Error;
+  use std::path::Path;
 
   #[test]
   fn test_sample() -> Result<(), Box<dyn Error>> {

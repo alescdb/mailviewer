@@ -25,10 +25,12 @@ mod mailservice;
 mod message;
 mod window;
 
-use self::{application::MailViewerApplication, window::MailViewerWindow};
+use self::application::MailViewerApplication;
+use self::window::MailViewerWindow;
 
 use config::{APP_ID, PKGDATADIR};
-use gtk4::{gio, glib, prelude::*};
+use gtk4::prelude::*;
+use gtk4::{gio, glib};
 use message::message::MessageParser;
 
 fn main() -> glib::ExitCode {

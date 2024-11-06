@@ -18,21 +18,20 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 use adw::subclass::prelude::*;
-use gtk4::{gio, glib, prelude::*};
+use gtk4::prelude::*;
+use gtk4::{gio, glib};
 
-use crate::{
-  config::{APP_ID, VERSION}, MailViewerWindow
-};
+use crate::config::{APP_ID, VERSION};
+use crate::MailViewerWindow;
 use adw::prelude::AdwDialogExt;
 
 mod imp {
   use super::*;
-  use std::cell::OnceCell;
+  use std::cell::RefCell;
 
   #[derive(Debug, Default)]
   pub struct MailViewerApplication {
-    pub window: OnceCell<MailViewerWindow>,
-    pub filename: OnceCell<String>,
+    filename: RefCell<Option<String>>,
   }
 
   #[glib::object_subclass]
@@ -49,7 +48,7 @@ mod imp {
       let obj = self.obj();
       obj.setup_gactions();
       obj.set_accels_for_action("app.quit", &["<primary>q"]);
-      obj.set_accels_for_action("win.open-file", &["<primary>o"]);
+      obj.set_accels_for_action("win.open-file-dialog", &["<primary>o"]);
       obj.set_accels_for_action("win.reset-zoom", &["<primary>r"]);
     }
   }
@@ -57,30 +56,29 @@ mod imp {
   impl ApplicationImpl for MailViewerApplication {
     fn activate(&self) {
       let application = self.obj();
-
       let window: MailViewerWindow = if let Some(window) = application.active_window() {
         window.downcast::<MailViewerWindow>().ok().unwrap()
       } else {
         let window = MailViewerWindow::new(&*application);
+        let provider = gtk4::CssProvider::new();
+
+        provider.load_from_resource("/io/github/alescdb/mailviewer/css/style.css");
+        if let Some(display) = gtk4::gdk::Display::default() {
+          gtk4::style_context_add_provider_for_display(
+            &display,
+            &provider,
+            gtk4::STYLE_PROVIDER_PRIORITY_APPLICATION,
+          );
+        }
         window.upcast()
       };
-      self
-        .window
-        .set(window.clone())
-        .expect("Window already set.");
-
-      let provider = gtk4::CssProvider::new();
-      provider.load_from_resource("/io/github/alescdb/mailviewer/css/style.css");
-
-      // Appliquer le CSS à l'écran par défaut
-      if let Some(display) = gtk4::gdk::Display::default() {
-        gtk4::style_context_add_provider_for_display(
-          &display,
-          &provider,
-          gtk4::STYLE_PROVIDER_PRIORITY_APPLICATION,
-        );
-      }
       window.present();
+      adw::prelude::WidgetExt::activate_action(
+        &window,
+        "win.open-file",
+        Some(&glib::Variant::from(self.filename.borrow().clone())),
+      )
+      .expect("Error opening file dialog !");
     }
 
     fn open(&self, files: &[gio::File], hint: &str) {
@@ -90,10 +88,8 @@ mod imp {
 
       if files.is_empty() == false {
         if let Some(path) = files[0].path() {
-          self
-            .filename
-            .set(path.to_str().unwrap().to_string())
-            .expect("File already initialized.");
+          let path = path.to_str().unwrap().to_string();
+          self.filename.replace(Some(path.clone()));
         }
       }
       self.activate();

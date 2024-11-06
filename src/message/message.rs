@@ -1,9 +1,30 @@
-use std::{error::Error, fs, path::PathBuf};
+/* message.rs
+ *
+ * Copyright 2024 Alexandre Del Bigio
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+use std::error::Error;
+use std::fs;
+use std::path::PathBuf;
 
 use super::attachment::Attachment;
-use crate::{
-  config::APP_NAME, message::{electronicmail::ElectronicMail, outlook::OutlookMessage}
-};
+use crate::config::APP_NAME;
+use crate::message::electronicmail::ElectronicMail;
+use crate::message::outlook::OutlookMessage;
 use lazy_static::lazy_static;
 use uuid::Uuid;
 
@@ -56,7 +77,7 @@ impl MessageParser {
 
 impl Drop for MessageParser {
   fn drop(&mut self) {
-    log::warn!("MessageParser::drop()");
+    log::debug!("MessageParser::drop()");
     Self::cleanup();
   }
 }
