@@ -17,12 +17,13 @@
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-use crate::message::message::MessageParser;
-use msg_parser::Outlook;
 use std::error::Error;
+
+use msg_parser::Outlook;
 
 use super::attachment::Attachment;
 use super::message::Message;
+use crate::message::message::MessageParser;
 
 #[derive(Debug, Default, Clone)]
 pub struct OutlookMessage {
@@ -121,9 +122,10 @@ impl Drop for OutlookMessage {
 
 #[cfg(test)]
 mod tests {
+  use std::error::Error;
+
   use crate::message::message::Message;
   use crate::message::outlook::OutlookMessage;
-  use std::error::Error;
 
   #[test]
   fn test_outlook() -> Result<(), Box<dyn Error>> {

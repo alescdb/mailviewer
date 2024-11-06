@@ -17,17 +17,18 @@
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
+use adw::prelude::AdwDialogExt;
 use adw::subclass::prelude::*;
 use gtk4::prelude::*;
 use gtk4::{gio, glib};
 
 use crate::config::{APP_ID, VERSION};
 use crate::MailViewerWindow;
-use adw::prelude::AdwDialogExt;
 
 mod imp {
-  use super::*;
   use std::cell::RefCell;
+
+  use super::*;
 
   #[derive(Debug, Default)]
   pub struct MailViewerApplication {
@@ -36,10 +37,11 @@ mod imp {
 
   #[glib::object_subclass]
   impl ObjectSubclass for MailViewerApplication {
-    const NAME: &'static str = "MailViewerApplication";
-    type Type = super::MailViewerApplication;
-    type ParentType = adw::Application;
     type Interfaces = ();
+    type ParentType = adw::Application;
+    type Type = super::MailViewerApplication;
+
+    const NAME: &'static str = "MailViewerApplication";
   }
 
   impl ObjectImpl for MailViewerApplication {
@@ -73,12 +75,14 @@ mod imp {
         window.upcast()
       };
       window.present();
-      adw::prelude::WidgetExt::activate_action(
+      if let Err(e) = adw::prelude::WidgetExt::activate_action(
         &window,
         "win.open-file",
         Some(&glib::Variant::from(self.filename.borrow().clone())),
-      )
-      .expect("Error opening file dialog !");
+      ) {
+        log::debug!("open_file_dialog({e})");
+        window.alert_error("File Error", &e.to_string(), false);
+      }
     }
 
     fn open(&self, files: &[gio::File], hint: &str) {

@@ -17,26 +17,29 @@
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-use crate::html::Html;
-use crate::mailservice::MailService;
-use crate::message::attachment::Attachment;
+use std::option::Option;
+
 use adw::glib::clone;
 use adw::prelude::{AlertDialogExt, *};
 use adw::subclass::prelude::*;
 use gtk4::prelude::FileChooserExt;
 use gtk4::{gio, glib, template_callbacks, ResponseType};
-use std::borrow::BorrowMut;
-use std::option::Option;
 use webkit6::prelude::{PolicyDecisionExt, WebViewExt};
 use webkit6::{NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, WebView};
+
+use crate::html::Html;
+use crate::mailservice::MailService;
+use crate::message::attachment::Attachment;
 
 const SETTINGS_SHOW_FILE_NAME: &str = "show-file-name";
 
 mod imp {
-  use super::*;
+  use std::cell::OnceCell;
+
   use adw::subclass::prelude::CompositeTemplateClass;
   use gtk4::ScrolledWindow;
-  use std::cell::OnceCell;
+
+  use super::*;
 
   #[derive(Debug, gtk4::CompositeTemplate)]
   #[template(resource = "/io/github/alescdb/mailviewer/window.ui")]
@@ -73,8 +76,8 @@ mod imp {
     pub attachments_clamp: TemplateChild<adw::Clamp>,
     //
     pub scrolled_window: ScrolledWindow,
-    pub web_view: webkit6::WebView,
-    pub web_settings: webkit6::Settings,
+    pub webview: webkit6::WebView,
+    pub websettings: webkit6::Settings,
     pub settings: OnceCell<gio::Settings>,
     pub service: MailService,
   }
@@ -82,8 +85,8 @@ mod imp {
   impl Default for MailViewerWindow {
     fn default() -> Self {
       let window = MailViewerWindow {
-        web_view: WebView::new(),
-        web_settings: webkit6::Settings::new(),
+        webview: WebView::new(),
+        websettings: webkit6::Settings::new(),
         scrolled_window: ScrolledWindow::new(),
         from: TemplateChild::default(),
         to: TemplateChild::default(),
@@ -109,11 +112,12 @@ mod imp {
 
   #[glib::object_subclass]
   impl ObjectSubclass for MailViewerWindow {
-    const NAME: &'static str = "MailViewerWindow";
-    const ABSTRACT: bool = false;
-    type Type = super::MailViewerWindow;
-    type ParentType = adw::ApplicationWindow;
     type Interfaces = ();
+    type ParentType = adw::ApplicationWindow;
+    type Type = super::MailViewerWindow;
+
+    const ABSTRACT: bool = false;
+    const NAME: &'static str = "MailViewerWindow";
 
     fn class_init(klass: &mut Self::Class) {
       klass.bind_template();
@@ -126,10 +130,7 @@ mod imp {
           if let Some(param) = parameter {
             close = param.get::<bool>().unwrap_or(false);
           }
-          window
-            .open_file_dialog(close)
-            .await
-            .expect("Error open_file_dialog()");
+          window.open_file_dialog(close).await;
         },
       );
       klass.install_action_async(
@@ -143,25 +144,7 @@ mod imp {
           if let Some(filename) = filename {
             window.open_file(&filename);
           } else {
-            log::debug!("open_file_dialog()");
-            match window.open_file_dialog(true).await {
-              Ok(_) => {}
-              Err(e) => {
-                log::error!("open_file_dialog() => {}", e);
-                window
-                  .alert_error("File Error", &format!("Failed to open file :\n{}", e))
-                  .connect_response(
-                    Some("close"),
-                    clone!(
-                      #[strong]
-                      window,
-                      move |_, _| {
-                        window.close();
-                      }
-                    ),
-                  );
-              }
-            };
+            window.open_file_dialog(true).await;
           }
         },
       );
@@ -218,19 +201,19 @@ impl MailViewerWindow {
   pub fn on_show_images_clicked(&self) {
     let show = self.imp().show_images.is_active();
     log::debug!("on_show_images_clicked({})", show);
-    self.imp().web_settings.set_auto_load_images(show);
+    self.imp().websettings.set_auto_load_images(show);
   }
 
   #[template_callback]
   pub fn on_zoom_minus_clicked(&self) {
     log::debug!("on_zoom_minus_clicked()");
-    self.set_zoom_level(self.imp().web_view.zoom_level() - 0.1);
+    self.set_zoom_level(self.imp().webview.zoom_level() - 0.1);
   }
 
   #[template_callback]
   pub fn on_zoom_plus_clicked(&self) {
     log::debug!("on_zoom_plus_clicked()");
-    self.set_zoom_level(self.imp().web_view.zoom_level() + 0.1);
+    self.set_zoom_level(self.imp().webview.zoom_level() + 0.1);
   }
 
   fn initialize(&self) {
@@ -240,25 +223,26 @@ impl MailViewerWindow {
     self.initialize_settings();
     self.initialize_actions();
 
-    imp.web_settings.set_allow_file_access_from_file_urls(false);
+    imp.websettings.set_allow_file_access_from_file_urls(false);
     imp
-      .web_settings
+      .websettings
       .set_enable_back_forward_navigation_gestures(false);
-    imp.web_settings.set_enable_developer_extras(false);
-    imp.web_settings.set_enable_dns_prefetching(false);
-    imp.web_settings.set_allow_modal_dialogs(false);
+    imp.websettings.set_enable_developer_extras(false);
+    imp.websettings.set_enable_dns_prefetching(false);
+    imp.websettings.set_allow_modal_dialogs(false);
     imp
-      .web_settings
+      .websettings
       .set_allow_universal_access_from_file_urls(false);
-    imp.web_settings.set_enable_javascript(false);
-    imp.web_settings.set_auto_load_images(false);
-    imp.web_view.set_settings(&imp.web_settings);
-    imp.web_view.set_editable(false);
-    imp.web_view.set_receives_default(false);
-    imp.web_view.connect_can_target_notify(move |x| {
-      log::debug!("can_target_notify({:?})", x);
+    imp.websettings.set_enable_javascript(false);
+    imp.websettings.set_auto_load_images(false);
+    imp.webview.set_settings(&imp.websettings);
+    imp.webview.set_editable(false);
+    imp.webview.connect_context_menu(move |_, _, _| {
+      log::debug!("WebView() => context_menu() cancelled");
+      true
     });
-    imp.placeholder.set_child(Some(&imp.web_view));
+    imp.webview.set_receives_default(false);
+    imp.placeholder.set_child(Some(&imp.webview));
   }
 
   fn initialize_actions(&self) {
@@ -267,7 +251,6 @@ impl MailViewerWindow {
 
     let drop_target = gtk4::DropTarget::new(gio::File::static_type(), gtk4::gdk::DragAction::COPY);
     imp.body_text.add_controller(drop_target.clone());
-
     drop_target.connect_drop(clone!(
       #[strong]
       win,
@@ -286,7 +269,7 @@ impl MailViewerWindow {
       }
     ));
 
-    imp.web_view.connect_decide_policy(clone!(
+    imp.webview.connect_decide_policy(clone!(
       #[strong]
       win,
       move |webview: &WebView, policy: &PolicyDecision, decision_type: PolicyDecisionType| {
@@ -300,7 +283,7 @@ impl MailViewerWindow {
     let imp = self.imp();
 
     imp.settings.set(settings.clone()).unwrap();
-    imp.web_view.set_zoom_level(settings.get::<f64>("zoom"));
+    imp.webview.set_zoom_level(settings.get::<f64>("zoom"));
 
     settings
       .bind("width", self, "default-width")
@@ -411,7 +394,7 @@ impl MailViewerWindow {
             Ok(_) => log::debug!("write_to_file({:?})", &path),
             Err(e) => {
               log::error!("write_to_file({})", e);
-              win.alert_error("File Error", &e.to_string());
+              win.alert_error("File Error", &e.to_string(), false);
             }
           };
         }
@@ -436,13 +419,10 @@ impl MailViewerWindow {
 
   fn set_zoom_level(&self, zoom: f64) {
     log::debug!("set_zoom({})", zoom);
-    self.imp().web_view.set_zoom_level(zoom);
-    let _ = self
-      .imp()
-      .settings
-      .get()
-      .expect("Error settings !")
-      .set("zoom", zoom);
+    self.imp().webview.set_zoom_level(zoom);
+    if let Some(settings) = self.imp().settings.get() {
+      let _ = settings.set("zoom", zoom);
+    }
   }
 
   fn load_html(&self, force_css: bool) {
@@ -450,45 +430,49 @@ impl MailViewerWindow {
     let html = self.imp().service.body_html().unwrap_or(String::new());
     self
       .imp()
-      .web_view
+      .webview
       .load_html(&*Html::new(&html, force_css).safe(), None);
+  }
+
+  fn decide_policy(&self, policy: &PolicyDecision) -> Result<bool, Box<dyn std::error::Error>> {
+    match policy.clone().downcast::<NavigationPolicyDecision>() {
+      Ok(policy) => {
+        let navigation_action = policy.navigation_action();
+        if let Some(navigation_action) = navigation_action {
+          if let Some(request) = navigation_action.clone().request() {
+            if let Some(uri) = request.uri() {
+              if uri.starts_with("about:") {
+                return Ok(false);
+              }
+              log::debug!("WebView on_decide_policy(open) => {}", uri);
+              open::that(uri.to_string())?;
+            }
+            policy.ignore();
+            return Ok(true);
+          }
+        }
+      }
+      Err(e) => {
+        log::error!("WebView policy.clone().downcast({:?})", e);
+        return Err(format!("on_decide_policy() policy downcast failed ({:?})", e).into());
+      }
+    }
+    Ok(false)
   }
 
   fn on_decide_policy(
     &self,
-    _webview: &WebView,
+    _: &WebView,
     policy: &PolicyDecision,
-    decision_type: PolicyDecisionType,
+    _decision_type: PolicyDecisionType,
   ) -> bool {
-    if decision_type == PolicyDecisionType::NavigationAction
-      || decision_type == PolicyDecisionType::NewWindowAction
-    {
-      let policy = policy
-        .clone()
-        .downcast::<NavigationPolicyDecision>()
-        .expect("Unable to cast policy");
-      let navigation_action = policy.navigation_action();
-      if let Some(mut navigation_action) = navigation_action {
-        let request = navigation_action
-          .borrow_mut()
-          .request()
-          .expect("Unable to get request");
-        let uri = request.uri();
-        if let Some(uri) = uri {
-          if uri.starts_with("about:") {
-            return false;
-          }
-          log::debug!("WebView on_decide_policy(open) => {}", uri);
-          if let Err(e) = open::that(uri.to_string()) {
-            self.alert_error("WebView Error", &format!("Failed to open url: {}", e));
-          }
-        }
-
-        policy.ignore();
-        return true;
+    match self.decide_policy(policy) {
+      Ok(res) => res,
+      Err(e) => {
+        log::error!("WebView on_decide_policy({:?})", e);
+        false
       }
     }
-    false
   }
 
   fn on_show_text(&self, show: bool) {
@@ -509,10 +493,7 @@ impl MailViewerWindow {
     imp.zoom_plus.set_visible(!show);
   }
 
-  pub async fn open_file_dialog(
-    &self,
-    _close_on_cancel: bool,
-  ) -> Result<(), Box<dyn std::error::Error>> {
+  pub async fn open_file_dialog(&self, close_on_cancel: bool) -> bool {
     log::debug!("open_file_dialog()");
     let load_dialog = gtk4::FileChooserDialog::new(
       Some("Open EML File"),
@@ -538,11 +519,12 @@ impl MailViewerWindow {
           self.open_file(path.to_str().unwrap());
         }
       }
-    } else if _close_on_cancel {
+    } else if close_on_cancel {
       self.close();
+      return false;
     }
     load_dialog.close();
-    Ok(())
+    true
   }
 
   pub fn open_file(&self, file: &str) {
@@ -559,18 +541,7 @@ impl MailViewerWindow {
           }
           Err(e) => {
             log::error!("service(ERR) : {}", e);
-            window
-              .alert_error("File Error", &format!("Failed to open file :\n{}", e))
-              .connect_response(
-                Some("close"),
-                clone!(
-                  #[strong]
-                  window,
-                  move |_, _| {
-                    window.close();
-                  }
-                ),
-              );
+            window.alert_error("File Error", &format!("Failed to open file :\n{}", e), true);
           }
         }
       }
@@ -595,9 +566,7 @@ impl MailViewerWindow {
     }
 
     if let Some(html) = imp.service.body_html() {
-      imp
-        .web_view
-        .load_html(&Html::new(&html, false).safe(), None);
+      imp.webview.load_html(&Html::new(&html, false).safe(), None);
       has_html = true;
     }
 
@@ -633,45 +602,61 @@ impl MailViewerWindow {
     }
   }
 
-  pub fn alert_error(&self, title: &str, message: &str) -> adw::AlertDialog {
+  pub fn alert_error(&self, title: &str, message: &str, close_window: bool) -> adw::AlertDialog {
     let alert = adw::AlertDialog::new(Some(title), Some(message));
     alert.add_response("close", "Close");
     alert.set_response_appearance("close", adw::ResponseAppearance::Destructive);
     alert.present(Some(self));
+    if close_window {
+      alert.connect_response(
+        Some("close"),
+        clone!(
+          #[strong(rename_to = window)]
+          self,
+          move |_, _| {
+            window.close();
+          }
+        ),
+      );
+    }
     alert
   }
 
   fn get_show_file_name(&self) -> bool {
-    self
-      .imp()
-      .settings
-      .get()
-      .expect("Error get_show_file_name() !")
-      .get::<bool>(SETTINGS_SHOW_FILE_NAME)
+    if let Some(settings) = self.imp().settings.get() {
+      settings.get::<bool>(SETTINGS_SHOW_FILE_NAME)
+    } else {
+      false
+    }
   }
 
   fn show_preferences(&self) {
     log::debug!("show_preferences()");
+    match self.imp().settings.get() {
+      Some(settings) => {
+        let builder = gtk4::Builder::from_resource("/io/github/alescdb/mailviewer/preferences.ui");
+        let show_file_name: adw::SwitchRow = builder.object("show_file_name").unwrap();
+        settings
+          .bind(SETTINGS_SHOW_FILE_NAME, &show_file_name, "active")
+          .build();
 
-    let settings = self.imp().settings.get().expect("Error settings !");
-    let builder = gtk4::Builder::from_resource("/io/github/alescdb/mailviewer/preferences.ui");
-    let show_file_name: adw::SwitchRow = builder.object("show_file_name").unwrap();
-    settings
-      .bind(SETTINGS_SHOW_FILE_NAME, &show_file_name, "active")
-      .build();
-
-    let prefs: adw::PreferencesDialog = builder.object("preferences").unwrap();
-    prefs.present(Some(self));
-    prefs.connect_closed(clone!(
-      #[weak(rename_to = win)]
-      self,
-      move |_| {
-        log::debug!("show_preferences() => done");
-        win
-          .imp()
-          .service
-          .set_show_file_name(win.get_show_file_name());
+        let prefs: adw::PreferencesDialog = builder.object("preferences").unwrap();
+        prefs.present(Some(self));
+        prefs.connect_closed(clone!(
+          #[weak(rename_to = win)]
+          self,
+          move |_| {
+            log::debug!("show_preferences() => done");
+            win
+              .imp()
+              .service
+              .set_show_file_name(win.get_show_file_name());
+          }
+        ));
       }
-    ));
+      None => {
+        self.alert_error("Settings", "Failed to get settings", false);
+      }
+    }
   }
 }
