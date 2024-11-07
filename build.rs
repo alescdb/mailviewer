@@ -1,5 +1,5 @@
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{exit, Command};
 use std::{env, fs};
 
 const APP_ID: &str = "io.github.alescdb.mailviewer";
@@ -104,7 +104,10 @@ fn glib_compile_resources(cfg: &Config) {
     .output()
     .expect("Failed to build schema");
 
-  // println!("cargo:warning=glib_compile_resources => {:?}", &_output);
+  if !_output.status.success() {
+    println!("cargo:warning=glib_compile_resources => {:?}", &_output);
+    exit(5);
+  }
 }
 
 fn glib_compile_schemas(cfg: &Config) {
@@ -118,5 +121,9 @@ fn glib_compile_schemas(cfg: &Config) {
     "cargo:rustc-env=GSETTINGS_SCHEMA_DIR={}",
     cfg.out_dir.to_str().unwrap()
   );
-  println!("cargo:warning=glib_compile_schemas => {:?}", &_output);
+  
+  if !_output.status.success() {
+    println!("cargo:warning=glib_compile_resources => {:?}", &_output);
+    exit(5);
+  }
 }
