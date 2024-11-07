@@ -4,6 +4,8 @@
     <file preprocess="xml-stripblanks">window.ui</file>
     <file preprocess="xml-stripblanks">preferences.ui</file>
     <file preprocess="xml-stripblanks">gtk/help-overlay.ui</file>
+    <file alias="data/icons/hicolor/scalable/actions/loupe-minus-symbolic.svg" compressed="true" preprocess="xml-stripblanks">../data/icons/hicolor/scalable/actions/loupe-minus-symbolic.svg</file>
+    <file alias="data/icons/hicolor/scalable/actions/loupe-plus-symbolic.svg" compressed="true" preprocess="xml-stripblanks">../data/icons/hicolor/scalable/actions/loupe-plus-symbolic.svg</file>
     <file>css/style.css</file>
   </gresource>
 </gresources>

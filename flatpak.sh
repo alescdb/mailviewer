@@ -1,6 +1,7 @@
 #!/bin/bash
 
 RED='\033[0;31m'
+ORANGE='\033[0;33m'
 GREEN='\033[0;32m'
 NC='\033[0m'
 ##
@@ -8,6 +9,7 @@ NC='\033[0m'
 ##
 
 if [[ "$1" == "--deps" ]]; then
+  echo -e "${ORANGE}Building mailviewer-sources.json${NC}"
   if [[ ! -f flatpak-cargo-generator.py ]]; then
     wget https://raw.githubusercontent.com/flatpak/flatpak-builder-tools/refs/heads/master/cargo/flatpak-cargo-generator.py
   fi
