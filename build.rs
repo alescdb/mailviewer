@@ -65,8 +65,36 @@ fn main() {
   config(&cfg);
   glib_compile_resources(&cfg);
   glib_compile_schemas(&cfg);
+  icons(&cfg);
 }
 
+fn icons(cfg: &Config) {
+  let _output = Command::new("cp")
+    .arg("-av")
+    .arg("data/icons")
+    .arg(format!("{}/*", cfg.out_dir.to_str().unwrap()))
+    .output()
+    .expect("Failed to copy icons");
+  if !_output.status.success() {
+    println!("cargo:warning=cp icons => {:?}", &_output);
+    exit(5);
+  }
+  let _output = Command::new("gtk4-update-icon-cache")
+    .arg("-t")
+    .arg("-f")
+    .arg(format!("{}", cfg.out_dir.to_str().unwrap()))
+    .output()
+    .expect("Failed to copy icons");
+  if !_output.status.success() {
+    println!("cargo:warning=gtk4-update-icon-cache => {:?}", &_output);
+    exit(5);
+  }
+  println!(
+    "cargo:rustc-env=XDG_DATA_DIRS={}:{}",
+    env::var("XDG_DATA_DIRS").unwrap(),
+    cfg.out_dir.to_str().unwrap()
+  );
+}
 fn config(cfg: &Config) {
   let config_in =
     fs::read_to_string(cfg.config_in.to_str().unwrap()).expect("Failed to read config.rs.in");
@@ -86,7 +114,6 @@ fn config(cfg: &Config) {
       "@PKGDATADIR@",
       &format!("\"{}\"", cfg.out_dir.to_str().unwrap()),
     );
-
   fs::write(cfg.config_rs.to_str().unwrap(), config_out).expect("Failed to write config.rs");
 }
 
@@ -121,7 +148,7 @@ fn glib_compile_schemas(cfg: &Config) {
     "cargo:rustc-env=GSETTINGS_SCHEMA_DIR={}",
     cfg.out_dir.to_str().unwrap()
   );
-  
+
   if !_output.status.success() {
     println!("cargo:warning=glib_compile_resources => {:?}", &_output);
     exit(5);
