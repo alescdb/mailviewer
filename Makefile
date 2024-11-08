@@ -50,6 +50,10 @@ $(BUILD_DIR):
 $(EXECUTABLE): $(BUILD_DIR) $(SOURCES)
 	meson compile -C $(BUILD_DIR) 
 
+targets: $(BUILD_DIR)
+	cd $(BUILD_DIR) && \
+	meson introspect --targets | jq -r '.[].name'
+
 clean:
 	rm -rf $(BUILD_DIR) $(DEBUG) target buildir .flatpak .flatpak-builder .repo
 

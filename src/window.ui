@@ -33,7 +33,7 @@
                 <child type="end">
                   <object class="GtkToggleButton" id="show_images">
                     <property name="icon-name">image-x-generic-symbolic</property>
-                    <property name="tooltip-text" translatable="yes">Show Images</property>
+                    <property name="tooltip-text" translatable="yes">Show remote images</property>
                     <signal name="clicked" handler="on_show_images_clicked" swapped="true" />
                   </object>
                 </child>
@@ -46,14 +46,14 @@
                 </child>
                 <child type="end">
                   <object class="GtkButton" id="zoom_minus">
-                    <property name="icon-name">value-decrease-symbolic</property>
+                    <property name="icon-name">loupe-minus-symbolic</property>
                     <property name="tooltip-text" translatable="yes">Zoom -</property>
                     <signal name="clicked" handler="on_zoom_minus_clicked" swapped="true" />
                   </object>
                 </child>
                 <child type="end">
                   <object class="GtkToggleButton" id="zoom_plus">
-                    <property name="icon-name">value-increase-symbolic</property>
+                    <property name="icon-name">loupe-plus-symbolic</property>
                     <property name="tooltip-text" translatable="yes">Zoom +</property>
                     <signal name="clicked" handler="on_zoom_plus_clicked" swapped="true" />
                   </object>
