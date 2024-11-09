@@ -72,7 +72,7 @@ fn icons(cfg: &Config) {
   let _output = Command::new("cp")
     .arg("-av")
     .arg("data/icons")
-    .arg(format!("{}/*", cfg.out_dir.to_str().unwrap()))
+    .arg(format!("{}/", cfg.out_dir.to_str().unwrap()))
     .output()
     .expect("Failed to copy icons");
   if !_output.status.success() {
