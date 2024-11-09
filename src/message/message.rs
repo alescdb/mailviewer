@@ -34,6 +34,11 @@ lazy_static! {
     let mut path = PathBuf::from(std::env::var("XDG_RUNTIME_DIR").unwrap());
     let uuid = Uuid::new_v4().simple().to_string();
     path.push(APP_NAME);
+    if path.exists() == false {
+      if let Err(e) = fs::create_dir(path.clone()) {
+        log::error!("Error while creating {:?} : {}", path.to_str(), e);
+      }
+    }
     path.push(uuid);
     path
   };
