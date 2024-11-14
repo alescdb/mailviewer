@@ -1,16 +1,16 @@
-# MailViewer.
-# Copyright (C) 2024 Alexandre Del Bigio
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the mailviewer package.
-# Alexandre Del Bigio, 2024.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: mailviewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-28 09:06+0100\n"
+"POT-Creation-Date: 2024-11-14 17:29+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Alexandre Del Bigio\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
@@ -26,70 +26,217 @@ msgstr ""
 msgid "MailViewer"
 msgstr ""
 
-#: data/io.github.alescdb.mailviewer.metainfo.xml.in:7
-msgid "EML file viewer"
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:8
+msgid "EML and MSG file viewer"
 msgstr ""
 
-#: data/io.github.alescdb.mailviewer.metainfo.xml.in:11
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:12
 msgid ""
-"MailViewer is a desktop application built with gtk4/adw and Rust that allows "
-"users to read and decode .eml files (email files). It provides a graphical "
-"interface for easy navigation and rendering of email content, including "
-"attachments, HTML, and plain text."
+"MailViewer is a GNOME application that allows users to read and decode .eml "
+"and .msg files (email files) without having to install any additional "
+"software or create an account."
 msgstr ""
 
-#: data/io.github.alescdb.mailviewer.metainfo.xml.in:18
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:14
+msgid ""
+"It provides a graphical interface for easy navigation and rendering of email "
+"content, including attachments, HTML, and plain text."
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:21
+msgid "Main Window (Light)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:26
+msgid "Attachments (Light)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:31
+msgid "Main Window (Dark)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:36
+msgid "Attachments (Dark)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:44
 msgid "Alexandre Del Bigio"
 msgstr ""
 
-#: src/window.ui:22
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:49
+msgid "Add drag and drop support (file must have .eml or .msg extension)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:56
+msgid "Correct a crash when .msg has no attachments"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:63
+msgid "Add support for Outlook .msg"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:70
+msgid "Fix flatpak version"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:71
+msgid "Fix gmime-rs date memory problem"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:78
+msgid "Fix attachment adding up"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:79
+msgid "Fix gmime randomly crashing"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:85
+msgid "First flatpak release"
+msgstr ""
+
+#: src/preferences.ui:8
+msgid "Application"
+msgstr ""
+
+#: src/preferences.ui:11
+msgid "Show file name in title bar"
+msgstr ""
+
+#: src/window.ui:20
 msgid "Menu"
 msgstr ""
 
-#: src/window.ui:29
+#: src/window.ui:27
 msgid "Show plain text"
 msgstr ""
 
-#: src/window.ui:36
-msgid "Show Images"
+#: src/window.ui:34
+msgid "Show remote images"
 msgstr ""
 
-#: src/window.ui:43
+#: src/window.ui:41
 msgid "Force CSS"
 msgstr ""
 
-#: src/window.ui:50
+#: src/window.ui:48
 msgid "Zoom -"
 msgstr ""
 
-#: src/window.ui:57
+#: src/window.ui:55
 msgid "Zoom +"
 msgstr ""
 
-#: src/window.ui:94
+#: src/window.ui:84
+msgid "From:"
+msgstr ""
+
+#: src/window.ui:91
 msgid "From"
 msgstr ""
 
-#: src/window.ui:103
+#: src/window.ui:100
 msgid "Date"
 msgstr ""
 
-#: src/window.ui:128
+#: src/window.ui:118
+msgid "To:"
+msgstr ""
+
+#: src/window.ui:125
 msgid "To"
 msgstr ""
 
-#: src/window.ui:153
+#: src/window.ui:143
+msgid "Subject:"
+msgstr ""
+
+#: src/window.ui:150
 msgid "Subject"
 msgstr ""
 
-#: src/window.ui:240
+#: src/window.ui:160
+msgid "HTML"
+msgstr ""
+
+#: src/window.ui:172
+msgid "TEXT"
+msgstr ""
+
+#: src/window.ui:234
+msgid "_Open..."
+msgstr ""
+
+#: src/window.ui:238
 msgid "_Preferences"
 msgstr ""
 
-#: src/window.ui:244
+#: src/window.ui:242
+msgid "_Reset Zoom"
+msgstr ""
+
+#: src/window.ui:246
 msgid "_Keyboard Shortcuts"
 msgstr ""
 
-#: src/window.ui:248
+#: src/window.ui:250
 msgid "_About MailViewer"
+msgstr ""
+
+#: src/window.rs:341
+msgid "Save as..."
+msgstr ""
+
+#: src/window.rs:375
+msgid "Save attachment..."
+msgstr ""
+
+#: src/window.rs:379 src/window.rs:504
+msgid "_Cancel"
+msgstr ""
+
+#: src/window.rs:380 src/window.rs:505
+msgid "_Open"
+msgstr ""
+
+#: src/window.rs:398 src/window.rs:546
+msgid "File Error"
+msgstr ""
+
+#: src/window.rs:414 src/window.rs:547
+msgid "Failed to open file"
+msgstr ""
+
+#: src/window.rs:500
+msgid "Open Mail File"
+msgstr ""
+
+#: src/window.rs:510
+msgid "EML Files"
+msgstr ""
+
+#: src/window.rs:512
+msgid "Outlook Files"
+msgstr ""
+
+#. let label: String = format!("{} attachment{}", total, if total == 1 { "" } else { "s" });
+#: src/window.rs:594
+msgid "{total} attachment{plural}"
+msgstr ""
+
+#. never shown
+#: src/window.rs:602
+msgid "No attachments"
+msgstr ""
+
+#: src/window.rs:616
+msgid "Close"
+msgstr ""
+
+#: src/window.rs:668
+msgid "Settings"
+msgstr ""
+
+#: src/window.rs:669
+msgid "Failed to get settings"
 msgstr ""

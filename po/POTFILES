@@ -1,4 +1,6 @@
 data/io.github.alescdb.mailviewer.desktop.in
 data/io.github.alescdb.mailviewer.metainfo.xml.in
 data/io.github.alescdb.mailviewer.gschema.xml
+src/preferences.ui
 src/window.ui
+src/window.rs

@@ -37,16 +37,15 @@ use self::window::MailViewerWindow;
 fn main() -> glib::ExitCode {
   env_logger::init();
   // Set up gettext translations
-  bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR)
-    .expect("Unable to bind the text domain");
+  bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR).expect("Unable to bind the text domain");
   bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8")
     .expect("Unable to set the text domain encoding");
-  textdomain(GETTEXT_PACKAGE)
-    .expect("Unable to switch to the text domain");
+  textdomain(GETTEXT_PACKAGE).expect("Unable to switch to the text domain");
 
   let resources = gio::Resource::load(PKGDATADIR.to_owned() + "/mailviewer.gresource")
     .expect("Could not load resources");
   gio::resources_register(&resources);
+
 
   let app = MailViewerApplication::new(APP_ID, &gio::ApplicationFlags::HANDLES_OPEN);
   let res = app.run();

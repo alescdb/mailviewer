@@ -22,6 +22,7 @@ use std::option::Option;
 use adw::glib::clone;
 use adw::prelude::{AlertDialogExt, *};
 use adw::subclass::prelude::*;
+use gettextrs::gettext;
 use gtk4::prelude::FileChooserExt;
 use gtk4::{gio, glib, template_callbacks, ResponseType};
 use webkit6::prelude::{PolicyDecisionExt, WebViewExt};
@@ -337,7 +338,7 @@ impl MailViewerWindow {
     let save = gtk4::Button::new();
     save.set_valign(gtk4::Align::Center);
     save.set_icon_name("document-save-as-symbolic");
-    save.set_tooltip_text(Some("Save as..."));
+    save.set_tooltip_text(Some(&gettext("Save as...")));
     save.connect_clicked(clone!(
       #[strong]
       window,
@@ -371,12 +372,12 @@ impl MailViewerWindow {
     log::debug!("on_attachment_save({})", attachment.filename);
     let win = self;
     let save_dialog = gtk4::FileChooserDialog::new(
-      Some("Save attachment..."),
+      Some(&gettext("Save attachment...")),
       Some(self),
       gtk4::FileChooserAction::Save,
       &[
-        ("_Cancel", gtk4::ResponseType::Cancel),
-        ("_Save", gtk4::ResponseType::Accept),
+        (&gettext("_Cancel"), gtk4::ResponseType::Cancel),
+        (&gettext("_Open"), gtk4::ResponseType::Accept),
       ],
     );
     save_dialog.set_modal(true);
@@ -394,7 +395,7 @@ impl MailViewerWindow {
             Ok(_) => log::debug!("write_to_file({:?})", &path),
             Err(e) => {
               log::error!("write_to_file({})", e);
-              win.alert_error("File Error", &e.to_string(), false);
+              win.alert_error(&gettext("File Error"), &e.to_string(), false);
             }
           };
         }
@@ -410,7 +411,7 @@ impl MailViewerWindow {
       Ok(file) => {
         log::debug!("write_to_tmp({}) success", &file);
         if let Err(e) = open::that(&file) {
-          log::error!("failed to open file ({}): {}", &file, e);
+          log::error!("{} ({}): {}", &gettext("Failed to open file"), &file, e);
         }
       }
       Err(e) => log::error!("write_to_tmp({})", e),
@@ -496,19 +497,19 @@ impl MailViewerWindow {
   pub async fn open_file_dialog(&self, close_on_cancel: bool) -> bool {
     log::debug!("open_file_dialog()");
     let load_dialog = gtk4::FileChooserDialog::new(
-      Some("Open EML File"),
+      Some(gettext("Open Mail File")),
       Some(self),
       gtk4::FileChooserAction::Open,
       &[
-        ("_Cancel", gtk4::ResponseType::Cancel),
-        ("_Open", gtk4::ResponseType::Accept),
+        (&gettext("_Cancel"), gtk4::ResponseType::Cancel),
+        (&gettext("_Open"), gtk4::ResponseType::Accept),
       ],
     );
     let filter = gtk4::FileFilter::new();
     filter.add_pattern("*.eml");
-    filter.set_name(Some("EML Files"));
+    filter.set_name(Some(&gettext("EML Files")));
     filter.add_pattern("*.msg");
-    filter.set_name(Some("Outlook Files"));
+    filter.set_name(Some(&gettext("Outlook Files")));
     load_dialog.set_filter(&filter);
     load_dialog.set_modal(true);
     let response: ResponseType = load_dialog.run_future().await;
@@ -541,7 +542,11 @@ impl MailViewerWindow {
           }
           Err(e) => {
             log::error!("service(ERR) : {}", e);
-            window.alert_error("File Error", &format!("Failed to open file :\n{}", e), true);
+            window.alert_error(
+              &gettext("File Error"),
+              &format!("{}:\n{}", &gettext("Failed to open file"), e),
+              true,
+            );
           }
         }
       }
@@ -585,12 +590,16 @@ impl MailViewerWindow {
       for attachment in &attachments {
         self.add_attachment(&attachment, &preferences_group);
       }
-      let label: String = format!("{} attachment{}", total, if total == 1 { "" } else { "s" });
-      preferences_group.set_title(&label);
-      imp.pull_label.set_text(&label);
+      // let label: String = format!("{} attachment{}", total, if total == 1 { "" } else { "s" });
+      let fmt: String = gettext("{total} attachment{plural}")
+        .replace("{total}", &total.to_string())
+        .replace("{plural}", if total == 1 { "" } else { "s" });
+      log::debug!("display_message() => {}", fmt);
+      preferences_group.set_title(&fmt);
+      imp.pull_label.set_text(&fmt);
     } else {
       // never shown
-      imp.pull_label.set_text("No attachments");
+      imp.pull_label.set_text(&gettext("No attachments"));
     }
 
     if let Some(widget) = imp.sheet.bottom_bar() {
@@ -604,7 +613,7 @@ impl MailViewerWindow {
 
   pub fn alert_error(&self, title: &str, message: &str, close_window: bool) -> adw::AlertDialog {
     let alert = adw::AlertDialog::new(Some(title), Some(message));
-    alert.add_response("close", "Close");
+    alert.add_response("close", &gettext("Close"));
     alert.set_response_appearance("close", adw::ResponseAppearance::Destructive);
     alert.present(Some(self));
     if close_window {
@@ -655,7 +664,11 @@ impl MailViewerWindow {
         ));
       }
       None => {
-        self.alert_error("Settings", "Failed to get settings", false);
+        self.alert_error(
+          &gettext("Settings"),
+          &gettext("Failed to get settings"),
+          false,
+        );
       }
     }
   }
