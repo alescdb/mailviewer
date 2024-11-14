@@ -1,0 +1,250 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the mailviewer package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: mailviewer\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-11-14 17:29+0100\n"
+"PO-Revision-Date: 2024-11-14 22:50+0100\n"
+"Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
+"Language-Team: \n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.4.2\n"
+
+#: data/io.github.alescdb.mailviewer.desktop.in:3
+#: data/io.github.alescdb.mailviewer.desktop.in:11
+msgid "Mail Viewer"
+msgstr "Mailweergave"
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:3
+msgid "MailViewer"
+msgstr "MailWeergave"
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:8
+msgid "EML and MSG file viewer"
+msgstr "Eml- en msg-bestandsweergave"
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:12
+msgid ""
+"MailViewer is a GNOME application that allows users to read and decode .eml "
+"and .msg files (email files) without having to install any additional "
+"software or create an account."
+msgstr ""
+"MailWeergave is een toepassing voor GNOME waarmee .eml- en .msg-bestanden (e-"
+"mailbestanden) kunnen worden gelezen, zonder aanvullende software of het "
+"aanmaken van een account."
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:14
+msgid ""
+"It provides a graphical interface for easy navigation and rendering of email "
+"content, including attachments, HTML, and plain text."
+msgstr ""
+"MailWeergave is eenvoudig in het gebruik en laadt alle inhoud van mails, "
+"zoals html, platte tekst en bijlagen."
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:21
+msgid "Main Window (Light)"
+msgstr "Hoofdvenster met licht thema"
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:26
+msgid "Attachments (Light)"
+msgstr "Bijlagen met licht thema"
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:31
+msgid "Main Window (Dark)"
+msgstr "Hoofdvenster met donker thema"
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:36
+msgid "Attachments (Dark)"
+msgstr "Bijlagen met donker thema"
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:44
+msgid "Alexandre Del Bigio"
+msgstr "Alexandre Del Bigio"
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:49
+msgid "Add drag and drop support (file must have .eml or .msg extension)"
+msgstr ""
+"Nieuw: ondersteuning voor verslepen van .eml- en .msg-bestanden naar het "
+"venster"
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:56
+msgid "Correct a crash when .msg has no attachments"
+msgstr "Opgelost: crash bij .msg-bestand zonder bijlagen"
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:63
+msgid "Add support for Outlook .msg"
+msgstr "Nieuw: ondersteuning voor Outlook"
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:70
+msgid "Fix flatpak version"
+msgstr "Gerepareerd: Flatpakversie"
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:71
+msgid "Fix gmime-rs date memory problem"
+msgstr "Opgelost: datumgeheugenprobleem met gmime-rs"
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:78
+msgid "Fix attachment adding up"
+msgstr "Opgelost: probleem omtrent bijlagen"
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:79
+msgid "Fix gmime randomly crashing"
+msgstr "Opgelost: willekeurige crashes van gmime"
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:85
+msgid "First flatpak release"
+msgstr "Eerste Flatpakversie"
+
+#: src/preferences.ui:8
+msgid "Application"
+msgstr "Toepassing"
+
+#: src/preferences.ui:11
+msgid "Show file name in title bar"
+msgstr "Bestandsnaam op titelbalk tonen"
+
+#: src/window.ui:20
+msgid "Menu"
+msgstr "Menu"
+
+#: src/window.ui:27
+msgid "Show plain text"
+msgstr "Platte tekst tonen"
+
+#: src/window.ui:34
+msgid "Show remote images"
+msgstr "Externe afbeeldingen tonen"
+
+#: src/window.ui:41
+msgid "Force CSS"
+msgstr "Css afdwingen"
+
+#: src/window.ui:48
+msgid "Zoom -"
+msgstr "Uitzoomen"
+
+#: src/window.ui:55
+msgid "Zoom +"
+msgstr "Inzoomen"
+
+#: src/window.ui:84
+msgid "From:"
+msgstr "Van:"
+
+#: src/window.ui:91
+msgid "From"
+msgstr "Van"
+
+#: src/window.ui:100
+msgid "Date"
+msgstr "Datum"
+
+#: src/window.ui:118
+msgid "To:"
+msgstr "Aan:"
+
+#: src/window.ui:125
+msgid "To"
+msgstr "Aan"
+
+#: src/window.ui:143
+msgid "Subject:"
+msgstr "Onderwerp:"
+
+#: src/window.ui:150
+msgid "Subject"
+msgstr "Onderwerp"
+
+#: src/window.ui:160
+msgid "HTML"
+msgstr "Html"
+
+#: src/window.ui:172
+msgid "TEXT"
+msgstr "Tekst"
+
+#: src/window.ui:234
+msgid "_Open..."
+msgstr "_Openen…"
+
+#: src/window.ui:238
+msgid "_Preferences"
+msgstr "_Voorkeuren"
+
+#: src/window.ui:242
+msgid "_Reset Zoom"
+msgstr "Oo_rspronkelijk zoomniveau"
+
+#: src/window.ui:246
+msgid "_Keyboard Shortcuts"
+msgstr "_Sneltoetsen"
+
+#: src/window.ui:250
+msgid "_About MailViewer"
+msgstr "Over MailWeerg_ave"
+
+#: src/window.rs:341
+msgid "Save as..."
+msgstr "Opslaan als…"
+
+#: src/window.rs:375
+msgid "Save attachment..."
+msgstr "Bijlage opslaan…"
+
+#: src/window.rs:379 src/window.rs:504
+msgid "_Cancel"
+msgstr "_Annuleren"
+
+#: src/window.rs:380 src/window.rs:505
+msgid "_Open"
+msgstr "_Openen"
+
+#: src/window.rs:398 src/window.rs:546
+msgid "File Error"
+msgstr "Bestandsfout"
+
+#: src/window.rs:414 src/window.rs:547
+msgid "Failed to open file"
+msgstr "Het bestand kan niet worden geopend"
+
+#: src/window.rs:500
+msgid "Open Mail File"
+msgstr "Mailbestand openen"
+
+#: src/window.rs:510
+msgid "EML Files"
+msgstr "Eml-bestanden"
+
+#: src/window.rs:512
+msgid "Outlook Files"
+msgstr "Outlook-bestanden"
+
+#. let label: String = format!("{} attachment{}", total, if total == 1 { "" } else { "s" });
+#: src/window.rs:594
+msgid "{total} attachment{plural}"
+msgstr "{total} bijlage{plural}"
+
+#. never shown
+#: src/window.rs:602
+msgid "No attachments"
+msgstr "Er zijn geen bijlagen"
+
+#: src/window.rs:616
+msgid "Close"
+msgstr "Sluiten"
+
+#: src/window.rs:668
+msgid "Settings"
+msgstr "Voorkeuren"
+
+#: src/window.rs:669
+msgid "Failed to get settings"
+msgstr "De voorkeuren zijn niet beschikbaar"
