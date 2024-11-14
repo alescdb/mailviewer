@@ -3,12 +3,10 @@
   <requires lib="gtk" version="4.0" />
   <requires lib="Adw" version="1.0" />
   <requires lib="WebKit" version="6.0" />
-
   <template class="MailViewerWindow" parent="AdwApplicationWindow">
     <property name="default-width">1200</property>
     <property name="default-height">900</property>
     <property name="resizable">1</property>
-
     <property name="content">
       <object class="AdwBottomSheet" id="sheet">
         <property name="content">
@@ -70,7 +68,6 @@
                 <property name="margin-top">5</property>
                 <property name="margin-bottom">5</property>
                 <property name="orientation">vertical</property>
-
                 <child>
                   <object class="GtkBox">
                     <property name="hexpand">true</property>
@@ -229,8 +226,6 @@
           </object>
         </property>
       </object>
-
-
     </property>
   </template>
   <menu id="primary_menu">
