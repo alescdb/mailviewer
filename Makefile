@@ -37,6 +37,11 @@ icon:
 build: $(EXECUTABLE)
 	meson install -C $(BUILD_DIR)
 
+run-fr: build
+	RUST_LOG="mailviewer=debug" \
+	GSETTINGS_SCHEMA_DIR="$(DEBUG)/share/glib-2.0/schemas" \
+	LC_ALL="fr_FR.UTF-8" $(EXECUTABLE) sample.eml 
+
 install: clean
 	meson setup --strip --buildtype release $(BUILD_DIR)
 	meson install -C $(BUILD_DIR)
