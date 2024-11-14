@@ -9,26 +9,27 @@ msgstr ""
 "Project-Id-Version: mailviewer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-11-14 17:29+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"PO-Revision-Date: 2024-11-14 17:23+0100\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: fr_FR\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.4.4\n"
 
 #: data/io.github.alescdb.mailviewer.desktop.in:3
 #: data/io.github.alescdb.mailviewer.desktop.in:11
 msgid "Mail Viewer"
-msgstr ""
+msgstr "Mail Viewer"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:3
 msgid "MailViewer"
-msgstr ""
+msgstr "MailViewer"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:8
 msgid "EML and MSG file viewer"
-msgstr ""
+msgstr "Visionneuse de fichiers EML"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:12
 msgid ""
@@ -36,12 +37,22 @@ msgid ""
 "and .msg files (email files) without having to install any additional "
 "software or create an account."
 msgstr ""
+"MailViewer est une application de bureau construite avec gtk4/adw et Rust "
+"qui permet aux utilisateurs de lire et de décoder des fichiers .eml et .msg "
+"(fichiers de courrier électronique). Il fournit une interface graphique pour "
+"faciliter la navigation et le rendu du contenu des e-mails, y compris les "
+"pièces jointes, le HTML et le texte brut."
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:14
 msgid ""
 "It provides a graphical interface for easy navigation and rendering of email "
 "content, including attachments, HTML, and plain text."
 msgstr ""
+"MailViewer est une application de bureau construite avec gtk4/adw et Rust "
+"qui permet aux utilisateurs de lire et de décoder des fichiers .eml et .msg "
+"(fichiers de courrier électronique). Il fournit une interface graphique pour "
+"faciliter la navigation et le rendu du contenu des e-mails, y compris les "
+"pièces jointes, le HTML et le texte brut."
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:21
 msgid "Main Window (Light)"
@@ -101,142 +112,142 @@ msgstr ""
 
 #: src/preferences.ui:11
 msgid "Show file name in title bar"
-msgstr ""
+msgstr "Afficher le nom du fichier dans la barre de titre"
 
 #: src/window.ui:20
 msgid "Menu"
-msgstr ""
+msgstr "Menu"
 
 #: src/window.ui:27
 msgid "Show plain text"
-msgstr ""
+msgstr "Afficher le texte brut"
 
 #: src/window.ui:34
 msgid "Show remote images"
-msgstr ""
+msgstr "Afficher les images"
 
 #: src/window.ui:41
 msgid "Force CSS"
-msgstr ""
+msgstr "Forcer le CSS"
 
 #: src/window.ui:48
 msgid "Zoom -"
-msgstr ""
+msgstr "Zoom -"
 
 #: src/window.ui:55
 msgid "Zoom +"
-msgstr ""
+msgstr "Zoom +"
 
 #: src/window.ui:84
 msgid "From:"
-msgstr ""
+msgstr "De:"
 
 #: src/window.ui:91
 msgid "From"
-msgstr ""
+msgstr "De"
 
 #: src/window.ui:100
 msgid "Date"
-msgstr ""
+msgstr "Date"
 
 #: src/window.ui:118
 msgid "To:"
-msgstr ""
+msgstr "A:"
 
 #: src/window.ui:125
 msgid "To"
-msgstr ""
+msgstr "A"
 
 #: src/window.ui:143
 msgid "Subject:"
-msgstr ""
+msgstr "Sujet:"
 
 #: src/window.ui:150
 msgid "Subject"
-msgstr ""
+msgstr "Sujet"
 
 #: src/window.ui:160
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #: src/window.ui:172
 msgid "TEXT"
-msgstr ""
+msgstr "TEXTE"
 
 #: src/window.ui:234
 msgid "_Open..."
-msgstr ""
+msgstr "_Ouvrir..."
 
 #: src/window.ui:238
 msgid "_Preferences"
-msgstr ""
+msgstr "_Préférences"
 
 #: src/window.ui:242
 msgid "_Reset Zoom"
-msgstr ""
+msgstr "_Réinitialiser le zoom"
 
 #: src/window.ui:246
 msgid "_Keyboard Shortcuts"
-msgstr ""
+msgstr "Raccourcis clavier"
 
 #: src/window.ui:250
 msgid "_About MailViewer"
-msgstr ""
+msgstr "_A propos de MailViewer"
 
 #: src/window.rs:341
 msgid "Save as..."
-msgstr ""
+msgstr "Enregister sous..."
 
 #: src/window.rs:375
 msgid "Save attachment..."
-msgstr ""
+msgstr "Enregister le fichier attaché..."
 
 #: src/window.rs:379 src/window.rs:504
 msgid "_Cancel"
-msgstr ""
+msgstr "_Annuler"
 
 #: src/window.rs:380 src/window.rs:505
 msgid "_Open"
-msgstr ""
+msgstr "_Ouvrir"
 
 #: src/window.rs:398 src/window.rs:546
 msgid "File Error"
-msgstr ""
+msgstr "Erreur de fichier"
 
 #: src/window.rs:414 src/window.rs:547
 msgid "Failed to open file"
-msgstr ""
+msgstr "Impossible d'ouvrir le fichier"
 
 #: src/window.rs:500
 msgid "Open Mail File"
-msgstr ""
+msgstr "Ouvrir un fichier"
 
 #: src/window.rs:510
 msgid "EML Files"
-msgstr ""
+msgstr "Fichiers EML"
 
 #: src/window.rs:512
 msgid "Outlook Files"
-msgstr ""
+msgstr "Fichiers Outlook"
 
 #. let label: String = format!("{} attachment{}", total, if total == 1 { "" } else { "s" });
 #: src/window.rs:594
 msgid "{total} attachment{plural}"
-msgstr ""
+msgstr "{total} fichier{plural} attaché{plural}"
 
 #. never shown
 #: src/window.rs:602
 msgid "No attachments"
-msgstr ""
+msgstr "Aucun fichier attaché"
 
 #: src/window.rs:616
 msgid "Close"
-msgstr ""
+msgstr "Fermer"
 
 #: src/window.rs:668
 msgid "Settings"
-msgstr ""
+msgstr "Préférences"
 
 #: src/window.rs:669
 msgid "Failed to get settings"
-msgstr ""
+msgstr "Impossible de trouver les préférences"

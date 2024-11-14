@@ -37,6 +37,14 @@ icon:
 build: $(EXECUTABLE)
 	meson install -C $(BUILD_DIR)
 
+po:
+	meson compile mailviewer-update-po -C $(BUILD_DIR)
+
+run-fr: build po
+	RUST_LOG="mailviewer=debug" \
+	GSETTINGS_SCHEMA_DIR="$(DEBUG)/share/glib-2.0/schemas" \
+	LC_ALL="fr_FR.UTF-8" $(EXECUTABLE) sample.eml 
+
 install: clean
 	meson setup --strip --buildtype release $(BUILD_DIR)
 	meson install -C $(BUILD_DIR)
@@ -45,7 +53,11 @@ reconfigure:
 	meson setup $(BUILD_DIR) --reconfigure --prefix=$(DEBUG)
 
 $(BUILD_DIR):
-	meson setup $(BUILD_DIR) --prefix=$(DEBUG)
+	if [ -d $(BUILD_DIR) ]; then \
+		meson setup $(BUILD_DIR) --reconfigure --prefix=$(DEBUG); \
+	else \
+		meson setup $(BUILD_DIR) --prefix=$(DEBUG); \
+	fi
 
 $(EXECUTABLE): $(BUILD_DIR) $(SOURCES)
 	meson compile -C $(BUILD_DIR) 
@@ -55,6 +67,6 @@ targets: $(BUILD_DIR)
 	meson introspect --targets | jq -r '.[].name'
 
 clean:
-	rm -rf $(BUILD_DIR) $(DEBUG) target buildir .flatpak .flatpak-builder .repo
+	rm -rf $(BUILD_DIR) $(DEBUG) target buildir .flatpak .flatpak-builder .repo .venv flatpak-cargo-generator.py
 
-.PHONY: all format build reconfigure flatpak-run install clean .venv flatpak-cargo-generator.py $(BUILD_DIR)
+.PHONY: all format build reconfigure flatpak-run install clean po $(BUILD_DIR)

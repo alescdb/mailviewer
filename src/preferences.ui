@@ -5,7 +5,7 @@
       <object class="AdwPreferencesPage">
         <child>
           <object class="AdwPreferencesGroup">
-            <property name="title">Application</property>
+            <property name="title" translatable="yes">Application</property>
             <child>
               <object class="AdwSwitchRow" id="show_file_name">
                 <property name="title" translatable="yes">Show file name in title bar</property>

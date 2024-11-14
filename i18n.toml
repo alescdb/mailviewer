@@ -1,0 +1,2 @@
+gettextr = { include = "src/**/*.rs", domain = "messages" }
+fallback_language = "en-US"

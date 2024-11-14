@@ -5,13 +5,14 @@
 /.repo
 /.venv
 /*.flatpak
+/**.msg
 /body.html
 /dist
 /flatpak-cargo-generator.py
 /gmime
 /gmime-rs
+/po/*.mo
 /repo
-/target
 /src/config.rs
-/**.msg
+/target
 /vgcore.*
