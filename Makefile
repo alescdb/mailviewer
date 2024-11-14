@@ -60,6 +60,6 @@ targets: $(BUILD_DIR)
 	meson introspect --targets | jq -r '.[].name'
 
 clean:
-	rm -rf $(BUILD_DIR) $(DEBUG) target buildir .flatpak .flatpak-builder .repo
+	rm -rf $(BUILD_DIR) $(DEBUG) target buildir .flatpak .flatpak-builder .repo .venv flatpak-cargo-generator.py
 
-.PHONY: all format build reconfigure flatpak-run install clean .venv flatpak-cargo-generator.py $(BUILD_DIR)
+.PHONY: all format build reconfigure flatpak-run install clean $(BUILD_DIR)
