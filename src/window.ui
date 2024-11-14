@@ -84,7 +84,7 @@
                         <property name="xalign">0</property>
                         <property name="halign">start</property>
                         <property name="width-request">80</property>
-                        <property name="label">From:</property>
+                        <property name="label" translatable="yes">From:</property>
                       </object>
                     </child>
                     <child>
@@ -118,7 +118,7 @@
                         <property name="xalign">0</property>
                         <property name="width-request">80</property>
                         <property name="halign">start</property>
-                        <property name="label">To:</property>
+                        <property name="label" translatable="yes">To:</property>
                       </object>
                     </child>
                     <child>
@@ -143,7 +143,7 @@
                         <property name="xalign">0</property>
                         <property name="width-request">80</property>
                         <property name="halign">start</property>
-                        <property name="label">Subject:</property>
+                        <property name="label" translatable="yes">Subject:</property>
                       </object>
                     </child>
                     <child>
@@ -160,7 +160,7 @@
                     <child>
                       <object class="AdwViewStackPage">
                         <property name="name">html</property>
-                        <property name="title">HTML</property>
+                        <property name="title" translatable="yes">HTML</property>
                         <property name="child">
                           <object class="GtkScrolledWindow" id="placeholder">
                             <property name="hexpand">true</property>
@@ -172,7 +172,7 @@
                     <child>
                       <object class="AdwViewStackPage">
                         <property name="name">text</property>
-                        <property name="title">TEXT</property>
+                        <property name="title" translatable="yes">TEXT</property>
                         <property name="child">
                           <object class="GtkScrolledWindow" id="advanced_scrolledWindow">
                             <property name="hscrollbar_policy">never</property>

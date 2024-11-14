@@ -109,16 +109,16 @@ mod tests {
     assert!(!body.contains("style="));
     assert!(!body.contains("class="));
 
-    assert!(!body.contains("<script>"));
-    assert!(!body.contains("<meta>"));
-    assert!(!body.contains("<audio>"));
-    assert!(!body.contains("<video>"));
-    assert!(!body.contains("<iframe>"));
-    assert!(!body.contains("<link>"));
-    assert!(!body.contains("<object>"));
-    assert!(!body.contains("<embed>"));
-    assert!(!body.contains("<applet>"));
-    assert!(!body.contains("<form>"));
+    assert!(!body.contains("<script"));
+    assert!(!body.contains("<meta"));
+    assert!(!body.contains("<audio"));
+    assert!(!body.contains("<video"));
+    assert!(!body.contains("<iframe"));
+    assert!(!body.contains("<link"));
+    assert!(!body.contains("<object"));
+    assert!(!body.contains("<embed"));
+    assert!(!body.contains("<applet"));
+    assert!(!body.contains("<form"));
 
     assert!(body.contains(&crate::html::CSS.to_lowercase()));
 
