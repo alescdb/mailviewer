@@ -18,8 +18,10 @@ struct Config {
 
 fn main() {
   let profile: String = env::var("PROFILE").unwrap();
-  if profile != "debug" {
-    println!("cargo:warning=build.rs disabled (profile != debug)");
+  let meson: String = env::var("MESON_BUILD").unwrap_or("0".to_string());
+
+  if meson == "1" || profile != "debug" {
+    println!("cargo:warning=build.rs disabled (profile {}, meson {})", profile, meson);
     return;
   }
   println!("cargo:warning=build.rs started (profile == debug)");
