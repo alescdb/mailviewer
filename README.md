@@ -79,3 +79,7 @@ make build
 Icon is from [Papirus Icon Theme](https://github.com/PapirusDevelopmentTeam/papirus-icon-theme)
 
 Feel free to contribute an original icon, I'm not a good designer :-)
+
+## Contributors
+
+- [Vistaus](https://github.com/Vistaus) : nl translation
