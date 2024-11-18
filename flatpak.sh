@@ -25,25 +25,30 @@ if [[ "$1" == "--deps" ]]; then
 fi
 
 ##
-## Build flatpak
+## Check Manifest
 ##
-flatpak run org.flatpak.Builder \
-  --force-clean \
-  --sandbox \
-  --user \
-  --install \
-  --install-deps-from=flathub \
-  --ccache \
-  --mirror-screenshots-url=https://dl.flathub.org/media/ \
-  --repo=repo \
-  builddir io.github.alescdb.mailviewer.json && {
+flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest io.github.alescdb.mailviewer.json && {
   ##
-  ## Linter
+  ## Build flatpak
   ##
-  flatpak run --command=flatpak-builder-lint org.flatpak.Builder repo repo && {
-    echo -e "${GREEN}Lint Success${NC}"
-  } || {
-    echo -e "${RED}Lint Failed${NC}"
+  flatpak run org.flatpak.Builder \
+    --force-clean \
+    --sandbox \
+    --user \
+    --install \
+    --install-deps-from=flathub \
+    --ccache \
+    --mirror-screenshots-url=https://dl.flathub.org/media/ \
+    --repo=repo \
+    builddir io.github.alescdb.mailviewer.json && {
+    ##
+    ## Linter
+    ##
+    flatpak run --command=flatpak-builder-lint org.flatpak.Builder repo repo && {
+      echo -e "${GREEN}Lint Success${NC}"
+    } || {
+      echo -e "${RED}Lint Failed${NC}"
+    }
+    RUST_LOG=mailviewer=debug flatpak run io.github.alescdb.mailviewer
   }
-  RUST_LOG=mailviewer=debug flatpak run io.github.alescdb.mailviewer
 }
