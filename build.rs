@@ -16,8 +16,6 @@ struct Config {
   target: PathBuf,
 }
 
-fn get_name() -> 
-
 fn main() {
   let profile: String = env::var("PROFILE").unwrap();
   let meson: String = env::var("MESON_BUILD").unwrap_or("0".to_string());
