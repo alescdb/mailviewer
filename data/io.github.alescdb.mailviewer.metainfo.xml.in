@@ -43,6 +43,13 @@
   <content_rating type="oars-1.0" />
   <developer_name>Alexandre Del Bigio</developer_name>
   <releases>
+    <release version="0.9.95" date="2024-11-19">
+      <description>
+        <ul>
+          <li>Case insensitive file extensions</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.9.95" date="2024-11-15">
       <description>
         <p>Add I18N support</p>
