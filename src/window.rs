@@ -259,7 +259,8 @@ impl MailViewerWindow {
         if let Ok(file) = data.get::<gio::File>() {
           if let Some(filepath) = file.path() {
             if let Some(filepath) = filepath.to_str() {
-              if filepath.ends_with(".eml") || filepath.ends_with(".msg") {
+              let lowercase = filepath.to_lowercase();
+              if lowercase.ends_with(".eml") || lowercase.ends_with(".msg") {
                 win.open_file(filepath);
                 return true;
               }
