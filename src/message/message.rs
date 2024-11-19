@@ -43,6 +43,7 @@ lazy_static! {
     path
   };
 }
+
 pub trait Message {
   fn parse(&mut self) -> Result<(), Box<dyn Error>>;
   fn from(&self) -> String;
@@ -54,19 +55,34 @@ pub trait Message {
   fn body_text(&self) -> Option<String>;
 }
 
+#[derive(PartialEq, Debug)]
+#[repr(u8)]
+pub enum MessageType {
+  Eml = 0,
+  Msg = 1,
+}
+
 pub struct MessageParser {
   parser: Box<dyn Message>,
+  #[allow(dead_code)]
+  message_type: MessageType,
 }
 
 impl MessageParser {
   pub fn new(file: &str) -> Self {
     // assert!(file.ends_with(".eml") || file.ends_with(".msg"));
+    let message_type = if file.to_lowercase().ends_with(".msg") {
+      MessageType::Msg
+    } else {
+      MessageType::Eml
+    };
     Self {
-      parser: if file.to_lowercase().ends_with(".msg") {
+      parser: if message_type == MessageType::Msg {
         Box::new(OutlookMessage::new(file))
       } else {
         Box::new(ElectronicMail::new(file))
       },
+      message_type: message_type,
     }
   }
 
@@ -154,5 +170,17 @@ mod tests {
     assert_eq!(attachment.filename, "image001.png");
     assert_eq!(attachment.content_id, "image001.png"); // same as filename
     assert_eq!(attachment.mime_type.as_ref().unwrap(), "image/png");
+  }
+
+  #[test]
+  fn test_uppercase_msg() {
+    let message = MessageParser::new("sample.MSG");
+    assert_eq!(message.message_type, MessageType::Msg);
+  }
+
+  #[test]
+  fn test_uppercase_eml() {
+    let message = MessageParser::new("sample.EML");
+    assert_eq!(message.message_type, MessageType::Eml);
   }
 }
