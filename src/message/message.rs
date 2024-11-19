@@ -62,7 +62,7 @@ impl MessageParser {
   pub fn new(file: &str) -> Self {
     // assert!(file.ends_with(".eml") || file.ends_with(".msg"));
     Self {
-      parser: if file.ends_with(".msg") {
+      parser: if file.to_lowercase().ends_with(".msg") {
         Box::new(OutlookMessage::new(file))
       } else {
         Box::new(ElectronicMail::new(file))
