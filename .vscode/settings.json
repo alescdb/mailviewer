@@ -8,5 +8,6 @@
     }
   ],
   "makefile.configureOnOpen": false,
-  "mesonbuild.configureOnOpen": false
+  "mesonbuild.configureOnOpen": false,
+  "CodeGPT.apiKey": "Ollama"
 }
