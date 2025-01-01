@@ -43,6 +43,13 @@
   <content_rating type="oars-1.0" />
   <developer_name>Alexandre Del Bigio</developer_name>
   <releases>
+    <release version="0.9.98" date="2025-01-01">
+      <description>
+        <ul>
+          <li>Dependency Updates</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.9.97" date="2024-11-19">
       <description>
         <ul>
