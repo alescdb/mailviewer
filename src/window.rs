@@ -296,10 +296,6 @@ impl MailViewerWindow {
       .flags(gio::SettingsBindFlags::DEFAULT)
       .build();
     settings
-      .bind("height", self, "default-height")
-      .flags(gio::SettingsBindFlags::DEFAULT)
-      .build();
-    settings
       .bind("is-maximized", self, "maximized")
       .flags(gio::SettingsBindFlags::DEFAULT)
       .build();
