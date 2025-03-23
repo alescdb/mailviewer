@@ -1,6 +1,6 @@
 [package]
 name = "mailviewer"
-version = "0.9.98"
+version = "1.0.0"
 edition = "2021"
 authors = ["Alexandre Del Bigio"]
 description = "GNOME eml and Outlook msg file viewer"
@@ -11,17 +11,17 @@ license = "GPL-3.0+"
 [dependencies]
 webkit6 = "0.4.0"
 gmime = "0.8.1"
-gtk4 = "0.9.5"
-open = "5.3.1"
+gtk4 = "0.9.6"
+open = "5.3.2"
 nipper = "0.1.9"
-log = "0.4.22"
+log = "0.4.26"
 env_logger = "0.11.6"
 base64 = "0.22.1"
-adw = { version = "0.7.1", features = ["v1_6"], package = "libadwaita" }
-ctor = "0.2.9"
+adw = { version = "0.7.2", features = ["v1_7"], package = "libadwaita" }
+ctor = "0.4.1"
 msg_parser = "0.1.1"
-uuid = { version = "1.11.0", features = ["v4"] }
+uuid = { version = "1.16.0", features = ["v4"] }
 lazy_static = "1.5.0"
 hex = "0.4.3"
-gettext-rs = { version = "0.7", features = ["gettext-system"] }
+gettext-rs = { version = "0.7.2", features = ["gettext-system"] }
 hashbrown = "0.15.2"
