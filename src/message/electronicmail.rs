@@ -18,7 +18,6 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 use std::error::Error;
-use std::fs;
 
 use base64::engine::general_purpose;
 use base64::Engine;
@@ -139,7 +138,7 @@ impl ElectronicMail {
   #[cfg(debug_assertions)]
   fn write_debug_html(&self) {
     if let Some(body) = &self.body_html {
-      fs::write("body.html", &body).unwrap_or_else(|err| {
+      std::fs::write("body.html", &body).unwrap_or_else(|err| {
         log::error!("Failed to write body.html : {}", err);
       });
     }
