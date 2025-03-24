@@ -43,6 +43,13 @@
   <content_rating type="oars-1.0" />
   <developer_name>Alexandre Del Bigio</developer_name>
   <releases>
+    <release version="1.0.0" date="2025-03-24">
+      <description>
+        <ul>
+          <li>Gnome 48 (libadwaita 1.7)</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.9.98" date="2025-01-01">
       <description>
         <ul>
