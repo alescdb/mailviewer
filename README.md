@@ -83,3 +83,4 @@ Feel free to contribute an original icon, I'm not a good designer :-)
 ## Contributors
 
 - [Vistaus](https://github.com/Vistaus) : nl translation
+- [albanobattistella](https://github.com/albanobattistella) : it translation

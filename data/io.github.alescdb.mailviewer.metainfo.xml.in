@@ -43,6 +43,13 @@
   <content_rating type="oars-1.0" />
   <developer_name>Alexandre Del Bigio</developer_name>
   <releases>
+    <release version="1.0.1" date="2025-05-09">
+      <description>
+        <ul>
+          <li>Italian translation by albanobattistella</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.0" date="2025-03-24">
       <description>
         <ul>
