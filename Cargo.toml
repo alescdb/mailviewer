@@ -9,19 +9,19 @@ repository = "https://github.com/alescdb/mailviewer"
 license = "GPL-3.0+"
 
 [dependencies]
-webkit6 = "0.4.0"
+webkit6 = "0.5.0"
 gmime = "0.8.1"
-gtk4 = "0.9.6"
+gtk4 = "0.10.1"
 open = "5.3.2"
 nipper = "0.1.9"
-log = "0.4.27"
+log = "0.4.28"
 env_logger = "0.11.8"
 base64 = "0.22.1"
-adw = { version = "0.7.2", features = ["v1_7"], package = "libadwaita" }
-ctor = "0.4.2"
+adw = { version = "0.8.0", features = ["v1_7"], package = "libadwaita" }
+ctor = "0.5.0"
 msg_parser = "0.1.1"
-uuid = { version = "1.16.0", features = ["v4"] }
+uuid = { version = "1.18.1", features = ["v4"] }
 lazy_static = "1.5.0"
 hex = "0.4.3"
 gettext-rs = { version = "0.7.2", features = ["gettext-system"] }
-hashbrown = "0.15.3"
+hashbrown = "0.16.0"

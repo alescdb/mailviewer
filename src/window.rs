@@ -171,7 +171,20 @@ mod imp {
 
 glib::wrapper! {
     pub struct MailViewerWindow(ObjectSubclass<imp::MailViewerWindow>)
-        @extends gtk4::Widget, gtk4::Window, gtk4::ApplicationWindow, adw::ApplicationWindow, @implements gio::ActionGroup, gio::ActionMap;
+        @extends
+            gtk4::Widget, 
+            gtk4::Window, 
+            gtk4::ApplicationWindow,
+            adw::ApplicationWindow,
+        @implements
+            gtk4::Buildable,
+            gtk4::ConstraintTarget,
+            gtk4::Accessible,
+            gtk4::Native,
+            gtk4::Root,
+            gtk4::ShortcutManager,
+            gio::ActionGroup,
+            gio::ActionMap;
 }
 
 #[template_callbacks]
