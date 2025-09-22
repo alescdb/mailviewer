@@ -43,6 +43,14 @@
   <content_rating type="oars-1.0" />
   <developer_name>Alexandre Del Bigio</developer_name>
   <releases>
+    <release version="1.0.2" date="2025-09-22">
+      <description>
+        <ul>
+          <li>GNOME 49 (libadwaita 1.8)</li>
+          <li>Other dependencies updated</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.1" date="2025-05-09">
       <description>
         <ul>

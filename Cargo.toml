@@ -1,6 +1,6 @@
 [package]
 name = "mailviewer"
-version = "1.0.1"
+version = "1.0.2"
 edition = "2021"
 authors = ["Alexandre Del Bigio"]
 description = "GNOME eml and Outlook msg file viewer"
@@ -17,7 +17,7 @@ nipper = "0.1.9"
 log = "0.4.28"
 env_logger = "0.11.8"
 base64 = "0.22.1"
-adw = { version = "0.8.0", features = ["v1_7"], package = "libadwaita" }
+adw = { version = "0.8.0", features = ["v1_8"], package = "libadwaita" }
 ctor = "0.5.0"
 msg_parser = "0.1.1"
 uuid = { version = "1.18.1", features = ["v4"] }

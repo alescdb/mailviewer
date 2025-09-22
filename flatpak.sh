@@ -16,7 +16,7 @@ if [[ "$1" == "--deps" ]]; then
 
   if [[ ! -d .venv ]]; then
     python -m venv .venv
-    .venv/bin/pip install aiohttp toml
+    .venv/bin/pip install aiohttp toml tomlkit
   fi
 
   .venv/bin/python flatpak-cargo-generator.py \
