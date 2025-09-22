@@ -8,7 +8,6 @@
     }
   ],
   "makefile.configureOnOpen": false,
-  "mesonbuild.configureOnOpen": false,
   "CodeGPT.apiKey": "Ollama",
   "files.watcherExclude": {
     "**/.git/objects/**": true,
@@ -18,6 +17,7 @@
     ".flatpak/**": true,
     "_build/**": true
   },
+  "mesonbuild.configureOnOpen": false,
   "mesonbuild.buildFolder": "_build",
   "mesonbuild.mesonPath": "${workspaceFolder}/.flatpak/meson.sh",
   "rust-analyzer.server.path": "${workspaceFolder}/.flatpak/rust-analyzer.sh",
