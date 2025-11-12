@@ -22,7 +22,7 @@ use std::option::Option;
 use adw::glib::clone;
 use adw::prelude::{AlertDialogExt, *};
 use adw::subclass::prelude::*;
-use gettextrs::gettext;
+use gettextrs::{gettext, ngettext};
 use gtk4::prelude::FileChooserExt;
 use gtk4::{gio, glib, template_callbacks, ResponseType};
 use webkit6::prelude::{PolicyDecisionExt, WebViewExt};
@@ -600,10 +600,12 @@ impl MailViewerWindow {
       for attachment in &attachments {
         self.add_attachment(&attachment, &preferences_group);
       }
-      // let label: String = format!("{} attachment{}", total, if total == 1 { "" } else { "s" });
-      let fmt: String = gettext("{total} attachment{plural}")
-        .replace("{total}", &total.to_string())
-        .replace("{plural}", if total == 1 { "" } else { "s" });
+      let fmt: String = ngettext(
+        "{total} attachment",
+        "{total} attachments",
+        total.try_into().unwrap(),
+      )
+      .replace("{total}", &total.to_string());
       log::debug!("display_message() => {}", fmt);
       preferences_group.set_title(&fmt);
       imp.pull_label.set_text(&fmt);
