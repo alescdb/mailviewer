@@ -384,9 +384,16 @@ impl MailViewerWindow {
   async fn on_attachment_save(&self, attachment: &Attachment) {
     log::debug!("on_attachment_save({})", attachment.filename);
 
+    let current_file = gio::File::for_path(self.imp().service.get_fullpath().unwrap());
+    let initial_file = current_file
+      .parent()
+      .unwrap()
+      .child(attachment.filename.as_str());
+
     let save_dialog = gtk4::FileDialog::builder()
       .title(&gettext("Save attachment..."))
       .modal(true)
+      .initial_file(&initial_file)
       .build();
 
     match save_dialog.save_future(Some(self)).await {
