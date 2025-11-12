@@ -300,7 +300,9 @@ impl Drop for ElectronicMail {
 mod tests {
   use std::error::Error;
   use std::fs;
-  use std::path::Path;
+
+  use crate::gio::prelude::*;
+  use crate::glib;
 
   use crate::message::electronicmail::ElectronicMail;
   use crate::message::message::Message;
@@ -318,10 +320,18 @@ mod tests {
     assert_eq!(attachment.filename, "Deus_Gnome.png");
     assert_eq!(attachment.content_id, "ii_m2lqbrhv0");
     assert_eq!(attachment.mime_type.as_ref().unwrap(), "image/png");
-    let _name = attachment.write_to_tmp()?;
-    let _file = Path::new(&_name);
-    println!("file => {:?}", _file);
-    assert!(_file.is_file());
+
+    let attachment = attachment.clone();
+    glib::MainContext::new().spawn_local(async move {
+      let _file = attachment
+        .write_to_tmp()
+        .await
+        .unwrap()
+        .peek_path()
+        .unwrap();
+      println!("file => {:?}", _file);
+      assert!(_file.is_file());
+    });
 
     Ok(())
   }

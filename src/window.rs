@@ -385,9 +385,23 @@ impl MailViewerWindow {
       #[strong]
       window,
       #[strong]
+      btn,
+      #[strong]
       attachment,
       move |_| {
-        window.on_attachment_open(&attachment);
+        glib::spawn_future_local(glib::clone!(
+          #[strong]
+          window,
+          #[strong]
+          attachment,
+          #[strong]
+          btn,
+          async move {
+            btn.set_sensitive(false);
+            window.on_attachment_open(&attachment).await;
+            btn.set_sensitive(true);
+          }
+        ));
       }
     ));
     preferences_group.add(&btn);
@@ -410,16 +424,16 @@ impl MailViewerWindow {
 
     match save_dialog.save_future(Some(self)).await {
       Ok(file) => {
-        if let Some(path) = file.peek_path() {
-          log::debug!("Saving attachment to {:?}", path);
-          match attachment.write_to_file(path.to_str().unwrap()) {
-            Ok(_) => log::debug!("write_to_file({:?})", &path),
-            Err(e) => {
-              log::error!("write_to_file({})", e);
-              self.alert_error(&gettext("File Error"), &e.to_string(), false);
-            }
-          };
-        }
+        let path = file.peek_path().unwrap_or_default();
+        let path = path.display();
+        log::debug!("Saving attachment to {:?}", &path);
+        match attachment.write_to_file(&file).await {
+          Ok(_) => log::debug!("write_to_file({:?})", &path),
+          Err(e) => {
+            log::error!("write_to_file({})", e);
+            self.alert_error(&gettext("File Error"), &e.to_string(), false);
+          }
+        };
       }
       Err(e) => match e.kind() {
         Some(gtk4::DialogError::Dismissed) | Some(gtk4::DialogError::Cancelled) => return,
@@ -428,9 +442,9 @@ impl MailViewerWindow {
     }
   }
 
-  fn on_attachment_open(&self, attachment: &Attachment) {
+  async fn on_attachment_open(&self, attachment: &Attachment) {
     log::debug!("on_button_clicked({})", attachment.filename);
-    match attachment.write_to_tmp() {
+    match attachment.write_to_tmp().await {
       Ok(file) => {
         log::debug!("write_to_tmp({}) success", &file);
         if let Err(e) = open::that(&file) {
