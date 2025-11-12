@@ -11,7 +11,7 @@ license = "GPL-3.0+"
 [dependencies]
 webkit6 = "0.5.0"
 gmime = "0.8.1"
-gtk4 = "0.10.1"
+gtk4 = { version = "0.10.1", features = ["v4_10"] }
 open = "5.3.2"
 nipper = "0.1.9"
 log = "0.4.28"

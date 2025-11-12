@@ -23,8 +23,7 @@ use adw::glib::clone;
 use adw::prelude::{AlertDialogExt, *};
 use adw::subclass::prelude::*;
 use gettextrs::gettext;
-use gtk4::prelude::FileChooserExt;
-use gtk4::{gio, glib, template_callbacks, ResponseType};
+use gtk4::{gio, glib, template_callbacks};
 use webkit6::prelude::{PolicyDecisionExt, WebViewExt};
 use webkit6::{NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, WebView};
 
@@ -355,7 +354,11 @@ impl MailViewerWindow {
       #[strong]
       attachment,
       move |_| {
-        window.on_attachment_save(&attachment);
+        let window = window.clone();
+        let attachment = attachment.clone();
+        glib::MainContext::default().spawn_local(async move {
+          window.on_attachment_save(&attachment).await;
+        });
       }
     ));
     let btn = adw::ActionRow::builder()
@@ -378,41 +381,32 @@ impl MailViewerWindow {
     preferences_group.add(&btn);
   }
 
-  fn on_attachment_save(&self, attachment: &Attachment) {
+  async fn on_attachment_save(&self, attachment: &Attachment) {
     log::debug!("on_attachment_save({})", attachment.filename);
-    let win = self;
-    let save_dialog = gtk4::FileChooserDialog::new(
-      Some(&gettext("Save attachment...")),
-      Some(self),
-      gtk4::FileChooserAction::Save,
-      &[
-        (&gettext("_Cancel"), gtk4::ResponseType::Cancel),
-        (&gettext("_Open"), gtk4::ResponseType::Accept),
-      ],
-    );
-    save_dialog.set_modal(true);
-    save_dialog.set_current_name(&attachment.filename);
-    save_dialog.connect_response(clone!(
-      #[strong]
-      win,
-      #[strong]
-      attachment,
-      move |dialog, response| {
-        if response == gtk4::ResponseType::Accept {
-          let path = dialog.file().unwrap().path().unwrap();
+
+    let save_dialog = gtk4::FileDialog::builder()
+      .title(&gettext("Save attachment..."))
+      .modal(true)
+      .build();
+
+    match save_dialog.save_future(Some(self)).await {
+      Ok(file) => {
+        if let Some(path) = file.peek_path() {
           log::debug!("Saving attachment to {:?}", path);
           match attachment.write_to_file(path.to_str().unwrap()) {
             Ok(_) => log::debug!("write_to_file({:?})", &path),
             Err(e) => {
               log::error!("write_to_file({})", e);
-              win.alert_error(&gettext("File Error"), &e.to_string(), false);
+              self.alert_error(&gettext("File Error"), &e.to_string(), false);
             }
           };
         }
-        dialog.close();
       }
-    ));
-    save_dialog.show();
+      Err(e) => match e.kind() {
+        Some(gtk4::DialogError::Dismissed) | Some(gtk4::DialogError::Cancelled) => return,
+        _ => log::error!("save_dialog({})", e),
+      },
+    }
   }
 
   fn on_attachment_open(&self, attachment: &Attachment) {
@@ -504,38 +498,43 @@ impl MailViewerWindow {
     imp.zoom_plus.set_visible(!show);
   }
 
+  fn build_mail_file_dialog(&self, title: &String) -> gtk4::FileDialog {
+    let filter = gtk4::FileFilter::new();
+    filter.set_name(Some(&gettext("Mail Files")));
+    filter.add_pattern("*.eml");
+    filter.add_pattern("*.msg");
+
+    let filters = gio::ListStore::new::<gtk4::FileFilter>();
+    filters.append(&filter);
+    return gtk4::FileDialog::builder()
+      .title(title)
+      .modal(true)
+      .filters(&filters)
+      .build();
+  }
+
   pub async fn open_file_dialog(&self, close_on_cancel: bool) -> bool {
     log::debug!("open_file_dialog()");
-    let load_dialog = gtk4::FileChooserDialog::new(
-      Some(gettext("Open Mail File")),
-      Some(self),
-      gtk4::FileChooserAction::Open,
-      &[
-        (&gettext("_Cancel"), gtk4::ResponseType::Cancel),
-        (&gettext("_Open"), gtk4::ResponseType::Accept),
-      ],
-    );
-    let filter = gtk4::FileFilter::new();
-    filter.add_pattern("*.eml");
-    filter.set_name(Some(&gettext("EML Files")));
-    filter.add_pattern("*.msg");
-    filter.set_name(Some(&gettext("Outlook Files")));
-    load_dialog.set_filter(&filter);
-    load_dialog.set_modal(true);
-    let response: ResponseType = load_dialog.run_future().await;
-    log::debug!("open_file_dialog() => {:?}", response);
-    if response == gtk4::ResponseType::Accept {
-      if let Some(file) = load_dialog.file() {
+
+    let load_dialog = self.build_mail_file_dialog(&gettext("Open Mail File"));
+    match load_dialog.open_future(Some(self)).await {
+      Ok(file) => {
         if let Some(path) = file.path() {
           self.open_file(path.to_str().unwrap());
+          return true;
         }
       }
-    } else if close_on_cancel {
-      self.close();
-      return false;
+      Err(e) => match e.kind() {
+        Some(gtk4::DialogError::Dismissed) | Some(gtk4::DialogError::Cancelled) => {
+          if close_on_cancel {
+            self.close();
+          }
+        }
+        _ => log::error!("open_file_dialog({})", e),
+      },
     }
-    load_dialog.close();
-    true
+
+    false
   }
 
   pub fn open_file(&self, file: &str) {
