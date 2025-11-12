@@ -16,6 +16,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
 #: data/io.github.alescdb.mailviewer.desktop.in:3
 #: data/io.github.alescdb.mailviewer.desktop.in:11
@@ -207,10 +208,19 @@ msgstr ""
 msgid "Open Mail File"
 msgstr ""
 
-#. let label: String = format!("{} attachment{}", total, if total == 1 { "" } else { "s" });
-#: src/window.rs:594
-msgid "{total} attachment{plural}"
+#: src/window.rs:510
+msgid "EML Files"
 msgstr ""
+
+#: src/window.rs:512
+msgid "Outlook Files"
+msgstr ""
+
+#: src/window.rs:604
+msgid "{total} attachment"
+msgid_plural "{total} attachments"
+msgstr[0] ""
+msgstr[1] ""
 
 #. never shown
 #: src/window.rs:602
