@@ -18,7 +18,11 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 use std::error::Error;
-use std::{fmt, fs};
+use std::fmt;
+
+use crate::gio;
+use crate::gio::prelude::*;
+use crate::glib;
 
 use super::message::TEMP_FOLDER;
 
@@ -31,20 +35,58 @@ pub struct Attachment {
 }
 
 impl Attachment {
-  pub fn write_to_tmp(&self) -> Result<String, Box<dyn Error>> {
-    let mut tmp = TEMP_FOLDER.clone();
-    if tmp.exists() == false {
+  pub async fn write_to_tmp(&self) -> Result<gio::File, Box<dyn Error>> {
+    let tmp = gio::File::for_path(TEMP_FOLDER.to_str().unwrap());
+    if file_exists(&tmp).await.is_ok_and(|v| !v) {
       log::debug!("create_dir({:?})", &tmp);
-      fs::create_dir(&tmp)?;
+      tmp.make_directory_future(glib::Priority::default()).await?;
     }
-    tmp.push(&self.filename);
+    let tmp = tmp.child(&self.filename);
     log::debug!("write_to_tmp({:?})", &tmp);
-    self.write_to_file(tmp.to_str().unwrap())?;
-    Ok(tmp.to_string_lossy().to_string())
+    self.write_to_file(&tmp).await?;
+    Ok(tmp)
   }
 
-  pub fn write_to_file(&self, file: &str) -> std::io::Result<()> {
-    fs::write(&file, &self.body)
+  pub async fn write_to_file(&self, file: &gio::File) -> Result<(), Box<dyn Error>> {
+    let io_stream = if file_exists(file).await.is_ok_and(|v| v) {
+      file
+        .open_readwrite_future(glib::Priority::default())
+        .await?
+    } else {
+      file
+        .create_readwrite_future(
+          gio::FileCreateFlags::REPLACE_DESTINATION,
+          glib::Priority::default(),
+        )
+        .await?
+    };
+
+    let output_stream = io_stream.output_stream();
+    let write_res = output_stream
+      .write_future(glib::Bytes::from(&self.body), glib::Priority::DEFAULT)
+      .await;
+
+    io_stream.close_future(glib::Priority::default()).await?;
+
+    match write_res {
+      Ok((_, written)) => {
+        if written != self.body.len() {
+          return Err(
+            format!(
+              "Failed to write {} to file {}: only {} of {} bytes have been written",
+              self,
+              file.peek_path().unwrap_or_default().display(),
+              written,
+              self.body.len()
+            )
+            .into(),
+          );
+        }
+
+        Ok(())
+      }
+      Err((_, e)) => Err(Box::new(e)),
+    }
   }
 }
 
@@ -57,5 +99,25 @@ impl fmt::Display for Attachment {
       self.filename,
       self.mime_type.as_deref().unwrap_or("None")
     )
+  }
+}
+
+async fn file_exists(file: &gio::File) -> Result<bool, Box<dyn Error>> {
+  match file
+    .query_info_future(
+      gio::FILE_ATTRIBUTE_STANDARD_NAME,
+      gio::FileQueryInfoFlags::NONE,
+      glib::Priority::default(),
+    )
+    .await
+  {
+    Ok(_) => Ok(true),
+    Err(e) => {
+      if !e.matches(gio::IOErrorEnum::NotFound) {
+        return Err(Box::new(e));
+      }
+
+      Ok(false)
+    }
   }
 }
