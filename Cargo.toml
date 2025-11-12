@@ -19,7 +19,7 @@ env_logger = "0.11.8"
 base64 = "0.22.1"
 adw = { version = "0.8.0", features = ["v1_8"], package = "libadwaita" }
 ctor = "0.5.0"
-msg_parser = "0.1.1"
+msg_parser = { git = "https://github.com/marirs/msg-parser-rs", rev = "678ad8aad4f6c350dae8a70209bc68ba74b89f9b" }
 uuid = { version = "1.18.1", features = ["v4"] }
 lazy_static = "1.5.0"
 hex = "0.4.3"
