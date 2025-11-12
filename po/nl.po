@@ -9,15 +9,15 @@ msgstr ""
 "Project-Id-Version: mailviewer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-11-14 17:29+0100\n"
-"PO-Revision-Date: 2024-11-14 22:50+0100\n"
+"PO-Revision-Date: 2025-11-12 20:10+0100\n"
 "Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
 "Language-Team: \n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
-"X-Generator: Poedit 3.4.2\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.8\n"
 
 #: data/io.github.alescdb.mailviewer.desktop.in:3
 #: data/io.github.alescdb.mailviewer.desktop.in:11
@@ -196,17 +196,13 @@ msgstr "Over MailWeerg_ave"
 msgid "Save as..."
 msgstr "Opslaan als…"
 
-#: src/window.rs:375
+#: src/window.rs:386
+msgid "Mail Files"
+msgstr "Mailbestanden"
+
+#: src/window.rs:402
 msgid "Save attachment..."
 msgstr "Bijlage opslaan…"
-
-#: src/window.rs:379 src/window.rs:504
-msgid "_Cancel"
-msgstr "_Annuleren"
-
-#: src/window.rs:380 src/window.rs:505
-msgid "_Open"
-msgstr "_Openen"
 
 #: src/window.rs:398 src/window.rs:546
 msgid "File Error"
@@ -250,3 +246,9 @@ msgstr "Voorkeuren"
 #: src/window.rs:669
 msgid "Failed to get settings"
 msgstr "De voorkeuren zijn niet beschikbaar"
+
+#~ msgid "_Cancel"
+#~ msgstr "_Annuleren"
+
+#~ msgid "_Open"
+#~ msgstr "_Openen"
