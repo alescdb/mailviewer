@@ -79,13 +79,12 @@ pub struct MessageParser {
 impl MessageParser {
   pub async fn new(file: &gio::File) -> Result<Self, Box<dyn Error>> {
     let message_type = Self::message_type(file).await?;
-    let file = file.peek_path().unwrap();
-    let file = file.to_str().unwrap();
+    let content = Self::message_content(file).await?;
     Ok(Self {
       parser: if message_type == MessageType::Msg {
-        Box::new(OutlookMessage::new(file))
+        Box::new(OutlookMessage::new(content))
       } else {
-        Box::new(ElectronicMail::new(file))
+        Box::new(ElectronicMail::new(content))
       },
       message_type: message_type,
     })
@@ -131,6 +130,29 @@ impl MessageParser {
       )
       .into(),
     )
+  }
+
+  async fn message_content(file: &gio::File) -> Result<Vec<u8>, Box<dyn Error>> {
+    let input_stream = file.read_future(glib::Priority::DEFAULT).await?;
+
+    let read_input_stream = async || -> Result<Vec<u8>, Box<dyn Error>> {
+      let mut out: Vec<u8> = Vec::new();
+      loop {
+        let buf = input_stream
+          .read_bytes_future(8192, glib::Priority::DEFAULT)
+          .await?;
+        if buf.len() == 0 {
+          break;
+        }
+        out.extend_from_slice(&buf);
+      }
+      Ok(out)
+    };
+
+    let input_stream_result = read_input_stream().await;
+    input_stream.close_future(glib::Priority::DEFAULT).await?;
+
+    input_stream_result
   }
 
   pub fn cleanup() {
