@@ -1131,9 +1131,8 @@ dependencies = [
 
 [[package]]
 name = "msg_parser"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "55f4a66830bf3357952d7ef79021015df7db2b871701cb755b29025876909edd"
+version = "0.1.2"
+source = "git+https://github.com/marirs/msg-parser-rs?rev=678ad8aad4f6c350dae8a70209bc68ba74b89f9b#678ad8aad4f6c350dae8a70209bc68ba74b89f9b"
 dependencies = [
  "hex",
  "regex",
