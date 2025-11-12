@@ -31,6 +31,7 @@ use webkit6::{NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, WebV
 use crate::html::Html;
 use crate::mailservice::MailService;
 use crate::message::attachment::Attachment;
+use crate::message::message::MessageParser;
 
 const SETTINGS_SHOW_FILE_NAME: &str = "show-file-name";
 
@@ -143,7 +144,12 @@ mod imp {
             filename = parameter.get::<Option<String>>().unwrap();
           }
           if let Some(filename) = filename {
-            window.open_file(&filename);
+            let file = if filename.starts_with("/") {
+              gio::File::for_path(filename.as_str())
+            } else {
+              gio::File::for_uri(filename.as_str())
+            };
+            window.open_file(&file).await;
           } else {
             window.open_file_dialog(true).await;
           }
@@ -270,16 +276,17 @@ impl MailViewerWindow {
       win,
       move |_, data, _, _| {
         if let Ok(file) = data.get::<gio::File>() {
-          if let Some(filepath) = file.path() {
-            if let Some(filepath) = filepath.to_str() {
-              let lowercase = filepath.to_lowercase();
-              if lowercase.ends_with(".eml") || lowercase.ends_with(".msg") {
-                win.open_file(filepath);
-                return true;
-              }
+          glib::spawn_future_local(glib::clone!(
+            #[strong]
+            win,
+            #[weak]
+            file,
+            async move {
+              win.open_file(&file).await;
             }
-          }
+          ));
         }
+
         false
       }
     ));
@@ -389,7 +396,7 @@ impl MailViewerWindow {
   async fn on_attachment_save(&self, attachment: &Attachment) {
     log::debug!("on_attachment_save({})", attachment.filename);
 
-    let current_file = gio::File::for_path(self.imp().service.get_fullpath().unwrap());
+    let current_file = self.imp().service.get_file().unwrap();
     let initial_file = current_file
       .parent()
       .unwrap()
@@ -516,6 +523,10 @@ impl MailViewerWindow {
     filter.add_pattern("*.eml");
     filter.add_pattern("*.msg");
 
+    for mime in MessageParser::supported_mime_types() {
+      filter.add_mime_type(mime);
+    }
+
     let filters = gio::ListStore::new::<gtk4::FileFilter>();
     filters.append(&filter);
     return gtk4::FileDialog::builder()
@@ -531,10 +542,8 @@ impl MailViewerWindow {
     let load_dialog = self.build_mail_file_dialog(&gettext("Open Mail File"));
     match load_dialog.open_future(Some(self)).await {
       Ok(file) => {
-        if let Some(path) = file.path() {
-          self.open_file(path.to_str().unwrap());
-          return true;
-        }
+        self.open_file(&file).await;
+        return true;
       }
       Err(e) => match e.kind() {
         Some(gtk4::DialogError::Dismissed) | Some(gtk4::DialogError::Cancelled) => {
@@ -549,29 +558,22 @@ impl MailViewerWindow {
     false
   }
 
-  pub fn open_file(&self, file: &str) {
-    log::debug!("open_file({})", file);
-    glib::idle_add_local_once(glib::clone!(
-      #[weak(rename_to = window)]
-      self,
-      #[strong(rename_to = filename)]
-      file.to_string(),
-      move || {
-        match window.imp().service.open_message(&filename) {
-          Ok(_) => {
-            window.display_message();
-          }
-          Err(e) => {
-            log::error!("service(ERR) : {}", e);
-            window.alert_error(
-              &gettext("File Error"),
-              &format!("{}:\n{}", &gettext("Failed to open file"), e),
-              true,
-            );
-          }
-        }
+  pub async fn open_file(&self, file: &gio::File) {
+    log::debug!("open_file({:?})", file.peek_path().unwrap_or_default());
+
+    match self.imp().service.open_message(&file).await {
+      Ok(_) => {
+        self.display_message();
       }
-    ));
+      Err(e) => {
+        log::error!("service(ERR) : {}", e);
+        self.alert_error(
+          &gettext("File Error"),
+          &format!("{}:\n{}", &gettext("Failed to open file"), e),
+          true,
+        );
+      }
+    }
   }
 
   pub fn display_message(&self) {
