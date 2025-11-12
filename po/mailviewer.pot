@@ -187,16 +187,12 @@ msgstr ""
 msgid "Save as..."
 msgstr ""
 
-#: src/window.rs:375
+#: src/window.rs:386
+msgid "Mail Files"
+msgstr ""
+
+#: src/window.rs:402
 msgid "Save attachment..."
-msgstr ""
-
-#: src/window.rs:379 src/window.rs:504
-msgid "_Cancel"
-msgstr ""
-
-#: src/window.rs:380 src/window.rs:505
-msgid "_Open"
 msgstr ""
 
 #: src/window.rs:398 src/window.rs:546
@@ -209,14 +205,6 @@ msgstr ""
 
 #: src/window.rs:500
 msgid "Open Mail File"
-msgstr ""
-
-#: src/window.rs:510
-msgid "EML Files"
-msgstr ""
-
-#: src/window.rs:512
-msgid "Outlook Files"
 msgstr ""
 
 #. let label: String = format!("{} attachment{}", total, if total == 1 { "" } else { "s" });
