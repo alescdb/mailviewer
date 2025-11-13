@@ -23,6 +23,8 @@
                 </child>
                 <child type="end">
                   <object class="GtkToggleButton" id="show_text">
+                    <property name="visible">False</property>
+                    <property name="active">True</property>
                     <property name="icon-name">text-x-generic-symbolic</property>
                     <property name="tooltip-text" translatable="yes">Show plain text</property>
                     <signal name="clicked" handler="on_show_text_clicked" swapped="true" />
@@ -30,6 +32,8 @@
                 </child>
                 <child type="end">
                   <object class="GtkToggleButton" id="show_images">
+                    <property name="visible" bind-source="show_text"
+                        bind-property="active" bind-flags="invert-boolean | sync-create" />
                     <property name="icon-name">image-x-generic-symbolic</property>
                     <property name="tooltip-text" translatable="yes">Show remote images</property>
                     <signal name="clicked" handler="on_show_images_clicked" swapped="true" />
@@ -37,6 +41,8 @@
                 </child>
                 <child type="end">
                   <object class="GtkToggleButton" id="force_css">
+                    <property name="visible" bind-source="show_text"
+                        bind-property="active" bind-flags="invert-boolean | sync-create" />
                     <property name="icon-name">font-x-generic-symbolic</property>
                     <property name="tooltip-text" translatable="yes">Force CSS</property>
                     <signal name="clicked" handler="on_force_css_clicked" swapped="true" />
@@ -44,6 +50,8 @@
                 </child>
                 <child type="end">
                   <object class="GtkButton" id="zoom_minus">
+                    <property name="visible" bind-source="show_text"
+                        bind-property="active" bind-flags="invert-boolean | sync-create" />
                     <property name="icon-name">loupe-minus-symbolic</property>
                     <property name="tooltip-text" translatable="yes">Zoom -</property>
                     <signal name="clicked" handler="on_zoom_minus_clicked" swapped="true" />
@@ -51,6 +59,8 @@
                 </child>
                 <child type="end">
                   <object class="GtkToggleButton" id="zoom_plus">
+                    <property name="visible" bind-source="show_text"
+                        bind-property="active" bind-flags="invert-boolean | sync-create" />
                     <property name="icon-name">loupe-plus-symbolic</property>
                     <property name="tooltip-text" translatable="yes">Zoom +</property>
                     <signal name="clicked" handler="on_zoom_plus_clicked" swapped="true" />

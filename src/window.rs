@@ -555,13 +555,7 @@ impl MailViewerWindow {
       .get()
       .set_visible_child_name(if show { "text" } else { "html" });
 
-    if imp.show_text.is_active() != show {
-      imp.show_text.set_active(show);
-    }
-    imp.show_images.set_visible(!show);
-    imp.force_css.set_visible(!show);
-    imp.zoom_minus.set_visible(!show);
-    imp.zoom_plus.set_visible(!show);
+    imp.show_text.set_active(show);
   }
 
   fn build_mail_file_dialog(&self, title: &String) -> gtk4::FileDialog {
@@ -607,6 +601,8 @@ impl MailViewerWindow {
 
   pub async fn open_file(&self, file: &gio::File) {
     log::debug!("open_file({:?})", file.peek_path().unwrap_or_default());
+
+    self.on_show_text(true);
 
     match self.imp().service.open_message(&file).await {
       Ok(_) => {
