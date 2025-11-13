@@ -27,11 +27,13 @@ fi
 ##
 ## Check Manifest
 ##
-flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest io.github.alescdb.mailviewer.json && {
+current_path=$(realpath "$(dirname "$0")")
+
+flatpak run --filesystem="$current_path" --command=flatpak-builder-lint org.flatpak.Builder manifest io.github.alescdb.mailviewer.json && {
   ##
   ## Build flatpak
   ##
-  flatpak run org.flatpak.Builder \
+  flatpak run --filesystem="$current_path" org.flatpak.Builder \
     --force-clean \
     --sandbox \
     --user \
@@ -44,7 +46,7 @@ flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest io.githu
     ##
     ## Linter
     ##
-    flatpak run --command=flatpak-builder-lint org.flatpak.Builder repo repo && {
+    flatpak run --filesystem="$current_path" --command=flatpak-builder-lint org.flatpak.Builder repo repo && {
       echo -e "${GREEN}Lint Success${NC}"
     } || {
       echo -e "${RED}Lint Failed${NC}"
