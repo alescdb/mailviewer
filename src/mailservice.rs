@@ -18,7 +18,10 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 use std::cell::RefCell;
-use std::path::Path;
+
+use crate::gio;
+use crate::gio::prelude::*;
+use crate::glib;
 
 use crate::config::VERSION;
 use crate::message::attachment::Attachment;
@@ -26,7 +29,7 @@ use crate::message::message::{Message, MessageParser};
 
 pub struct MailService {
   parser: RefCell<Option<MessageParser>>,
-  full_path: RefCell<Option<String>>,
+  file: RefCell<Option<gio::File>>,
   show_file_name: RefCell<bool>,
   signal_title_changed: RefCell<Option<Box<dyn Fn(&Self, &str) + 'static>>>,
 }
@@ -35,20 +38,33 @@ impl MailService {
   pub fn new() -> Self {
     Self {
       parser: RefCell::new(None),
-      full_path: RefCell::new(None),
+      file: RefCell::new(None),
       show_file_name: RefCell::new(true),
       signal_title_changed: RefCell::new(None),
     }
   }
 
-  pub fn open_message(&self, fullpath: &str) -> Result<(), Box<dyn std::error::Error>> {
-    if Path::new(fullpath).exists() == false {
-      return Err(format!("File not found : {}", fullpath).into());
-    }
-    self.full_path.borrow_mut().replace(fullpath.to_string());
-    let mut parser = MessageParser::new(fullpath);
-    parser.parse()?;
-    self.parser.borrow_mut().replace(parser);
+  pub async fn open_message(&self, file: &gio::File) -> Result<(), Box<dyn std::error::Error>> {
+    self.file.borrow_mut().replace(file.clone());
+    let mut parser = MessageParser::new(file).await?;
+
+    let parse_thread = {
+      gio::spawn_blocking(move || -> Result<MessageParser, glib::Error> {
+        let ret = match parser.parse() {
+          Ok(_) => Ok(parser),
+          Err(e) => Err(glib::Error::new(gio::IOErrorEnum::Failed, &format!("{e}"))),
+        };
+        ret
+      })
+      .await
+      .unwrap()
+    };
+
+    match parse_thread {
+      Ok(parser) => self.parser.borrow_mut().replace(parser),
+      Err(e) => return Err(Box::new(e)),
+    };
+
     self.update_title();
     Ok(())
   }
@@ -108,8 +124,8 @@ impl MailService {
     self.update_title();
   }
 
-  pub fn get_fullpath(&self) -> Option<String> {
-    self.full_path.borrow().clone()
+  pub fn get_file(&self) -> Option<gio::File> {
+    self.file.borrow().clone()
   }
 
   pub fn connect_title_changed<F: Fn(&Self, &str) + 'static>(&self, f: F) {
@@ -118,16 +134,16 @@ impl MailService {
 
   fn update_title(&self) {
     if let Some(callback) = self.signal_title_changed.borrow().as_ref() {
-      if let Some(fullpath) = self.full_path.borrow().as_ref() {
-        let title = self.get_title(fullpath);
+      if let Some(file) = self.file.borrow().as_ref() {
+        let title = self.get_title(file);
         callback(self, &title);
       }
     }
   }
 
-  fn get_title(&self, fullpath: &str) -> String {
+  fn get_title(&self, file: &gio::File) -> String {
     if *self.show_file_name.borrow() {
-      if let Some(filename) = Path::new(fullpath).file_name() {
+      if let Some(filename) = file.basename() {
         return filename.to_string_lossy().to_string();
       }
     }
@@ -138,7 +154,7 @@ impl MailService {
 impl std::fmt::Debug for MailService {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     f.debug_struct("MailService")
-      .field("fullpath", &self.full_path)
+      .field("fullpath", &self.file)
       .field("show_file_name", &self.show_file_name)
       .finish()
   }
@@ -148,6 +164,10 @@ impl std::fmt::Debug for MailService {
 mod tests {
   use std::rc::Rc;
 
+  use crate::gio;
+  use crate::gio::prelude::*;
+  use crate::glib;
+
   use crate::mailservice::MailService;
 
   #[test]
@@ -155,7 +175,7 @@ mod tests {
     let service = MailService::new();
 
     assert!(service.parser.borrow().is_none());
-    assert!(service.full_path.borrow().is_none());
+    assert!(service.file.borrow().is_none());
     assert_eq!(*service.show_file_name.borrow(), true);
   }
 
@@ -164,62 +184,86 @@ mod tests {
     let mail_service = MailService::new();
     let service = mail_service;
     let fullpath = "sample.eml";
+    let file = gio::File::for_path(fullpath);
 
-    assert!(service.open_message(fullpath).is_ok());
-    assert_eq!(service.get_fullpath().unwrap(), fullpath.to_string());
-    assert_eq!(service.from(), "John Doe <john@moon.space>");
-    assert_eq!(service.to(), "Lucas <lucas@mercure.space>");
-    assert_eq!(service.subject(), "Lorem ipsum");
-    assert_eq!(service.date(), "2024-10-23 12:27:21");
+    glib::MainContext::new().spawn_local(async move {
+      assert!(service.open_message(&file).await.is_ok());
+      assert!(service.get_file().unwrap().equal(&file));
+      assert_eq!(service.from(), "John Doe <john@moon.space>");
+      assert_eq!(service.to(), "Lucas <lucas@mercure.space>");
+      assert_eq!(service.subject(), "Lorem ipsum");
+      assert_eq!(service.date(), "2024-10-23 12:27:21");
+    });
   }
 
   #[test]
   fn open_mail_file_not_found() {
     let service = MailService::new();
-    let result = service.open_message("path/to/nonexistent.eml");
+    let file = gio::File::for_path("path/to/nonexistent.eml");
 
-    assert!(result.is_err());
-    assert_eq!(
-      format!("{}", result.unwrap_err()),
-      "File not found : path/to/nonexistent.eml"
-    );
+    glib::MainContext::new().spawn_local(async move {
+      let result = service.open_message(&file).await;
+
+      assert!(result.is_err());
+      assert_eq!(
+        format!("{}", result.unwrap_err()),
+        "File not found : path/to/nonexistent.eml"
+      );
+    });
   }
 
   #[test]
   fn get_text() {
     let service = MailService::new();
-    service.open_message("sample.eml").unwrap();
-    let text = service.body_text().unwrap();
+    let file = gio::File::for_path("sample.eml");
 
-    assert!(text.contains("Lorem ipsum dolor sit amet, consectetur adipiscing elit"));
+    glib::MainContext::new().spawn_local(async move {
+      service.open_message(&file).await.unwrap();
+      let text = service.body_text().unwrap();
+
+      assert!(text.contains("Lorem ipsum dolor sit amet, consectetur adipiscing elit"));
+    });
   }
 
   #[test]
   fn get_html() {
     let service = MailService::new();
-    service.open_message("sample.eml").unwrap();
-    let html = service.body_html().unwrap();
+    let file = gio::File::for_path("sample.eml");
 
-    assert!(html.contains("Hello Lucas,"));
+    glib::MainContext::new().spawn_local(async move {
+      service.open_message(&file).await.unwrap();
+      let html = service.body_html().unwrap();
+
+      assert!(html.contains("Hello Lucas,"));
+    });
   }
 
   #[test]
   fn get_attachments() {
     let service = MailService::new();
+    let file = gio::File::for_path("sample.eml");
 
-    service.open_message("sample.eml").unwrap();
-    let attachments = service.attachments();
+    glib::MainContext::new().spawn_local(async move {
+      service.open_message(&file).await.unwrap();
+      let attachments = service.attachments();
 
-    assert_eq!(attachments.len(), 1);
-    assert_eq!(attachments[0].filename, "Deus_Gnome.png");
+      assert_eq!(attachments.len(), 1);
+      assert_eq!(attachments[0].filename, "Deus_Gnome.png");
+    });
   }
 
   #[test]
   fn update_title_with_show_file_name() {
     let service = MailService::new();
-    service.open_message("sample.eml").unwrap();
-    service.set_show_file_name(true);
-    assert_eq!(service.get_title("sample.eml"), "sample.eml");
+    let file = gio::File::for_path("sample.eml");
+
+    glib::MainContext::new().spawn_local(async move {
+      service.open_message(&file).await.unwrap();
+      service.set_show_file_name(true);
+
+      let file_title = gio::File::for_path("sample_title.eml");
+      assert_eq!(service.get_title(&file_title), "sample_title.eml");
+    });
   }
 
   #[test]
@@ -227,7 +271,7 @@ mod tests {
     let service = MailService::new();
     service.set_show_file_name(false);
     assert_eq!(
-      service.get_title("sample.eml"),
+      service.get_title(&gio::File::for_path("sample.eml")),
       format!("Mail Viewer v{}", crate::config::VERSION)
     );
   }
@@ -240,8 +284,12 @@ mod tests {
     service.connect_title_changed(move |_, _| {
       *title_changed_called_clone.borrow_mut() = true;
     });
-    service.open_message("sample.eml").unwrap();
-    service.set_show_file_name(false);
-    assert!(*title_changed_called.borrow());
+
+    glib::MainContext::new().spawn_local(async move {
+      let file = gio::File::for_path("sample.eml");
+      service.open_message(&file).await.unwrap();
+      service.set_show_file_name(false);
+      assert!(*title_changed_called.borrow());
+    });
   }
 }

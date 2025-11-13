@@ -23,14 +23,14 @@ use adw::glib::clone;
 use adw::prelude::{AlertDialogExt, *};
 use adw::subclass::prelude::*;
 use gettextrs::{gettext, ngettext};
-use gtk4::prelude::FileChooserExt;
-use gtk4::{gio, glib, template_callbacks, ResponseType};
+use gtk4::{gio, glib, template_callbacks};
 use webkit6::prelude::{PolicyDecisionExt, WebViewExt};
 use webkit6::{NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, WebView};
 
 use crate::html::Html;
 use crate::mailservice::MailService;
 use crate::message::attachment::Attachment;
+use crate::message::message::MessageParser;
 
 const SETTINGS_SHOW_FILE_NAME: &str = "show-file-name";
 
@@ -74,6 +74,8 @@ mod imp {
     #[template_child]
     pub sheet: TemplateChild<adw::BottomSheet>,
     #[template_child]
+    pub content_box: TemplateChild<gtk4::Box>,
+    #[template_child]
     pub attachments_clamp: TemplateChild<adw::Clamp>,
     //
     pub scrolled_window: ScrolledWindow,
@@ -103,6 +105,7 @@ mod imp {
         stack: TemplateChild::default(),
         pull_label: TemplateChild::default(),
         attachments_clamp: TemplateChild::default(),
+        content_box: TemplateChild::default(),
         sheet: TemplateChild::default(),
         settings: OnceCell::new(),
         service: MailService::new(),
@@ -143,7 +146,12 @@ mod imp {
             filename = parameter.get::<Option<String>>().unwrap();
           }
           if let Some(filename) = filename {
-            window.open_file(&filename);
+            let file = if filename.starts_with("/") {
+              gio::File::for_path(filename.as_str())
+            } else {
+              gio::File::for_uri(filename.as_str())
+            };
+            window.open_file(&file).await;
           } else {
             window.open_file_dialog(true).await;
           }
@@ -270,16 +278,17 @@ impl MailViewerWindow {
       win,
       move |_, data, _, _| {
         if let Ok(file) = data.get::<gio::File>() {
-          if let Some(filepath) = file.path() {
-            if let Some(filepath) = filepath.to_str() {
-              let lowercase = filepath.to_lowercase();
-              if lowercase.ends_with(".eml") || lowercase.ends_with(".msg") {
-                win.open_file(filepath);
-                return true;
-              }
+          glib::spawn_future_local(glib::clone!(
+            #[strong]
+            win,
+            #[weak]
+            file,
+            async move {
+              win.open_file(&file).await;
             }
-          }
+          ));
         }
+
         false
       }
     ));
@@ -378,9 +387,23 @@ impl MailViewerWindow {
       #[strong]
       window,
       #[strong]
+      btn,
+      #[strong]
       attachment,
       move |_| {
-        window.on_attachment_open(&attachment);
+        glib::spawn_future_local(glib::clone!(
+          #[strong]
+          window,
+          #[strong]
+          attachment,
+          #[strong]
+          btn,
+          async move {
+            btn.set_sensitive(false);
+            window.on_attachment_open(&attachment).await;
+            btn.set_sensitive(true);
+          }
+        ));
       }
     ));
     preferences_group.add(&btn);
@@ -389,7 +412,7 @@ impl MailViewerWindow {
   async fn on_attachment_save(&self, attachment: &Attachment) {
     log::debug!("on_attachment_save({})", attachment.filename);
 
-    let current_file = gio::File::for_path(self.imp().service.get_fullpath().unwrap());
+    let current_file = self.imp().service.get_file().unwrap();
     let initial_file = current_file
       .parent()
       .unwrap()
@@ -403,16 +426,16 @@ impl MailViewerWindow {
 
     match save_dialog.save_future(Some(self)).await {
       Ok(file) => {
-        if let Some(path) = file.peek_path() {
-          log::debug!("Saving attachment to {:?}", path);
-          match attachment.write_to_file(path.to_str().unwrap()) {
-            Ok(_) => log::debug!("write_to_file({:?})", &path),
-            Err(e) => {
-              log::error!("write_to_file({})", e);
-              self.alert_error(&gettext("File Error"), &e.to_string(), false);
-            }
-          };
-        }
+        let path = file.peek_path().unwrap_or_default();
+        let path = path.display();
+        log::debug!("Saving attachment to {:?}", &path);
+        match attachment.write_to_file(&file).await {
+          Ok(_) => log::debug!("write_to_file({:?})", &path),
+          Err(e) => {
+            log::error!("write_to_file({})", e);
+            self.alert_error(&gettext("File Error"), &e.to_string(), false);
+          }
+        };
       }
       Err(e) => match e.kind() {
         Some(gtk4::DialogError::Dismissed) | Some(gtk4::DialogError::Cancelled) => return,
@@ -421,13 +444,18 @@ impl MailViewerWindow {
     }
   }
 
-  fn on_attachment_open(&self, attachment: &Attachment) {
+  async fn on_attachment_open(&self, attachment: &Attachment) {
     log::debug!("on_button_clicked({})", attachment.filename);
-    match attachment.write_to_tmp() {
+    match attachment.write_to_tmp().await {
       Ok(file) => {
-        log::debug!("write_to_tmp({}) success", &file);
-        if let Err(e) = open::that(&file) {
-          log::error!("{} ({}): {}", &gettext("Failed to open file"), &file, e);
+        let path = file.peek_path().unwrap().to_string_lossy().to_string();
+        log::debug!("write_to_tmp({}) success", &path);
+
+        if let Err(e) = gtk4::FileLauncher::new(Some(&file))
+          .launch_future(Some(self))
+          .await
+        {
+          log::error!("{} ({}): {}", &gettext("Failed to open file"), &path, e);
         }
       }
       Err(e) => log::error!("write_to_tmp({})", e),
@@ -451,7 +479,10 @@ impl MailViewerWindow {
       .load_html(&*Html::new(&html, force_css).safe(), None);
   }
 
-  fn decide_policy(&self, policy: &PolicyDecision) -> Result<bool, Box<dyn std::error::Error>> {
+  async fn decide_policy(
+    &self,
+    policy: &PolicyDecision,
+  ) -> Result<bool, Box<dyn std::error::Error>> {
     match policy.clone().downcast::<NavigationPolicyDecision>() {
       Ok(policy) => {
         let navigation_action = policy.navigation_action();
@@ -461,8 +492,10 @@ impl MailViewerWindow {
               if uri.starts_with("about:") {
                 return Ok(false);
               }
-              log::debug!("WebView on_decide_policy(open) => {}", uri);
-              open::that(uri.to_string())?;
+              log::debug!("WebView decide_policy(launch) => {}", uri);
+              if let Err(e) = gtk4::UriLauncher::new(&uri).launch_future(Some(self)).await {
+                return Err(format!("{} ({}): {}", &gettext("Failed to open uri"), &uri, e).into());
+              }
             }
             policy.ignore();
             return Ok(true);
@@ -471,7 +504,7 @@ impl MailViewerWindow {
       }
       Err(e) => {
         log::error!("WebView policy.clone().downcast({:?})", e);
-        return Err(format!("on_decide_policy() policy downcast failed ({:?})", e).into());
+        return Err(format!("decide_policy() policy downcast failed ({:?})", e).into());
       }
     }
     Ok(false)
@@ -483,13 +516,37 @@ impl MailViewerWindow {
     policy: &PolicyDecision,
     _decision_type: PolicyDecisionType,
   ) -> bool {
-    match self.decide_policy(policy) {
-      Ok(res) => res,
-      Err(e) => {
-        log::error!("WebView on_decide_policy({:?})", e);
-        false
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    // We need to wait for the future to return in order to catch its value,
+    // and this can be done by launching a new loop tied to the future and
+    // quitting it once done.
+    let ctx = glib::MainContext::default();
+    let lp = glib::MainLoop::new(Some(&ctx), false);
+    let ret = Rc::new(RefCell::new(false));
+
+    ctx.spawn_local(glib::clone!(
+      #[strong(rename_to = win)]
+      self,
+      #[strong]
+      lp,
+      #[weak]
+      policy,
+      #[weak]
+      ret,
+      async move {
+        match win.decide_policy(&policy).await {
+          Ok(val) => *ret.borrow_mut() = val,
+          Err(e) => log::error!("WebView on_decide_policy({:?})", e),
+        }
+        lp.quit();
       }
-    }
+    ));
+    lp.run();
+
+    let ret = *(ret.borrow_mut());
+    ret
   }
 
   fn on_show_text(&self, show: bool) {
@@ -510,6 +567,10 @@ impl MailViewerWindow {
     filter.add_pattern("*.eml");
     filter.add_pattern("*.msg");
 
+    for mime in MessageParser::supported_mime_types() {
+      filter.add_mime_type(mime);
+    }
+
     let filters = gio::ListStore::new::<gtk4::FileFilter>();
     filters.append(&filter);
     return gtk4::FileDialog::builder()
@@ -525,10 +586,8 @@ impl MailViewerWindow {
     let load_dialog = self.build_mail_file_dialog(&gettext("Open Mail File"));
     match load_dialog.open_future(Some(self)).await {
       Ok(file) => {
-        if let Some(path) = file.path() {
-          self.open_file(path.to_str().unwrap());
-          return true;
-        }
+        self.open_file(&file).await;
+        return true;
       }
       Err(e) => match e.kind() {
         Some(gtk4::DialogError::Dismissed) | Some(gtk4::DialogError::Cancelled) => {
@@ -566,7 +625,18 @@ impl MailViewerWindow {
           }
         }
       }
-    ));
+      Err(e) => {
+        log::error!("service(ERR) : {}", e);
+        self.alert_error(
+          &gettext("File Error"),
+          &format!("{}:\n{}", &gettext("Failed to open file"), e),
+          true,
+        );
+      }
+    };
+
+    self.imp().content_box.get().set_sensitive(true);
+    ret
   }
 
   pub fn display_message(&self) {
