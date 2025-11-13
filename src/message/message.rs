@@ -71,7 +71,7 @@ pub enum MessageType {
 }
 
 pub struct MessageParser {
-  parser: Box<dyn Message>,
+  parser: Box<dyn Message + Send>,
   #[allow(dead_code)]
   message_type: MessageType,
 }

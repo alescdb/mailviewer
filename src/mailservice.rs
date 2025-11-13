@@ -21,6 +21,7 @@ use std::cell::RefCell;
 
 use crate::gio;
 use crate::gio::prelude::*;
+use crate::glib;
 
 use crate::config::VERSION;
 use crate::message::attachment::Attachment;
@@ -46,8 +47,24 @@ impl MailService {
   pub async fn open_message(&self, file: &gio::File) -> Result<(), Box<dyn std::error::Error>> {
     self.file.borrow_mut().replace(file.clone());
     let mut parser = MessageParser::new(file).await?;
-    parser.parse()?;
-    self.parser.borrow_mut().replace(parser);
+
+    let parse_thread = {
+      gio::spawn_blocking(move || -> Result<MessageParser, glib::Error> {
+        let ret = match parser.parse() {
+          Ok(_) => Ok(parser),
+          Err(e) => Err(glib::Error::new(gio::IOErrorEnum::Failed, &format!("{e}"))),
+        };
+        ret
+      })
+      .await
+      .unwrap()
+    };
+
+    match parse_thread {
+      Ok(parser) => self.parser.borrow_mut().replace(parser),
+      Err(e) => return Err(Box::new(e)),
+    };
+
     self.update_title();
     Ok(())
   }
