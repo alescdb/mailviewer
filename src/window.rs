@@ -602,41 +602,25 @@ impl MailViewerWindow {
     false
   }
 
-  pub fn open_file(&self, file: &str) {
-    log::debug!("open_file({})", file);
-    glib::idle_add_local_once(glib::clone!(
-      #[weak(rename_to = window)]
-      self,
-      #[strong(rename_to = filename)]
-      file.to_string(),
-      move || {
-        window.on_show_text(true);
-        match window.imp().service.open_message(&filename) {
-          Ok(_) => {
-            window.display_message();
-          }
-          Err(e) => {
-            log::error!("service(ERR) : {}", e);
-            window.alert_error(
-              &gettext("File Error"),
-              &format!("{}:\n{}", &gettext("Failed to open file"), e),
-              true,
-            );
-          }
-        }
+  pub async fn open_file(&self, file: &gio::File) {
+    log::debug!("open_file({:?})", file);
+    
+    let win = self;
+
+    win.on_show_text(true);
+    match win.imp().service.open_message(&file).await {
+      Ok(_) => {
+        win.display_message();
       }
       Err(e) => {
         log::error!("service(ERR) : {}", e);
-        self.alert_error(
+        win.alert_error(
           &gettext("File Error"),
           &format!("{}:\n{}", &gettext("Failed to open file"), e),
           true,
         );
       }
-    };
-
-    self.imp().content_box.get().set_sensitive(true);
-    ret
+    }
   }
 
   pub fn display_message(&self) {

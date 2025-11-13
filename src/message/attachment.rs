@@ -20,11 +20,9 @@
 use std::error::Error;
 use std::fmt;
 
-use crate::gio;
-use crate::gio::prelude::*;
-use crate::glib;
-
 use super::message::TEMP_FOLDER;
+use crate::gio::prelude::*;
+use crate::{gio, glib};
 
 #[derive(Debug, Clone)]
 pub struct Attachment {
