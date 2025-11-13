@@ -46,11 +46,11 @@ flatpak run --filesystem="$current_path" --command=flatpak-builder-lint org.flat
     ##
     ## Linter
     ##
-    flatpak run --filesystem="$current_path" --command=flatpak-builder-lint org.flatpak.Builder repo repo && {
+    if flatpak run --filesystem="$current_path" --command=flatpak-builder-lint org.flatpak.Builder repo repo; then
       echo -e "${GREEN}Lint Success${NC}"
-    } || {
+    else
       echo -e "${RED}Lint Failed${NC}"
-    }
+    fi
     RUST_LOG=mailviewer=debug flatpak run io.github.alescdb.mailviewer
   }
 }
