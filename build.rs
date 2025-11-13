@@ -21,7 +21,10 @@ fn main() {
   let meson: String = env::var("MESON_BUILD").unwrap_or("0".to_string());
 
   if meson == "1" || profile != "debug" {
-    println!("cargo:warning=build.rs disabled (profile {}, meson {})", profile, meson);
+    println!(
+      "cargo:warning=build.rs disabled (profile {}, meson {})",
+      profile, meson
+    );
     return;
   }
   println!("cargo:warning=build.rs started (profile == debug)");

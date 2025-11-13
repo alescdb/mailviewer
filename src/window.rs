@@ -172,8 +172,8 @@ mod imp {
 glib::wrapper! {
     pub struct MailViewerWindow(ObjectSubclass<imp::MailViewerWindow>)
         @extends
-            gtk4::Widget, 
-            gtk4::Window, 
+            gtk4::Widget,
+            gtk4::Window,
             gtk4::ApplicationWindow,
             adw::ApplicationWindow,
         @implements
@@ -355,11 +355,15 @@ impl MailViewerWindow {
       #[strong]
       attachment,
       move |_| {
-        let window = window.clone();
-        let attachment = attachment.clone();
-        glib::MainContext::default().spawn_local(async move {
-          window.on_attachment_save(&attachment).await;
-        });
+        glib::spawn_future_local(glib::clone!(
+          #[strong]
+          window,
+          #[strong]
+          attachment,
+          async move {
+            window.on_attachment_save(&attachment).await;
+          }
+        ));
       }
     ));
     let btn = adw::ActionRow::builder()
