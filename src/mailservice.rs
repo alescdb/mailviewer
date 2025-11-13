@@ -19,13 +19,11 @@
  */
 use std::cell::RefCell;
 
-use crate::gio;
-use crate::gio::prelude::*;
-use crate::glib;
-
 use crate::config::VERSION;
+use crate::gio::prelude::*;
 use crate::message::attachment::Attachment;
 use crate::message::message::{Message, MessageParser};
+use crate::{gio, glib};
 
 pub struct MailService {
   parser: RefCell<Option<MessageParser>>,
@@ -164,11 +162,9 @@ impl std::fmt::Debug for MailService {
 mod tests {
   use std::rc::Rc;
 
-  use crate::gio;
   use crate::gio::prelude::*;
-  use crate::glib;
-
   use crate::mailservice::MailService;
+  use crate::{gio, glib};
 
   #[test]
   fn new_mail_service() {

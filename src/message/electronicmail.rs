@@ -23,12 +23,10 @@ use base64::engine::general_purpose;
 use base64::Engine;
 use gmime::prelude::Cast;
 use gmime::traits::{
-  ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt,
-  StreamMemExt,
+  ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt, StreamMemExt
 };
 use gmime::{
-  glib, InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part,
-  StreamMem,
+  glib, InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part, StreamMem
 };
 use nipper::Document;
 
@@ -303,7 +301,6 @@ mod tests {
 
   use crate::gio::prelude::*;
   use crate::glib;
-
   use crate::message::electronicmail::ElectronicMail;
   use crate::message::message::Message;
 

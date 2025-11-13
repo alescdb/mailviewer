@@ -24,14 +24,12 @@ use std::path::PathBuf;
 use lazy_static::lazy_static;
 use uuid::Uuid;
 
-use crate::gio;
-use crate::gio::prelude::*;
-use crate::glib;
-
 use super::attachment::Attachment;
 use crate::config::APP_NAME;
+use crate::gio::prelude::*;
 use crate::message::electronicmail::ElectronicMail;
 use crate::message::outlook::OutlookMessage;
+use crate::{gio, glib};
 
 const EML_MIME_TYPES: [&str; 1] = ["message/rfc822"];
 
