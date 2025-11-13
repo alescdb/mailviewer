@@ -603,18 +603,19 @@ impl MailViewerWindow {
   }
 
   pub async fn open_file(&self, file: &gio::File) {
-    log::debug!("open_file({:?})", file);
-    
-    let win = self;
+    log::debug!("open_file({:?})", file.peek_path().unwrap_or_default());
 
-    win.on_show_text(true);
-    match win.imp().service.open_message(&file).await {
+    self.on_show_text(true);
+    self.imp().content_box.get().set_sensitive(false);
+    self.imp().sheet.get().set_open(false);
+
+    match self.imp().service.open_message(&file).await {
       Ok(_) => {
-        win.display_message();
+        self.display_message();
       }
       Err(e) => {
         log::error!("service(ERR) : {}", e);
-        win.alert_error(
+        self.alert_error(
           &gettext("File Error"),
           &format!("{}:\n{}", &gettext("Failed to open file"), e),
           true,
