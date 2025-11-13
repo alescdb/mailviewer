@@ -446,9 +446,14 @@ impl MailViewerWindow {
     log::debug!("on_button_clicked({})", attachment.filename);
     match attachment.write_to_tmp().await {
       Ok(file) => {
-        log::debug!("write_to_tmp({}) success", &file);
-        if let Err(e) = open::that(&file) {
-          log::error!("{} ({}): {}", &gettext("Failed to open file"), &file, e);
+        let path = file.peek_path().unwrap().to_string_lossy().to_string();
+        log::debug!("write_to_tmp({}) success", &path);
+
+        if let Err(e) = gtk4::FileLauncher::new(Some(&file))
+          .launch_future(Some(self))
+          .await
+        {
+          log::error!("{} ({}): {}", &gettext("Failed to open file"), &path, e);
         }
       }
       Err(e) => log::error!("write_to_tmp({})", e),
