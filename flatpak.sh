@@ -15,7 +15,7 @@ if [[ "$1" == "--deps" ]]; then
   fi
 
   if [[ ! -d .venv ]]; then
-    python -m venv .venv
+    python3 -m venv .venv
     .venv/bin/pip install aiohttp toml tomlkit
   fi
 
