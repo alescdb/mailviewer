@@ -621,7 +621,8 @@ impl MailViewerWindow {
           true,
         );
       }
-    }
+    };
+    self.imp().content_box.get().set_sensitive(true);
   }
 
   pub fn display_message(&self) {
