@@ -602,16 +602,28 @@ impl MailViewerWindow {
     false
   }
 
-  pub async fn open_file(&self, file: &gio::File) {
-    log::debug!("open_file({:?})", file.peek_path().unwrap_or_default());
-
-    self.on_show_text(true);
-    self.imp().content_box.get().set_sensitive(false);
-    self.imp().sheet.get().set_open(false);
-
-    let ret = match self.imp().service.open_message(&file).await {
-      Ok(_) => {
-        self.display_message();
+  pub fn open_file(&self, file: &str) {
+    log::debug!("open_file({})", file);
+    glib::idle_add_local_once(glib::clone!(
+      #[weak(rename_to = window)]
+      self,
+      #[strong(rename_to = filename)]
+      file.to_string(),
+      move || {
+        window.on_show_text(true);
+        match window.imp().service.open_message(&filename) {
+          Ok(_) => {
+            window.display_message();
+          }
+          Err(e) => {
+            log::error!("service(ERR) : {}", e);
+            window.alert_error(
+              &gettext("File Error"),
+              &format!("{}:\n{}", &gettext("Failed to open file"), e),
+              true,
+            );
+          }
+        }
       }
       Err(e) => {
         log::error!("service(ERR) : {}", e);
