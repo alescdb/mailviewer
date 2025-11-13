@@ -23,10 +23,12 @@ use base64::engine::general_purpose;
 use base64::Engine;
 use gmime::prelude::Cast;
 use gmime::traits::{
-  ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt, StreamMemExt
+  ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt,
+  StreamMemExt,
 };
 use gmime::{
-  glib, InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part, Stream, StreamFs, StreamMem
+  glib, InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part,
+  Stream, StreamFs, StreamMem,
 };
 use nipper::Document;
 
