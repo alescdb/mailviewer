@@ -501,13 +501,7 @@ impl MailViewerWindow {
       .get()
       .set_visible_child_name(if show { "text" } else { "html" });
 
-    if imp.show_text.is_active() != show {
-      imp.show_text.set_active(show);
-    }
-    imp.show_images.set_visible(!show);
-    imp.force_css.set_visible(!show);
-    imp.zoom_minus.set_visible(!show);
-    imp.zoom_plus.set_visible(!show);
+    imp.show_text.set_active(show);
   }
 
   fn build_mail_file_dialog(&self, title: &String) -> gtk4::FileDialog {
@@ -557,6 +551,7 @@ impl MailViewerWindow {
       #[strong(rename_to = filename)]
       file.to_string(),
       move || {
+        window.on_show_text(true);
         match window.imp().service.open_message(&filename) {
           Ok(_) => {
             window.display_message();
