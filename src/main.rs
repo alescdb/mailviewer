@@ -46,7 +46,6 @@ fn main() -> glib::ExitCode {
     .expect("Could not load resources");
   gio::resources_register(&resources);
 
-
   let app = MailViewerApplication::new(APP_ID, &gio::ApplicationFlags::HANDLES_OPEN);
   let res = app.run();
   MessageParser::cleanup();
