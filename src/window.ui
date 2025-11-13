@@ -9,10 +9,18 @@
     <property name="resizable">1</property>
     <property name="content">
       <object class="AdwBottomSheet" id="sheet">
+        <property name="can-open" bind-source="content_box"
+          bind-property="sensitive" bind-flags="sync-create" />
         <property name="content">
           <object class="AdwToolbarView">
             <child type="top">
               <object class="AdwHeaderBar" id="header_bar">
+                <child type="start">
+                  <object class="GtkSpinner" id="spinner">
+                    <property name="spinning" bind-source="content_box"
+                      bind-property="sensitive" bind-flags="invert-boolean | sync-create" />
+                  </object>
+                </child>
                 <child type="end">
                   <object class="GtkMenuButton">
                     <property name="primary">True</property>
@@ -69,7 +77,7 @@
               </object>
             </child>
             <property name="content">
-              <object class="GtkBox" id="vertical_box">
+              <object class="GtkBox" id="content_box">
                 <property name="margin-bottom" bind-source="sheet" bind-property="bottom-bar-height" />
                 <property name="hexpand">true</property>
                 <property name="spacing">10</property>
@@ -203,6 +211,8 @@
         </property>
         <property name="sheet">
           <object class="AdwToolbarView">
+            <property name="sensitive" bind-source="content_box"
+              bind-property="sensitive" bind-flags="sync-create" />
             <child type="top">
               <object class="AdwHeaderBar" />
             </child>
@@ -219,6 +229,8 @@
         </property>
         <property name="bottom-bar">
           <object class="GtkBox">
+            <property name="sensitive" bind-source="content_box"
+              bind-property="sensitive" bind-flags="sync-create" />
             <style>
               <class name="toolbar" />
             </style>

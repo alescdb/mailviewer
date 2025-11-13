@@ -27,7 +27,7 @@ use crate::message::message::MessageParser;
 
 #[derive(Debug, Default, Clone)]
 pub struct OutlookMessage {
-  file: String,
+  data: Vec<u8>,
   pub from: String,
   pub to: String,
   pub date: String,
@@ -37,9 +37,9 @@ pub struct OutlookMessage {
 }
 
 impl OutlookMessage {
-  pub fn new(file: &str) -> Self {
+  pub fn new(data: Vec<u8>) -> Self {
     Self {
-      file: file.to_string(),
+      data: data,
       from: String::new(),
       to: String::new(),
       date: String::new(),
@@ -64,7 +64,7 @@ impl OutlookMessage {
 
 impl Message for OutlookMessage {
   fn parse(&mut self) -> Result<(), Box<dyn Error>> {
-    let outlook = Outlook::from_path(&self.file)?;
+    let outlook = Outlook::from_slice(&self.data)?;
     self.from = OutlookMessage::person_to_string(&outlook.sender);
     self.to = OutlookMessage::person_list_to_string(&outlook.to);
     self.subject = outlook.subject;
@@ -123,13 +123,14 @@ impl Drop for OutlookMessage {
 #[cfg(test)]
 mod tests {
   use std::error::Error;
+  use std::fs;
 
   use crate::message::message::Message;
   use crate::message::outlook::OutlookMessage;
 
   #[test]
   fn test_outlook() -> Result<(), Box<dyn Error>> {
-    let mut parser = OutlookMessage::new("sample.msg");
+    let mut parser = OutlookMessage::new(fs::read("sample.msg").unwrap());
     parser.parse()?;
     assert_eq!(parser.from, "John Doe <john@moon.space>");
     assert_eq!(parser.to, "Lucas <lucas@mercure.space>");

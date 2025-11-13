@@ -28,7 +28,7 @@ use gmime::traits::{
 };
 use gmime::{
   glib, InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part,
-  Stream, StreamFs, StreamMem,
+  StreamMem,
 };
 use nipper::Document;
 
@@ -48,7 +48,7 @@ const INVALID_CHARS: &[char] = &['<', '>', ':', '"', '/', '\\', '|', '?', '*'];
 
 #[derive(Debug, Default, Clone)]
 pub struct ElectronicMail {
-  file: String,
+  data: Vec<u8>,
   pub from: String,
   pub to: String,
   pub date: String,
@@ -59,9 +59,9 @@ pub struct ElectronicMail {
 }
 
 impl ElectronicMail {
-  pub fn new(file: &str) -> ElectronicMail {
+  pub fn new(data: Vec<u8>) -> ElectronicMail {
     ElectronicMail {
-      file: file.to_string(),
+      data: data,
       from: String::new(),
       to: String::new(),
       subject: String::new(),
@@ -299,14 +299,17 @@ impl Drop for ElectronicMail {
 #[cfg(test)]
 mod tests {
   use std::error::Error;
-  use std::path::Path;
+  use std::fs;
+
+  use crate::gio::prelude::*;
+  use crate::glib;
 
   use crate::message::electronicmail::ElectronicMail;
   use crate::message::message::Message;
 
   #[test]
   fn test_sample() -> Result<(), Box<dyn Error>> {
-    let mut parser = ElectronicMail::new("sample.eml");
+    let mut parser = ElectronicMail::new(fs::read("sample.eml").unwrap());
     parser.parse()?;
     assert_eq!(parser.from, "John Doe <john@moon.space>");
     assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
@@ -317,17 +320,25 @@ mod tests {
     assert_eq!(attachment.filename, "Deus_Gnome.png");
     assert_eq!(attachment.content_id, "ii_m2lqbrhv0");
     assert_eq!(attachment.mime_type.as_ref().unwrap(), "image/png");
-    let _name = attachment.write_to_tmp()?;
-    let _file = Path::new(&_name);
-    println!("file => {:?}", _file);
-    assert!(_file.is_file());
+
+    let attachment = attachment.clone();
+    glib::MainContext::new().spawn_local(async move {
+      let _file = attachment
+        .write_to_tmp()
+        .await
+        .unwrap()
+        .peek_path()
+        .unwrap();
+      println!("file => {:?}", _file);
+      assert!(_file.is_file());
+    });
 
     Ok(())
   }
 
   #[test]
   fn test_sample_google() -> Result<(), Box<dyn Error>> {
-    let mut parser = ElectronicMail::new("tests/test-google.eml");
+    let mut parser = ElectronicMail::new(fs::read("tests/test-google.eml").unwrap());
     parser.parse()?;
     assert_eq!(parser.from, "Bill Jncjkq <jncjkq@gmail.com>");
     assert_eq!(parser.to, "bookmarks@jncjkq.net");
@@ -344,7 +355,7 @@ mod tests {
 
   #[test]
   fn test_sample_text() -> Result<(), Box<dyn Error>> {
-    let mut parser = ElectronicMail::new("tests/text.eml");
+    let mut parser = ElectronicMail::new(fs::read("tests/text.eml").unwrap());
     parser.parse()?;
     assert_eq!(parser.from, "John Doe <john@moon.space>");
     assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
@@ -358,7 +369,7 @@ mod tests {
   }
   #[test]
   fn test_sample_html() -> Result<(), Box<dyn Error>> {
-    let mut parser = ElectronicMail::new("tests/html.eml");
+    let mut parser = ElectronicMail::new(fs::read("tests/html.eml").unwrap());
     parser.parse()?;
     assert_eq!(parser.from, "John Doe <john@moon.space>");
     assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
@@ -373,7 +384,7 @@ mod tests {
 
   #[test]
   fn test_sample_php() -> Result<(), Box<dyn Error>> {
-    let mut parser = ElectronicMail::new("tests/test-php.eml");
+    let mut parser = ElectronicMail::new(fs::read("tests/test-php.eml").unwrap());
     parser.parse()?;
     assert_eq!(parser.from, "mlemos <mlemos@acm.org>");
     assert_eq!(parser.to, "Manuel Lemos <mlemos@linux.local>");
@@ -418,7 +429,7 @@ mod tests {
 
 impl super::message::Message for ElectronicMail {
   fn parse(&mut self) -> Result<(), Box<dyn Error>> {
-    let stream: Stream = StreamFs::open(&self.file, O_RDONLY, 0644)?;
+    let stream = StreamMem::with_buffer(&self.data);
     let parser = Parser::with_stream(&stream);
     let message = parser.construct_message(None);
     let mut isok = false;

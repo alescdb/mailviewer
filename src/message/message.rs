@@ -24,10 +24,18 @@ use std::path::PathBuf;
 use lazy_static::lazy_static;
 use uuid::Uuid;
 
+use crate::gio;
+use crate::gio::prelude::*;
+use crate::glib;
+
 use super::attachment::Attachment;
 use crate::config::APP_NAME;
 use crate::message::electronicmail::ElectronicMail;
 use crate::message::outlook::OutlookMessage;
+
+const EML_MIME_TYPES: [&str; 1] = ["message/rfc822"];
+
+const MSG_MIME_TYPES: [&str; 2] = ["application/vnd.ms-outlook", "application/x-ole-storage"];
 
 lazy_static! {
   pub static ref TEMP_FOLDER: PathBuf = {
@@ -63,27 +71,88 @@ pub enum MessageType {
 }
 
 pub struct MessageParser {
-  parser: Box<dyn Message>,
+  parser: Box<dyn Message + Send>,
   #[allow(dead_code)]
   message_type: MessageType,
 }
 
 impl MessageParser {
-  pub fn new(file: &str) -> Self {
-    // assert!(file.ends_with(".eml") || file.ends_with(".msg"));
-    let message_type = if file.to_lowercase().ends_with(".msg") {
-      MessageType::Msg
-    } else {
-      MessageType::Eml
-    };
-    Self {
+  pub async fn new(file: &gio::File) -> Result<Self, Box<dyn Error>> {
+    let message_type = Self::message_type(file).await?;
+    let content = Self::message_content(file).await?;
+    Ok(Self {
       parser: if message_type == MessageType::Msg {
-        Box::new(OutlookMessage::new(file))
+        Box::new(OutlookMessage::new(content))
       } else {
-        Box::new(ElectronicMail::new(file))
+        Box::new(ElectronicMail::new(content))
       },
       message_type: message_type,
+    })
+  }
+
+  pub fn supported_mime_types() -> Vec<&'static str> {
+    let mut v: Vec<&'static str> = Vec::with_capacity(EML_MIME_TYPES.len() + MSG_MIME_TYPES.len());
+    v.extend(EML_MIME_TYPES.iter().copied());
+    v.extend(MSG_MIME_TYPES.iter().copied());
+    v
+  }
+
+  async fn message_type(file: &gio::File) -> Result<MessageType, Box<dyn Error>> {
+    let file_info = file
+      .query_info_future(
+        gio::FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE.as_str(),
+        gio::FileQueryInfoFlags::NONE,
+        glib::Priority::DEFAULT,
+      )
+      .await?;
+
+    let content_type = file_info.content_type().unwrap_or_default();
+    let content_type = content_type.as_str();
+    log::debug!(
+      "MessageParser::message_type({}) content type: {}",
+      file.peek_path().unwrap().display(),
+      content_type
+    );
+
+    if EML_MIME_TYPES.contains(&content_type) {
+      return Ok(MessageType::Eml);
     }
+
+    if MSG_MIME_TYPES.contains(&content_type) {
+      return Ok(MessageType::Msg);
+    }
+
+    Err(
+      format!(
+        "File {} has an unsupported content type: {}",
+        file.peek_path().unwrap().display(),
+        content_type
+      )
+      .into(),
+    )
+  }
+
+  async fn message_content(file: &gio::File) -> Result<Vec<u8>, Box<dyn Error>> {
+    let input_stream = file.read_future(glib::Priority::DEFAULT).await?;
+
+    let read_input_stream = async || -> Result<Vec<u8>, Box<dyn Error>> {
+      let mut out: Vec<u8> = Vec::new();
+      loop {
+        let buf = input_stream
+          .read_bytes_future(8192, glib::Priority::DEFAULT)
+          .await?;
+        if buf.len() == 0 {
+          break;
+        }
+        out.extend_from_slice(&buf);
+      }
+      Ok(out)
+    };
+
+    let input_stream_result = read_input_stream().await;
+    input_stream.close_future(glib::Priority::DEFAULT).await?;
+
+    input_stream_result
   }
 
   pub fn cleanup() {
@@ -141,46 +210,64 @@ impl Message for MessageParser {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use crate::gio;
 
   #[test]
   fn test_sample_eml() {
-    let mut message = MessageParser::new("sample.eml");
-    message.parse().unwrap();
-    assert_eq!(message.from(), "John Doe <john@moon.space>");
-    assert_eq!(message.to(), "Lucas <lucas@mercure.space>");
-    assert_eq!(message.subject(), "Lorem ipsum");
-    assert_eq!(message.date(), "2024-10-23 12:27:21");
-    assert_eq!(message.attachments().len(), 1);
-    let attachment = &message.attachments()[0];
-    assert_eq!(attachment.filename, "Deus_Gnome.png");
-    assert_eq!(attachment.content_id, "ii_m2lqbrhv0");
-    assert_eq!(attachment.mime_type.as_ref().unwrap(), "image/png");
+    let file = gio::File::for_path("sample.eml");
+
+    glib::MainContext::new().spawn_local(async move {
+      let mut message = MessageParser::new(&file).await.expect("File opened");
+      message.parse().unwrap();
+      assert_eq!(message.from(), "John Doe <john@moon.space>");
+      assert_eq!(message.to(), "Lucas <lucas@mercure.space>");
+      assert_eq!(message.subject(), "Lorem ipsum");
+      assert_eq!(message.date(), "2024-10-23 12:27:21");
+      assert_eq!(message.attachments().len(), 1);
+      let attachment = &message.attachments()[0];
+      assert_eq!(attachment.filename, "Deus_Gnome.png");
+      assert_eq!(attachment.content_id, "ii_m2lqbrhv0");
+      assert_eq!(attachment.mime_type.as_ref().unwrap(), "image/png");
+    });
   }
 
   #[test]
   fn test_sample_msg() {
-    let mut message = MessageParser::new("sample.msg");
-    message.parse().unwrap();
-    assert_eq!(message.from(), "John Doe <john@moon.space>");
-    assert_eq!(message.to(), "Lucas <lucas@mercure.space>");
-    assert_eq!(message.subject(), "Lorem ipsum");
-    assert_eq!(message.date(), "");
-    assert_eq!(message.attachments().len(), 3);
-    let attachment = &message.attachments()[0];
-    assert_eq!(attachment.filename, "image001.png");
-    assert_eq!(attachment.content_id, "image001.png"); // same as filename
-    assert_eq!(attachment.mime_type.as_ref().unwrap(), "image/png");
+    let file = gio::File::for_path("sample.msg");
+
+    glib::MainContext::new().spawn_local(async move {
+      let mut message = MessageParser::new(&file).await.expect("File opened");
+
+      message.parse().unwrap();
+      assert_eq!(message.from(), "John Doe <john@moon.space>");
+      assert_eq!(message.to(), "Lucas <lucas@mercure.space>");
+      assert_eq!(message.subject(), "Lorem ipsum");
+      assert_eq!(message.date(), "");
+      assert_eq!(message.attachments().len(), 3);
+      let attachment = &message.attachments()[0];
+      assert_eq!(attachment.filename, "image001.png");
+      assert_eq!(attachment.content_id, "image001.png"); // same as filename
+      assert_eq!(attachment.mime_type.as_ref().unwrap(), "image/png");
+    });
   }
 
   #[test]
   fn test_uppercase_msg() {
-    let message = MessageParser::new("sample.MSG");
-    assert_eq!(message.message_type, MessageType::Msg);
+    let file = gio::File::for_path("sample.MSG");
+
+    glib::MainContext::new().spawn_local(async move {
+      let message = MessageParser::new(&file).await.expect("File opened");
+      assert_eq!(message.message_type, MessageType::Msg);
+    });
   }
 
   #[test]
   fn test_uppercase_eml() {
-    let message = MessageParser::new("sample.EML");
-    assert_eq!(message.message_type, MessageType::Eml);
+    let file = gio::File::for_path("sample.EML");
+
+    glib::MainContext::new().spawn_local(async move {
+      let message = MessageParser::new(&file).await.expect("File opened");
+      assert_eq!(message.message_type, MessageType::Eml);
+    });
   }
 }
