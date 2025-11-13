@@ -23,8 +23,7 @@ use adw::glib::clone;
 use adw::prelude::{AlertDialogExt, *};
 use adw::subclass::prelude::*;
 use gettextrs::{gettext, ngettext};
-use gtk4::prelude::FileChooserExt;
-use gtk4::{gio, glib, template_callbacks, ResponseType};
+use gtk4::{gio, glib, template_callbacks};
 use webkit6::prelude::{PolicyDecisionExt, WebViewExt};
 use webkit6::{NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, WebView};
 
@@ -477,7 +476,10 @@ impl MailViewerWindow {
       .load_html(&*Html::new(&html, force_css).safe(), None);
   }
 
-  fn decide_policy(&self, policy: &PolicyDecision) -> Result<bool, Box<dyn std::error::Error>> {
+  async fn decide_policy(
+    &self,
+    policy: &PolicyDecision,
+  ) -> Result<bool, Box<dyn std::error::Error>> {
     match policy.clone().downcast::<NavigationPolicyDecision>() {
       Ok(policy) => {
         let navigation_action = policy.navigation_action();
@@ -487,8 +489,10 @@ impl MailViewerWindow {
               if uri.starts_with("about:") {
                 return Ok(false);
               }
-              log::debug!("WebView on_decide_policy(open) => {}", uri);
-              open::that(uri.to_string())?;
+              log::debug!("WebView decide_policy(launch) => {}", uri);
+              if let Err(e) = gtk4::UriLauncher::new(&uri).launch_future(Some(self)).await {
+                return Err(format!("{} ({}): {}", &gettext("Failed to open uri"), &uri, e).into());
+              }
             }
             policy.ignore();
             return Ok(true);
@@ -497,7 +501,7 @@ impl MailViewerWindow {
       }
       Err(e) => {
         log::error!("WebView policy.clone().downcast({:?})", e);
-        return Err(format!("on_decide_policy() policy downcast failed ({:?})", e).into());
+        return Err(format!("decide_policy() policy downcast failed ({:?})", e).into());
       }
     }
     Ok(false)
@@ -509,13 +513,37 @@ impl MailViewerWindow {
     policy: &PolicyDecision,
     _decision_type: PolicyDecisionType,
   ) -> bool {
-    match self.decide_policy(policy) {
-      Ok(res) => res,
-      Err(e) => {
-        log::error!("WebView on_decide_policy({:?})", e);
-        false
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    // We need to wait for the future to return in order to catch its value,
+    // and this can be done by launching a new loop tied to the future and
+    // quitting it once done.
+    let ctx = glib::MainContext::default();
+    let lp = glib::MainLoop::new(Some(&ctx), false);
+    let ret = Rc::new(RefCell::new(false));
+
+    ctx.spawn_local(glib::clone!(
+      #[strong(rename_to = win)]
+      self,
+      #[strong]
+      lp,
+      #[weak]
+      policy,
+      #[weak]
+      ret,
+      async move {
+        match win.decide_policy(&policy).await {
+          Ok(val) => *ret.borrow_mut() = val,
+          Err(e) => log::error!("WebView on_decide_policy({:?})", e),
+        }
+        lp.quit();
       }
-    }
+    ));
+    lp.run();
+
+    let ret = *(ret.borrow_mut());
+    ret
   }
 
   fn on_show_text(&self, show: bool) {
