@@ -35,7 +35,7 @@ use crate::message::message::MessageParser;
 const SETTINGS_SHOW_FILE_NAME: &str = "show-file-name";
 
 mod imp {
-  use std::cell::OnceCell;
+  use std::cell::{OnceCell, RefCell};
 
   use adw::subclass::prelude::CompositeTemplateClass;
   use gtk4::ScrolledWindow;
@@ -83,6 +83,7 @@ mod imp {
     pub websettings: webkit6::Settings,
     pub settings: OnceCell<gio::Settings>,
     pub service: MailService,
+    pub cancellable: RefCell<gio::Cancellable>,
   }
 
   impl Default for MailViewerWindow {
@@ -109,6 +110,7 @@ mod imp {
         sheet: TemplateChild::default(),
         settings: OnceCell::new(),
         service: MailService::new(),
+        cancellable: RefCell::new(gio::Cancellable::new()),
       };
       window
     }
@@ -609,11 +611,31 @@ impl MailViewerWindow {
     self.imp().content_box.get().set_sensitive(false);
     self.imp().sheet.get().set_open(false);
 
-    match self.imp().service.open_message(&file).await {
+    let cancellable = gio::Cancellable::new();
+    {
+      self.imp().cancellable.replace_with(|old_cancellable| {
+        old_cancellable.cancel();
+        cancellable.clone()
+      });
+    }
+
+    match self
+      .imp()
+      .service
+      .open_message(&file, Some(&cancellable))
+      .await
+    {
       Ok(_) => {
         self.display_message();
       }
       Err(e) => {
+        if cancellable.is_cancelled() {
+          log::debug!(
+            "Ignoring loading of {}, action was cancelled",
+            file.peek_path().unwrap_or_default().display()
+          );
+          return;
+        }
         log::error!("service(ERR) : {}", e);
         self.alert_error(
           &gettext("File Error"),
