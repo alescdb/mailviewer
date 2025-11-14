@@ -48,21 +48,19 @@ impl MailService {
     cancellable: Option<&gio::Cancellable>,
   ) -> Result<(), Box<dyn std::error::Error>> {
     self.file.borrow_mut().replace(file.clone());
-    let mut parser = MessageParser::new(file).await?;
+    let mut parser = MessageParser::new(file, cancellable).await?;
 
     let parse_thread = {
       let cancellable = cancellable.cloned().unwrap_or(gio::Cancellable::new());
       gio::spawn_blocking(move || -> Result<MessageParser, glib::Error> {
-        let ret = match parser.parse() {
+        let ret = match parser.parse(Some(&cancellable)) {
           Ok(_) => Ok(parser),
           Err(e) => Err(glib::Error::new(gio::IOErrorEnum::Failed, &format!("{e}"))),
         };
         // XXX: Ideally we should cancel the parsing thread earlier, but this is
         // not supported by the API, and it's not worth to rely on GTask API
         // directly to do it.
-        if let Err(e) = cancellable.set_error_if_cancelled() {
-          return Err(e);
-        }
+        cancellable.set_error_if_cancelled()?;
         ret
       })
       .await
