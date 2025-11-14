@@ -253,20 +253,20 @@ impl ElectronicMail {
       if size > 0 {
         let array: Vec<u8> = stream.byte_array().unwrap().to_vec();
 
-        if ElectronicMail::is_latin1(charset) {
+        if ElectronicMail::is_latin1(charset.as_ref()) {
           log::debug!("get_content() ISO-8859-1");
           return ElectronicMail::latin1_to_string(&array);
         } else if let Some(body) = String::from_utf8(array).ok() {
           log::debug!("get_content() UTF8");
           return body;
         } else {
-          log::debug!("get_content() FAILED => to convert to string");
+          log::error!("get_content() => to convert {} to string", &charset.unwrap().to_string());
         }
       } else {
-        log::debug!("get_content() FAILED => size");
+        log::error!("get_content() => size");
       }
     } else {
-      log::debug!("get_content() FAILED => part.content()");
+      log::error!("get_content() => part.content()");
     }
     String::new()
   }
