@@ -307,7 +307,7 @@ mod tests {
   use crate::gio::prelude::*;
   use crate::message::electronicmail::ElectronicMail;
   use crate::message::message::Message;
-  use crate::test_utils;
+  use crate::utils;
 
   #[test]
   fn test_sample() -> Result<(), Box<dyn Error>> {
@@ -324,7 +324,7 @@ mod tests {
     assert_eq!(attachment.mime_type.as_ref().unwrap(), "image/png");
 
     let attachment = attachment.clone();
-    test_utils::spawn_and_wait(async move {
+    utils::spawn_and_wait_new_ctx(async move {
       let _file = attachment
         .write_to_tmp()
         .await

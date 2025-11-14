@@ -23,8 +23,7 @@ mod gmimeinit;
 mod html;
 mod mailservice;
 mod message;
-#[cfg(test)]
-mod test_utils;
+mod utils;
 mod window;
 
 use config::{APP_ID, GETTEXT_PACKAGE, LOCALEDIR, PKGDATADIR};

@@ -173,7 +173,7 @@ mod tests {
 
   use crate::gio::prelude::*;
   use crate::mailservice::MailService;
-  use crate::test_utils;
+  use crate::utils;
   use crate::{gio, glib};
 
   #[test]
@@ -192,7 +192,7 @@ mod tests {
     let fullpath = "sample.eml";
     let file = gio::File::for_path(fullpath);
 
-    test_utils::spawn_and_wait(async move {
+    utils::spawn_and_wait_new_ctx(async move {
       assert!(service.open_message(&file, None).await.is_ok());
       assert!(service.get_file().unwrap().equal(&file));
       assert_eq!(service.from(), "John Doe <john@moon.space>");
@@ -207,7 +207,7 @@ mod tests {
     let service = MailService::new();
     let file = gio::File::for_path("path/to/nonexistent.eml");
 
-    test_utils::spawn_and_wait(async move {
+    utils::spawn_and_wait_new_ctx(async move {
       let result = service.open_message(&file, None).await;
 
       assert!(result.is_err());
@@ -227,7 +227,7 @@ mod tests {
     let service = MailService::new();
     let file = gio::File::for_path("sample.eml");
 
-    test_utils::spawn_and_wait(async move {
+    utils::spawn_and_wait_new_ctx(async move {
       service.open_message(&file, None).await.unwrap();
       let text = service.body_text().unwrap();
 
@@ -240,7 +240,7 @@ mod tests {
     let service = MailService::new();
     let file = gio::File::for_path("sample.eml");
 
-    test_utils::spawn_and_wait(async move {
+    utils::spawn_and_wait_new_ctx(async move {
       service
         .open_message(&file, Some(&gio::Cancellable::new()))
         .await
@@ -256,7 +256,7 @@ mod tests {
     let service = MailService::new();
     let file = gio::File::for_path("sample.eml");
 
-    test_utils::spawn_and_wait(async move {
+    utils::spawn_and_wait_new_ctx(async move {
       service.open_message(&file, None).await.unwrap();
       let attachments = service.attachments();
 
@@ -270,7 +270,7 @@ mod tests {
     let service = MailService::new();
     let file = gio::File::for_path("sample.eml");
 
-    test_utils::spawn_and_wait(async move {
+    utils::spawn_and_wait_new_ctx(async move {
       service.open_message(&file, None).await.unwrap();
       service.set_show_file_name(true);
 
@@ -298,7 +298,7 @@ mod tests {
       *title_changed_called_clone.borrow_mut() = true;
     });
 
-    test_utils::spawn_and_wait(async move {
+    utils::spawn_and_wait_new_ctx(async move {
       let file = gio::File::for_path("sample.eml");
       service.open_message(&file, None).await.unwrap();
       service.set_show_file_name(false);
@@ -311,7 +311,7 @@ mod tests {
     let service = MailService::new();
     let file = gio::File::for_path("sample.eml");
 
-    test_utils::spawn_and_wait(async move {
+    utils::spawn_and_wait_new_ctx(async move {
       let cancellable = gio::Cancellable::new();
       cancellable.cancel();
       let result = service.open_message(&file, Some(&cancellable)).await;
