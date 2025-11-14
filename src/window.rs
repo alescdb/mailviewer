@@ -31,6 +31,7 @@ use crate::html::Html;
 use crate::mailservice::MailService;
 use crate::message::attachment::Attachment;
 use crate::message::message::MessageParser;
+use crate::utils;
 
 const SETTINGS_SHOW_FILE_NAME: &str = "show-file-name";
 
@@ -518,37 +519,25 @@ impl MailViewerWindow {
     policy: &PolicyDecision,
     _decision_type: PolicyDecisionType,
   ) -> bool {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
-    // We need to wait for the future to return in order to catch its value,
-    // and this can be done by launching a new loop tied to the future and
-    // quitting it once done.
-    let ctx = glib::MainContext::default();
-    let lp = glib::MainLoop::new(Some(&ctx), false);
-    let ret = Rc::new(RefCell::new(false));
-
-    ctx.spawn_local(glib::clone!(
-      #[strong(rename_to = win)]
-      self,
-      #[strong]
-      lp,
-      #[weak]
-      policy,
-      #[weak]
-      ret,
-      async move {
-        match win.decide_policy(&policy).await {
-          Ok(val) => *ret.borrow_mut() = val,
-          Err(e) => log::error!("WebView on_decide_policy({:?})", e),
-        }
-        lp.quit();
+    match utils::spawn_and_wait(
+      None,
+      glib::clone!(
+        #[strong(rename_to = win)]
+        self,
+        #[weak]
+        policy,
+        #[upgrade_or]
+        Ok::<bool, Box<dyn std::error::Error>>(false),
+        async move { win.decide_policy(&policy).await }
+      ),
+    )
+    {
+      Ok(val) => val,
+      Err(e) => {
+        log::error!("WebView on_decide_policy({:?})", e);
+        false
       }
-    ));
-    lp.run();
-
-    let ret = *(ret.borrow_mut());
-    ret
+    }
   }
 
   fn on_show_text(&self, show: bool) {
