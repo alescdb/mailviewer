@@ -209,12 +209,13 @@ impl Message for MessageParser {
 mod tests {
   use super::*;
   use crate::gio;
+  use crate::test_utils;
 
   #[test]
   fn test_sample_eml() {
     let file = gio::File::for_path("sample.eml");
 
-    glib::MainContext::new().spawn_local(async move {
+    test_utils::spawn_and_wait(async move {
       let mut message = MessageParser::new(&file).await.expect("File opened");
       message.parse().unwrap();
       assert_eq!(message.from(), "John Doe <john@moon.space>");
@@ -233,7 +234,7 @@ mod tests {
   fn test_sample_msg() {
     let file = gio::File::for_path("sample.msg");
 
-    glib::MainContext::new().spawn_local(async move {
+    test_utils::spawn_and_wait(async move {
       let mut message = MessageParser::new(&file).await.expect("File opened");
 
       message.parse().unwrap();

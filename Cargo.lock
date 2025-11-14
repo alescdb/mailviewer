@@ -1050,6 +1050,7 @@ dependencies = [
  "base64",
  "ctor",
  "env_logger",
+ "futures-util",
  "gettext-rs",
  "gmime",
  "gtk4",

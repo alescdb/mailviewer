@@ -23,10 +23,12 @@ use base64::engine::general_purpose;
 use base64::Engine;
 use gmime::prelude::Cast;
 use gmime::traits::{
-  ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt, StreamMemExt
+  ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt,
+  StreamMemExt,
 };
 use gmime::{
-  glib, InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part, StreamMem
+  glib, InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part,
+  StreamMem,
 };
 use nipper::Document;
 
@@ -300,9 +302,9 @@ mod tests {
   use std::fs;
 
   use crate::gio::prelude::*;
-  use crate::glib;
   use crate::message::electronicmail::ElectronicMail;
   use crate::message::message::Message;
+  use crate::test_utils;
 
   #[test]
   fn test_sample() -> Result<(), Box<dyn Error>> {
@@ -319,7 +321,7 @@ mod tests {
     assert_eq!(attachment.mime_type.as_ref().unwrap(), "image/png");
 
     let attachment = attachment.clone();
-    glib::MainContext::new().spawn_local(async move {
+    test_utils::spawn_and_wait(async move {
       let _file = attachment
         .write_to_tmp()
         .await
