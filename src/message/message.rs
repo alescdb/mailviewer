@@ -51,7 +51,7 @@ lazy_static! {
 }
 
 pub trait Message {
-  fn parse(&mut self) -> Result<(), Box<dyn Error>>;
+  fn parse(&mut self, cancellable: Option<&gio::Cancellable>) -> Result<(), Box<dyn Error>>;
   fn from(&self) -> String;
   fn to(&self) -> String;
   fn subject(&self) -> String;
@@ -75,9 +75,9 @@ pub struct MessageParser {
 }
 
 impl MessageParser {
-  pub async fn new(file: &gio::File) -> Result<Self, Box<dyn Error>> {
+  pub async fn new(file: &gio::File, cancellable: Option<&gio::Cancellable>) -> Result<Self, Box<dyn Error>> {
     let message_type = Self::message_type(file).await?;
-    let content = Self::message_content(file).await?;
+    let content = Self::message_content(file, cancellable).await?;
     Ok(Self {
       parser: if message_type == MessageType::Msg {
         Box::new(OutlookMessage::new(content))
@@ -130,12 +130,15 @@ impl MessageParser {
     )
   }
 
-  async fn message_content(file: &gio::File) -> Result<Vec<u8>, Box<dyn Error>> {
+  async fn message_content(file: &gio::File, cancellable: Option<&gio::Cancellable>) -> Result<Vec<u8>, Box<dyn Error>> {
     let input_stream = file.read_future(glib::Priority::DEFAULT).await?;
 
     let read_input_stream = async || -> Result<Vec<u8>, Box<dyn Error>> {
       let mut out: Vec<u8> = Vec::new();
       loop {
+        if let Some(cancellable) = cancellable {
+          cancellable.set_error_if_cancelled()?;
+        }
         let buf = input_stream
           .read_bytes_future(8192, glib::Priority::DEFAULT)
           .await?;
@@ -172,8 +175,8 @@ impl Drop for MessageParser {
 }
 
 impl Message for MessageParser {
-  fn parse(&mut self) -> Result<(), Box<dyn Error>> {
-    Ok(self.parser.parse()?)
+  fn parse(&mut self, cancellable: Option<&gio::Cancellable>) -> Result<(), Box<dyn Error>> {
+    Ok(self.parser.parse(cancellable)?)
   }
 
   fn from(&self) -> String {
@@ -216,8 +219,8 @@ mod tests {
     let file = gio::File::for_path("sample.eml");
 
     test_utils::spawn_and_wait(async move {
-      let mut message = MessageParser::new(&file).await.expect("File opened");
-      message.parse().unwrap();
+      let mut message = MessageParser::new(&file, None).await.expect("File opened");
+      message.parse(None).unwrap();
       assert_eq!(message.from(), "John Doe <john@moon.space>");
       assert_eq!(message.to(), "Lucas <lucas@mercure.space>");
       assert_eq!(message.subject(), "Lorem ipsum");
@@ -235,9 +238,9 @@ mod tests {
     let file = gio::File::for_path("sample.msg");
 
     test_utils::spawn_and_wait(async move {
-      let mut message = MessageParser::new(&file).await.expect("File opened");
+      let mut message = MessageParser::new(&file, None).await.expect("File opened");
 
-      message.parse().unwrap();
+      message.parse(None).unwrap();
       assert_eq!(message.from(), "John Doe <john@moon.space>");
       assert_eq!(message.to(), "Lucas <lucas@mercure.space>");
       assert_eq!(message.subject(), "Lorem ipsum");
