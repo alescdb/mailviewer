@@ -164,6 +164,7 @@ mod tests {
 
   use crate::gio::prelude::*;
   use crate::mailservice::MailService;
+  use crate::test_utils;
   use crate::{gio, glib};
 
   #[test]
@@ -182,7 +183,7 @@ mod tests {
     let fullpath = "sample.eml";
     let file = gio::File::for_path(fullpath);
 
-    glib::MainContext::new().spawn_local(async move {
+    test_utils::spawn_and_wait(async move {
       assert!(service.open_message(&file).await.is_ok());
       assert!(service.get_file().unwrap().equal(&file));
       assert_eq!(service.from(), "John Doe <john@moon.space>");
@@ -197,14 +198,18 @@ mod tests {
     let service = MailService::new();
     let file = gio::File::for_path("path/to/nonexistent.eml");
 
-    glib::MainContext::new().spawn_local(async move {
+    test_utils::spawn_and_wait(async move {
       let result = service.open_message(&file).await;
 
       assert!(result.is_err());
-      assert_eq!(
-        format!("{}", result.unwrap_err()),
-        "File not found : path/to/nonexistent.eml"
-      );
+      let err = result.unwrap_err();
+
+      if let Some(glib_err) = err.downcast_ref::<glib::Error>() {
+        assert!(glib_err.is::<gio::IOErrorEnum>());
+        assert!(glib_err.matches(gio::IOErrorEnum::NotFound));
+      } else {
+        panic!("Expected glib::Error, got: {}", err);
+      }
     });
   }
 
@@ -213,7 +218,7 @@ mod tests {
     let service = MailService::new();
     let file = gio::File::for_path("sample.eml");
 
-    glib::MainContext::new().spawn_local(async move {
+    test_utils::spawn_and_wait(async move {
       service.open_message(&file).await.unwrap();
       let text = service.body_text().unwrap();
 
@@ -226,8 +231,11 @@ mod tests {
     let service = MailService::new();
     let file = gio::File::for_path("sample.eml");
 
-    glib::MainContext::new().spawn_local(async move {
-      service.open_message(&file).await.unwrap();
+    test_utils::spawn_and_wait(async move {
+      service
+        .open_message(&file)
+        .await
+        .unwrap();
       let html = service.body_html().unwrap();
 
       assert!(html.contains("Hello Lucas,"));
@@ -239,7 +247,7 @@ mod tests {
     let service = MailService::new();
     let file = gio::File::for_path("sample.eml");
 
-    glib::MainContext::new().spawn_local(async move {
+    test_utils::spawn_and_wait(async move {
       service.open_message(&file).await.unwrap();
       let attachments = service.attachments();
 
@@ -253,7 +261,7 @@ mod tests {
     let service = MailService::new();
     let file = gio::File::for_path("sample.eml");
 
-    glib::MainContext::new().spawn_local(async move {
+    test_utils::spawn_and_wait(async move {
       service.open_message(&file).await.unwrap();
       service.set_show_file_name(true);
 
@@ -281,7 +289,7 @@ mod tests {
       *title_changed_called_clone.borrow_mut() = true;
     });
 
-    glib::MainContext::new().spawn_local(async move {
+    test_utils::spawn_and_wait(async move {
       let file = gio::File::for_path("sample.eml");
       service.open_message(&file).await.unwrap();
       service.set_show_file_name(false);
