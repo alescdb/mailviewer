@@ -196,9 +196,10 @@ impl ElectronicMail {
     s.iter().map(|&c| c as char).collect()
   }
 
-  fn is_latin1(s: Option<glib::GString>) -> bool {
+  fn is_latin1(s: Option<&glib::GString>) -> bool {
     if let Some(s) = s {
-      if s.to_lowercase() == "iso-8859-1" {
+      let s = s.to_lowercase();
+      if s == "iso-8859-1" || s == "windows-1252" {
         return true;
       }
     }
