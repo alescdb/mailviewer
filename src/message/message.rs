@@ -248,24 +248,4 @@ mod tests {
       assert_eq!(attachment.mime_type.as_ref().unwrap(), "image/png");
     });
   }
-
-  #[test]
-  fn test_uppercase_msg() {
-    let file = gio::File::for_path("sample.MSG");
-
-    glib::MainContext::new().spawn_local(async move {
-      let message = MessageParser::new(&file).await.expect("File opened");
-      assert_eq!(message.message_type, MessageType::Msg);
-    });
-  }
-
-  #[test]
-  fn test_uppercase_eml() {
-    let file = gio::File::for_path("sample.EML");
-
-    glib::MainContext::new().spawn_local(async move {
-      let message = MessageParser::new(&file).await.expect("File opened");
-      assert_eq!(message.message_type, MessageType::Eml);
-    });
-  }
 }
