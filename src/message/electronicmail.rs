@@ -24,6 +24,7 @@ use gio::prelude::*;
 
 use base64::engine::general_purpose;
 use base64::Engine;
+use encoding_rs::Encoding;
 use gmime::prelude::Cast;
 use gmime::traits::{
   ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt,
@@ -197,19 +198,6 @@ impl ElectronicMail {
     fmt_date
   }
 
-  fn latin1_to_string(s: &[u8]) -> String {
-    s.iter().map(|&c| c as char).collect()
-  }
-
-  fn is_latin1(s: Option<glib::GString>) -> bool {
-    if let Some(s) = s {
-      if s.to_lowercase() == "iso-8859-1" {
-        return true;
-      }
-    }
-    false
-  }
-
   fn integrate_cid(&self, body: &str) -> String {
     let document = Document::from(body);
     document.select("img").iter().for_each(|mut node| {
@@ -232,8 +220,6 @@ impl ElectronicMail {
   }
 
   fn get_content(&self, part: &Part) -> String {
-    let mut charset: Option<glib::GString> = None;
-
     log::debug!(
       "get_content() => part.content_type() {:?}",
       part.content_type()
@@ -247,31 +233,31 @@ impl ElectronicMail {
       part.content_disposition()
     );
 
-    if let Some(content_type) = part.content_type() {
-      charset = content_type.parameter("charset");
-    }
-
     if let Some(content) = part.content() {
       let stream = StreamMem::new();
       let size = content.write_to_stream(&stream) as u32;
 
       if size > 0 {
-        let array: Vec<u8> = stream.byte_array().unwrap().to_vec();
+        let charset = match part.content_type() {
+          Some(content_type) => &content_type.parameter("charset").unwrap_or("utf-8".into()),
+          None => "utf-8",
+        };
 
-        if ElectronicMail::is_latin1(charset) {
-          log::debug!("get_content() ISO-8859-1");
-          return ElectronicMail::latin1_to_string(&array);
-        } else if let Some(body) = String::from_utf8(array).ok() {
-          log::debug!("get_content() UTF8");
-          return body;
+        let array: Vec<u8> = stream.byte_array().unwrap().to_vec();
+        let encoding = Encoding::for_label(charset.as_bytes());
+
+        if let Some(encoding) = encoding {
+          log::debug!("get_content() encoding: {}", encoding.name());
+          let (decoded, _, _) = encoding.decode(&array);
+          return decoded.to_string();
         } else {
-          log::debug!("get_content() FAILED => to convert to string");
+          log::error!("get_content() => to convert {} to string", &charset);
         }
       } else {
-        log::debug!("get_content() FAILED => size");
+        log::error!("get_content() => size");
       }
     } else {
-      log::debug!("get_content() FAILED => part.content()");
+      log::error!("get_content() => part.content()");
     }
     String::new()
   }
