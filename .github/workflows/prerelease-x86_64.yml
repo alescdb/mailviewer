@@ -13,6 +13,9 @@ jobs:
       options: --privileged
     steps:
     - uses: actions/checkout@v4
+    - name: Set short SHA
+      id: short_sha
+      run: echo "short=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
     - name: Generate flatpak sources (python container)
       uses: docker://python:3.11
       with:
@@ -22,7 +25,7 @@ jobs:
           python3 flatpak-cargo-generator.py -o mailviewer-sources.json Cargo.lock"
     - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
       with:
-        bundle: mailviewer-x86_64.flatpak
+        bundle: mailviewer-x86_64-${{ steps.short_sha.outputs.short }}.flatpak
         manifest-path: io.github.alescdb.mailviewer.json
         cache-key: flatpak-builder-${{ github.sha }}
         arch: x86_64
@@ -41,17 +44,7 @@ jobs:
     needs: [flatpak]
     runs-on: ubuntu-latest
     steps:
-    - name: Set short SHA
-      id: short_sha
-      run: echo "short=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
     - uses: actions/download-artifact@v4
-    - name: Rename artifacts with commit SHA
-      id: rename
-      run: |
-        pwd
-        find
-        mv -v "flatpak-x86_64/LICENSE" "LICENSE"
-        mv -v "flatpak-x86_64/mailviewer-x86_64.flatpak" "mailviewer-x86_64-${{ steps.short_sha.outputs.short }}.flatpak"      
     - uses: "dciborow/action-github-releases@v1.0.1"
       with:
         repo_token: "${{ secrets.RELEASE_TOKEN }}"
@@ -60,4 +53,4 @@ jobs:
         title: "Pre-release (x86_64)"
         files: |
           LICENSE
-          mailviewer-x86_64-${{ steps.short_sha.outputs.short }}.flatpak
+          *.flatpak
