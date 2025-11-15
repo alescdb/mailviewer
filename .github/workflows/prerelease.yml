@@ -5,73 +5,98 @@ on:
 
 name: prerelease
 jobs:
-  flatpak:
-    name: "Flatpak"
+  flatpak-x86:
+    name: "Flatpak x86_64"
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-49
       options: --privileged
-    strategy:
-      matrix:
-        arch: [x86_64, aarch64]
     steps:
-    - name: Install Docker CLI (static)
-      if: ${{ matrix.arch != 'x86_64' }}
-      run: |
-        curl -L https://download.docker.com/linux/static/stable/x86_64/docker-26.0.0.tgz -o docker.tgz
-        tar xzvf docker.tgz
-        mv docker/* /usr/bin
+      - name: Set short SHA
+        id: short_sha
+        run: echo "short=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
 
-    - uses: actions/checkout@v4
-    - name: Set up QEMU
-      if: ${{ matrix.arch != 'x86_64' }}
-      id: qemu
-      uses: docker/setup-qemu-action@v3
-      with:
-        platforms: arm64
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Set short SHA
-      id: short_sha
-      run: echo "short=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+      - name: Generate flatpak sources (python container)
+        uses: docker://python:3.11
+        with:
+          args: bash -lc "set -e
+            pip install --no-cache-dir aiohttp toml tomlkit
+            wget -q https://raw.githubusercontent.com/flatpak/flatpak-builder-tools/refs/heads/master/cargo/flatpak-cargo-generator.py
+            python3 flatpak-cargo-generator.py -o mailviewer-sources.json Cargo.lock"
 
-    - name: Generate flatpak sources (python container)
-      uses: docker://python:3.11
-      with:
-        args: bash -lc "set -e
-          pip install --no-cache-dir aiohttp toml tomlkit
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: mailviewer-x86_64-${{ steps.short_sha.outputs.short }}.flatpak
+          manifest-path: io.github.alescdb.mailviewer.json
+          cache-key: flatpak-builder-${{ github.sha }}
+          arch: x86_64
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flatpak-x86_64
+          path: |
+            LICENSE
+            *.flatpak
+
+  flatpak-arm:
+    name: "Flatpak aarch64 (runner ARM natif — pas de QEMU)"
+    # UTILISEZ ICI VOTRE RUNNER ARM64 self-hosted ou hébergé GitHub ARM. Exemple de labels self-hosted :
+    runs-on: [self-hosted, linux, arm64]
+    # Ne pas définir 'container' ou QEMU ici : on exécute nativement sur un runner ARM64
+    steps:
+      - name: Set short SHA
+        id: short_sha
+        run: echo "short=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate flatpak sources (python)
+        run: |
+          python3 -m pip install --user --no-cache-dir aiohttp toml tomlkit
           wget -q https://raw.githubusercontent.com/flatpak/flatpak-builder-tools/refs/heads/master/cargo/flatpak-cargo-generator.py
-          python3 flatpak-cargo-generator.py -o mailviewer-sources.json Cargo.lock"
+          python3 flatpak-cargo-generator.py -o mailviewer-sources.json Cargo.lock
 
-    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
-      with:
-        bundle: mailviewer-${{ matrix.arch }}-${{ steps.short_sha.outputs.short }}.flatpak
-        manifest-path: io.github.alescdb.mailviewer.json
-        cache-key: flatpak-builder-${{ github.sha }}
-        arch: ${{ matrix.arch }}
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: mailviewer-aarch64-${{ steps.short_sha.outputs.short }}.flatpak
+          manifest-path: io.github.alescdb.mailviewer.json
+          cache-key: flatpak-builder-${{ github.sha }}
+          arch: aarch64
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: flatpak-${{ matrix.arch }}
-        path: |
-          LICENSE
-          *.flatpak
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flatpak-aarch64
+          path: |
+            LICENSE
+            *.flatpak
 
   prerelease:
     name: "prerelease build"
-    needs: [flatpak]
+    needs: [flatpak-x86, flatpak-arm]
     runs-on: ubuntu-latest
     steps:
-    - name: Download flatpak artifact into workspace root
-      uses: actions/download-artifact@v4
-      with:
-        name: flatpak-${{ matrix.arch }}
-        path: .
-    - uses: "dciborow/action-github-releases@v1.0.1"
-      with:
-        repo_token: "${{ secrets.RELEASE_TOKEN }}"
-        prerelease: true
-        automatic_release_tag: "latest"
-        title: "Pre-release"
-        files: |
-          LICENSE
-          *.flatpak
+      - name: Download x86 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: flatpak-x86_64
+          path: .
+
+      - name: Download aarch64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: flatpak-aarch64
+          path: .
+
+      - uses: "dciborow/action-github-releases@v1.0.1"
+        with:
+          repo_token: "${{ secrets.RELEASE_TOKEN }}"
+          prerelease: true
+          automatic_release_tag: "latest"
+          title: "Pre-release"
+          files: |
+            LICENSE
+            *.flatpak
