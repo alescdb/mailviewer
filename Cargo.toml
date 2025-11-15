@@ -24,4 +24,5 @@ lazy_static = "1.5.0"
 hex = "0.4.3"
 gettext-rs = { version = "0.7.7", features = ["gettext-system"] }
 hashbrown = "0.16.0"
+encoding_rs = "0.8.35"
 futures-util = "0.3.31"
