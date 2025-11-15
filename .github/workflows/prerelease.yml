@@ -22,20 +22,21 @@ jobs:
     - name: Install packages
       if: ${{ matrix.arch != 'x86_64' }}
       run: |
-        dnf -y install docker wget python3 python3-virtualenv python3-pip
-    - name: Update flatpak dependencies
-      shell: bash
-      run: |
-        wget https://raw.githubusercontent.com/flatpak/flatpak-builder-tools/refs/heads/master/cargo/flatpak-cargo-generator.py
-        python3 -m venv .venv
-        .venv/bin/pip install aiohttp toml tomlkit
-        .venv/bin/python flatpak-cargo-generator.py -o mailviewer-sources.json Cargo.lock
+        dnf -y install docker
     - name: Set up QEMU
       if: ${{ matrix.arch != 'x86_64' }}
       id: qemu
       uses: docker/setup-qemu-action@v2
       with:
         platforms: arm64
+    - name: Update flatpak dependencies
+      shell: bash
+      run: |
+        dnf -y install docker wget python3 python3-virtualenv python3-pip || exit 0
+        wget https://raw.githubusercontent.com/flatpak/flatpak-builder-tools/refs/heads/master/cargo/flatpak-cargo-generator.py
+        python3 -m venv .venv
+        .venv/bin/pip install aiohttp toml tomlkit
+        .venv/bin/python flatpak-cargo-generator.py -o mailviewer-sources.json Cargo.lock
     - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
       with:
         bundle: mailviewer-${{ matrix.arch }}.flatpak
