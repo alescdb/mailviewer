@@ -9,10 +9,13 @@ jobs:
     name: "Flatpak aarch64"
     runs-on: ubuntu-latest
     container:
-      image: bilelmoussaoui/flatpak-github-actions:gnome-47
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-49
       options: --privileged
     steps:
     - uses: actions/checkout@v4
+    - name: Set short SHA
+      id: short_sha
+      run: echo "short=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
     - name: Install packages
       run: |
         dnf -y install docker
@@ -21,23 +24,20 @@ jobs:
       uses: docker/setup-qemu-action@v2
       with:
         platforms: arm64
-    - name: Update flatpak dependencies
-      shell: bash
-      run: |
-        dnf -y install wget python3 python3-virtualenv python3-pip || exit 0
-        wget https://raw.githubusercontent.com/flatpak/flatpak-builder-tools/refs/heads/master/cargo/flatpak-cargo-generator.py
-        python3 -m venv .venv
-        .venv/bin/pip install aiohttp toml tomlkit
-        .venv/bin/python flatpak-cargo-generator.py -o mailviewer-sources.json Cargo.lock
+    - name: Generate flatpak sources (python container)
+      uses: docker://python:3.11
+      with:
+        args: bash -lc "set -e
+          pip install --no-cache-dir aiohttp toml tomlkit
+          wget -q https://raw.githubusercontent.com/flatpak/flatpak-builder-tools/refs/heads/master/cargo/flatpak-cargo-generator.py
+          python3 flatpak-cargo-generator.py -o mailviewer-sources.json Cargo.lock"
     - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
       with:
-        bundle: mailviewer-aarch64.flatpak
+        bundle: mailviewer-aarch64-${{ steps.short_sha.outputs.short }}.flatpak
         manifest-path: io.github.alescdb.mailviewer.json
         cache-key: flatpak-builder-${{ github.sha }}
         arch: aarch64
     - uses: actions/download-artifact@v4
-    - name: show files
-      run: find
     - uses: actions/upload-artifact@v4
       with:
         name: flatpak-aarch64
@@ -51,19 +51,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/download-artifact@v4
-    - name: show files
-      run: find
-    - name: Rename artifacts with commit SHA
-      run: |
-        sha=$(git rev-parse --short HEAD)
-        mv -v "./flatpak-x86_64/LICENSE" "LICENSE"
-        mv -v "./flatpak-x86_64/mailviewer-x86_64.flatpak" "mailviewer-x86_64-$sha.flatpak"
     - uses: "dciborow/action-github-releases@v1.0.1"
       with:
         repo_token: "${{ secrets.RELEASE_TOKEN }}"
         prerelease: true
         automatic_release_tag: "latest"
-        title: "Pre-release (x86_64)"
+        title: "Pre-release (aarch64)"
         files: |
-          ./LICENSE
-          ./*.flatpak
+          LICENSE
+          *.flatpak
