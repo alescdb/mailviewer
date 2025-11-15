@@ -19,6 +19,9 @@
  */
 use std::error::Error;
 
+use crate::gio;
+use gio::prelude::*;
+
 use msg_parser::Outlook;
 
 use super::attachment::Attachment;
@@ -63,8 +66,13 @@ impl OutlookMessage {
 }
 
 impl Message for OutlookMessage {
-  fn parse(&mut self) -> Result<(), Box<dyn Error>> {
+  fn parse(&mut self, cancellable: Option<&gio::Cancellable>) -> Result<(), Box<dyn Error>> {
     let outlook = Outlook::from_slice(&self.data)?;
+
+    if let Some(cancellable) = cancellable {
+      cancellable.set_error_if_cancelled()?;
+    }
+
     self.from = OutlookMessage::person_to_string(&outlook.sender);
     self.to = OutlookMessage::person_list_to_string(&outlook.to);
     self.subject = outlook.subject;
@@ -72,6 +80,10 @@ impl Message for OutlookMessage {
     self.body = Some(outlook.body.clone());
 
     for i in 0..outlook.attachments.capacity() {
+      if let Some(cancellable) = cancellable {
+        cancellable.set_error_if_cancelled()?;
+      }
+
       let att = &outlook.attachments[i];
       self.attachments.push(Attachment {
         filename: att.file_name.clone(),
@@ -131,7 +143,7 @@ mod tests {
   #[test]
   fn test_outlook() -> Result<(), Box<dyn Error>> {
     let mut parser = OutlookMessage::new(fs::read("sample.msg").unwrap());
-    parser.parse()?;
+    parser.parse(None)?;
     assert_eq!(parser.from, "John Doe <john@moon.space>");
     assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
     assert_eq!(parser.subject, "Lorem ipsum");
