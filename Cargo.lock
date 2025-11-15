@@ -1060,6 +1060,7 @@ dependencies = [
  "ctor",
  "encoding_rs",
  "env_logger",
+ "futures-util",
  "gettext-rs",
  "gmime",
  "gtk4",

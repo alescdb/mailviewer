@@ -42,16 +42,25 @@ impl MailService {
     }
   }
 
-  pub async fn open_message(&self, file: &gio::File) -> Result<(), Box<dyn std::error::Error>> {
+  pub async fn open_message(
+    &self,
+    file: &gio::File,
+    cancellable: Option<&gio::Cancellable>,
+  ) -> Result<(), Box<dyn std::error::Error>> {
     self.file.borrow_mut().replace(file.clone());
-    let mut parser = MessageParser::new(file).await?;
+    let mut parser = MessageParser::new(file, cancellable).await?;
 
     let parse_thread = {
+      let cancellable = cancellable.cloned().unwrap_or(gio::Cancellable::new());
       gio::spawn_blocking(move || -> Result<MessageParser, glib::Error> {
-        let ret = match parser.parse() {
+        let ret = match parser.parse(Some(&cancellable)) {
           Ok(_) => Ok(parser),
           Err(e) => Err(glib::Error::new(gio::IOErrorEnum::Failed, &format!("{e}"))),
         };
+        // XXX: Ideally we should cancel the parsing thread earlier, but this is
+        // not supported by the API, and it's not worth to rely on GTask API
+        // directly to do it.
+        cancellable.set_error_if_cancelled()?;
         ret
       })
       .await
@@ -164,6 +173,7 @@ mod tests {
 
   use crate::gio::prelude::*;
   use crate::mailservice::MailService;
+  use crate::utils;
   use crate::{gio, glib};
 
   #[test]
@@ -182,8 +192,8 @@ mod tests {
     let fullpath = "sample.eml";
     let file = gio::File::for_path(fullpath);
 
-    glib::MainContext::new().spawn_local(async move {
-      assert!(service.open_message(&file).await.is_ok());
+    utils::spawn_and_wait_new_ctx(async move {
+      assert!(service.open_message(&file, None).await.is_ok());
       assert!(service.get_file().unwrap().equal(&file));
       assert_eq!(service.from(), "John Doe <john@moon.space>");
       assert_eq!(service.to(), "Lucas <lucas@mercure.space>");
@@ -197,14 +207,18 @@ mod tests {
     let service = MailService::new();
     let file = gio::File::for_path("path/to/nonexistent.eml");
 
-    glib::MainContext::new().spawn_local(async move {
-      let result = service.open_message(&file).await;
+    utils::spawn_and_wait_new_ctx(async move {
+      let result = service.open_message(&file, None).await;
 
       assert!(result.is_err());
-      assert_eq!(
-        format!("{}", result.unwrap_err()),
-        "File not found : path/to/nonexistent.eml"
-      );
+      let err = result.unwrap_err();
+
+      if let Some(glib_err) = err.downcast_ref::<glib::Error>() {
+        assert!(glib_err.is::<gio::IOErrorEnum>());
+        assert!(glib_err.matches(gio::IOErrorEnum::NotFound));
+      } else {
+        panic!("Expected glib::Error, got: {}", err);
+      }
     });
   }
 
@@ -213,8 +227,8 @@ mod tests {
     let service = MailService::new();
     let file = gio::File::for_path("sample.eml");
 
-    glib::MainContext::new().spawn_local(async move {
-      service.open_message(&file).await.unwrap();
+    utils::spawn_and_wait_new_ctx(async move {
+      service.open_message(&file, None).await.unwrap();
       let text = service.body_text().unwrap();
 
       assert!(text.contains("Lorem ipsum dolor sit amet, consectetur adipiscing elit"));
@@ -226,8 +240,11 @@ mod tests {
     let service = MailService::new();
     let file = gio::File::for_path("sample.eml");
 
-    glib::MainContext::new().spawn_local(async move {
-      service.open_message(&file).await.unwrap();
+    utils::spawn_and_wait_new_ctx(async move {
+      service
+        .open_message(&file, Some(&gio::Cancellable::new()))
+        .await
+        .unwrap();
       let html = service.body_html().unwrap();
 
       assert!(html.contains("Hello Lucas,"));
@@ -239,8 +256,8 @@ mod tests {
     let service = MailService::new();
     let file = gio::File::for_path("sample.eml");
 
-    glib::MainContext::new().spawn_local(async move {
-      service.open_message(&file).await.unwrap();
+    utils::spawn_and_wait_new_ctx(async move {
+      service.open_message(&file, None).await.unwrap();
       let attachments = service.attachments();
 
       assert_eq!(attachments.len(), 1);
@@ -253,8 +270,8 @@ mod tests {
     let service = MailService::new();
     let file = gio::File::for_path("sample.eml");
 
-    glib::MainContext::new().spawn_local(async move {
-      service.open_message(&file).await.unwrap();
+    utils::spawn_and_wait_new_ctx(async move {
+      service.open_message(&file, None).await.unwrap();
       service.set_show_file_name(true);
 
       let file_title = gio::File::for_path("sample_title.eml");
@@ -281,11 +298,29 @@ mod tests {
       *title_changed_called_clone.borrow_mut() = true;
     });
 
-    glib::MainContext::new().spawn_local(async move {
+    utils::spawn_and_wait_new_ctx(async move {
       let file = gio::File::for_path("sample.eml");
-      service.open_message(&file).await.unwrap();
+      service.open_message(&file, None).await.unwrap();
       service.set_show_file_name(false);
       assert!(*title_changed_called.borrow());
+    });
+  }
+
+  #[test]
+  fn cancelled_loading() {
+    let service = MailService::new();
+    let file = gio::File::for_path("sample.eml");
+
+    utils::spawn_and_wait_new_ctx(async move {
+      let cancellable = gio::Cancellable::new();
+      cancellable.cancel();
+      let result = service.open_message(&file, Some(&cancellable)).await;
+      assert!(result.is_err());
+
+      let err = result.unwrap_err();
+      let glib_err = err.downcast_ref::<glib::Error>().unwrap();
+      assert!(glib_err.is::<gio::IOErrorEnum>());
+      assert!(glib_err.matches(gio::IOErrorEnum::Cancelled));
     });
   }
 }
