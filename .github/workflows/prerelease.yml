@@ -1,98 +1,70 @@
 on:
   push:
-    branches: [main,develop]
+    branches: [main, develop]
   pull_request:
 
 name: prerelease
+
 jobs:
-  flatpak-x86:
-    name: "Flatpak x86_64"
-    runs-on: ubuntu-latest
+  flatpak:
+    name: "Flatpak"
+    # On encode à la fois l'arch et le runner dans la matrice
+    strategy:
+      matrix:
+        variant:
+          - arch: x86_64
+            runner: ubuntu-24.04
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.variant.runner }}
+
     container:
       image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-49
       options: --privileged
+
     steps:
+      - uses: actions/checkout@v4
+
       - name: Set short SHA
         id: short_sha
-        run: echo "short=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
-
-      - name: Checkout
-        uses: actions/checkout@v4
+        run: echo "short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
       - name: Generate flatpak sources (python container)
         uses: docker://python:3.11
         with:
-          args: bash -lc "set -e
-            pip install --no-cache-dir aiohttp toml tomlkit
-            wget -q https://raw.githubusercontent.com/flatpak/flatpak-builder-tools/refs/heads/master/cargo/flatpak-cargo-generator.py
+          args: >
+            bash -lc "set -e;
+            pip install --no-cache-dir aiohttp toml tomlkit &&
+            wget -q https://raw.githubusercontent.com/flatpak/flatpak-builder-tools/refs/heads/master/cargo/flatpak-cargo-generator.py &&
             python3 flatpak-cargo-generator.py -o mailviewer-sources.json Cargo.lock"
 
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
-          bundle: mailviewer-x86_64-${{ steps.short_sha.outputs.short }}.flatpak
+          bundle: mailviewer-${{ matrix.variant.arch }}-${{ steps.short_sha.outputs.short }}.flatpak
           manifest-path: io.github.alescdb.mailviewer.json
           cache-key: flatpak-builder-${{ github.sha }}
-          arch: x86_64
+          arch: ${{ matrix.variant.arch }}
 
       - uses: actions/upload-artifact@v4
         with:
-          name: flatpak-x86_64
-          path: |
-            LICENSE
-            *.flatpak
-
-  flatpak-arm:
-    name: "Flatpak aarch64 (runner ARM natif — pas de QEMU)"
-    # UTILISEZ ICI VOTRE RUNNER ARM64 self-hosted ou hébergé GitHub ARM. Exemple de labels self-hosted :
-    runs-on: [linux, arm64]
-    # Ne pas définir 'container' ou QEMU ici : on exécute nativement sur un runner ARM64
-    steps:
-      - name: Set short SHA
-        id: short_sha
-        run: echo "short=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
-
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Generate flatpak sources (python)
-        run: |
-          python3 -m pip install --user --no-cache-dir aiohttp toml tomlkit
-          wget -q https://raw.githubusercontent.com/flatpak/flatpak-builder-tools/refs/heads/master/cargo/flatpak-cargo-generator.py
-          python3 flatpak-cargo-generator.py -o mailviewer-sources.json Cargo.lock
-
-      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
-        with:
-          bundle: mailviewer-aarch64-${{ steps.short_sha.outputs.short }}.flatpak
-          manifest-path: io.github.alescdb.mailviewer.json
-          cache-key: flatpak-builder-${{ github.sha }}
-          arch: aarch64
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: flatpak-aarch64
+          name: flatpak-${{ matrix.variant.arch }}
           path: |
             LICENSE
             *.flatpak
 
   prerelease:
     name: "prerelease build"
-    needs: [flatpak-x86, flatpak-arm]
+    needs: [flatpak]
     runs-on: ubuntu-latest
     steps:
-      - name: Download x86 artifact
+      - name: Download flatpak artifacts into workspace root
         uses: actions/download-artifact@v4
         with:
-          name: flatpak-x86_64
+          pattern: flatpak-*
           merge-multiple: true
           path: .
 
-      - name: Download aarch64 artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: flatpak-aarch64
-          path: .
-
-      - uses: "dciborow/action-github-releases@v1.0.1"
+      - uses: dciborow/action-github-releases@v1.0.1
         with:
           repo_token: "${{ secrets.RELEASE_TOKEN }}"
           prerelease: true
