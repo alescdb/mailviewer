@@ -16,6 +16,7 @@ jobs:
     - name: Set short SHA
       id: short_sha
       run: echo "short=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+    - uses: actions/checkout@v4
     - name: Install packages
       run: |
         dnf -y install docker
