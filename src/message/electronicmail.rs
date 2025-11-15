@@ -19,14 +19,19 @@
  */
 use std::error::Error;
 
+use crate::gio;
+use gio::prelude::*;
+
 use base64::engine::general_purpose;
 use base64::Engine;
 use gmime::prelude::Cast;
 use gmime::traits::{
-  ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt, StreamMemExt
+  ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt,
+  StreamMemExt,
 };
 use gmime::{
-  glib, InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part, StreamMem
+  glib, InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part,
+  StreamMem,
 };
 use nipper::Document;
 
@@ -300,14 +305,14 @@ mod tests {
   use std::fs;
 
   use crate::gio::prelude::*;
-  use crate::glib;
   use crate::message::electronicmail::ElectronicMail;
   use crate::message::message::Message;
+  use crate::utils;
 
   #[test]
   fn test_sample() -> Result<(), Box<dyn Error>> {
     let mut parser = ElectronicMail::new(fs::read("sample.eml").unwrap());
-    parser.parse()?;
+    parser.parse(None)?;
     assert_eq!(parser.from, "John Doe <john@moon.space>");
     assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
     assert_eq!(parser.subject, "Lorem ipsum");
@@ -319,7 +324,7 @@ mod tests {
     assert_eq!(attachment.mime_type.as_ref().unwrap(), "image/png");
 
     let attachment = attachment.clone();
-    glib::MainContext::new().spawn_local(async move {
+    utils::spawn_and_wait_new_ctx(async move {
       let _file = attachment
         .write_to_tmp()
         .await
@@ -336,7 +341,7 @@ mod tests {
   #[test]
   fn test_sample_google() -> Result<(), Box<dyn Error>> {
     let mut parser = ElectronicMail::new(fs::read("tests/test-google.eml").unwrap());
-    parser.parse()?;
+    parser.parse(None)?;
     assert_eq!(parser.from, "Bill Jncjkq <jncjkq@gmail.com>");
     assert_eq!(parser.to, "bookmarks@jncjkq.net");
     assert_eq!(parser.subject, "Test");
@@ -353,7 +358,7 @@ mod tests {
   #[test]
   fn test_sample_text() -> Result<(), Box<dyn Error>> {
     let mut parser = ElectronicMail::new(fs::read("tests/text.eml").unwrap());
-    parser.parse()?;
+    parser.parse(None)?;
     assert_eq!(parser.from, "John Doe <john@moon.space>");
     assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
     assert_eq!(parser.subject, "Lorem ipsum");
@@ -367,7 +372,7 @@ mod tests {
   #[test]
   fn test_sample_html() -> Result<(), Box<dyn Error>> {
     let mut parser = ElectronicMail::new(fs::read("tests/html.eml").unwrap());
-    parser.parse()?;
+    parser.parse(None)?;
     assert_eq!(parser.from, "John Doe <john@moon.space>");
     assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
     assert_eq!(parser.subject, "Lorem ipsum");
@@ -382,7 +387,7 @@ mod tests {
   #[test]
   fn test_sample_php() -> Result<(), Box<dyn Error>> {
     let mut parser = ElectronicMail::new(fs::read("tests/test-php.eml").unwrap());
-    parser.parse()?;
+    parser.parse(None)?;
     assert_eq!(parser.from, "mlemos <mlemos@acm.org>");
     assert_eq!(parser.to, "Manuel Lemos <mlemos@linux.local>");
     assert_eq!(
@@ -425,11 +430,18 @@ mod tests {
 }
 
 impl super::message::Message for ElectronicMail {
-  fn parse(&mut self) -> Result<(), Box<dyn Error>> {
+  fn parse(&mut self, cancellable: Option<&gio::Cancellable>) -> Result<(), Box<dyn Error>> {
     let stream = StreamMem::with_buffer(&self.data);
     let parser = Parser::with_stream(&stream);
     let message = parser.construct_message(None);
     let mut isok = false;
+
+    if let Some(cancellable) = cancellable {
+      if let Err(e) = cancellable.set_error_if_cancelled() {
+        stream.close();
+        return Err(Box::new(e));
+      }
+    }
 
     if let Some(eml) = &message {
       isok = true;
@@ -448,7 +460,7 @@ impl super::message::Message for ElectronicMail {
     stream.close();
 
     if !isok {
-      log::error!("parse() => no message");
+      log::error!("parse(None) => no message");
       return Err("No message found".into());
     }
     Ok(())

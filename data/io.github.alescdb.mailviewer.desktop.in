@@ -6,5 +6,5 @@ Terminal=false
 Type=Application
 Categories=GTK;Email;
 StartupNotify=true
-MimeType=message/rfc822;application/vnd.ms-outlook;
+MimeType=message/rfc822;application/vnd.ms-outlook;application/x-ole-storage;
 Comment=Mail Viewer
