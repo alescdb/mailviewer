@@ -44,7 +44,7 @@ jobs:
   flatpak-arm:
     name: "Flatpak aarch64 (runner ARM natif — pas de QEMU)"
     # UTILISEZ ICI VOTRE RUNNER ARM64 self-hosted ou hébergé GitHub ARM. Exemple de labels self-hosted :
-    runs-on: [self-hosted, linux, arm64]
+    runs-on: [linux, arm64]
     # Ne pas définir 'container' ou QEMU ici : on exécute nativement sur un runner ARM64
     steps:
       - name: Set short SHA
@@ -83,6 +83,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: flatpak-x86_64
+          merge-multiple: true
           path: .
 
       - name: Download aarch64 artifact
