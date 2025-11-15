@@ -53,12 +53,17 @@ jobs:
     - uses: actions/download-artifact@v4
     - name: show files
       run: find
+    - name: Rename artifacts with commit SHA
+      run: |
+        sha=$(git rev-parse --short HEAD)
+        mv -v "./flatpak-x86_64/LICENSE" "LICENSE"
+        mv -v "./flatpak-x86_64/mailviewer-x86_64.flatpak" "mailviewer-x86_64-$sha.flatpak"
     - uses: "dciborow/action-github-releases@v1.0.1"
       with:
         repo_token: "${{ secrets.RELEASE_TOKEN }}"
         prerelease: true
         automatic_release_tag: "latest"
-        title: "Pre-release (aarch64)"
+        title: "Pre-release (x86_64)"
         files: |
-          ./flatpak-aarch64/LICENSE
-          **/*.flatpak
+          ./LICENSE
+          ./*.flatpak
