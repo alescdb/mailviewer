@@ -1,0 +1,56 @@
+on:
+  push:
+    branches: [main,develop]
+  pull_request:
+
+name: prerelease (x86_64)
+jobs:
+  flatpak:
+    name: "Flatpak x86_64"
+    runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:gnome-47
+      options: --privileged
+    steps:
+    - uses: actions/checkout@v4
+    - name: Update flatpak dependencies
+      shell: bash
+      run: |
+        dnf -y install wget python3 python3-virtualenv python3-pip || exit 0
+        wget https://raw.githubusercontent.com/flatpak/flatpak-builder-tools/refs/heads/master/cargo/flatpak-cargo-generator.py
+        python3 -m venv .venv
+        .venv/bin/pip install aiohttp toml tomlkit
+        .venv/bin/python flatpak-cargo-generator.py -o mailviewer-sources.json Cargo.lock
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      with:
+        bundle: mailviewer-x86_64.flatpak
+        manifest-path: io.github.alescdb.mailviewer.json
+        cache-key: flatpak-builder-${{ github.sha }}
+        arch: x86_64
+    - uses: actions/download-artifact@v4
+    - name: show files
+      run: find
+    - uses: actions/upload-artifact@v4
+      with:
+        name: flatpak-x86_64
+        path: |
+          LICENSE
+          *.flatpak
+
+  prerelease:
+    name: "prerelease build (x86_64)"
+    needs: [flatpak]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v4
+    - name: show files
+      run: find
+    - uses: "dciborow/action-github-releases@v1.0.1"
+      with:
+        repo_token: "${{ secrets.RELEASE_TOKEN }}"
+        prerelease: true
+        automatic_release_tag: "latest"
+        title: "Pre-release (x86_64)"
+        files: |
+          ./flatpak-x86_64/LICENSE
+          **/*.flatpak
