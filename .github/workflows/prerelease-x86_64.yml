@@ -45,6 +45,7 @@ jobs:
     - uses: actions/download-artifact@v4
     - name: show files
       run: find
+    - uses: actions/checkout@v4
     - name: Rename artifacts with commit SHA
       run: |
         sha=$(git rev-parse --short HEAD)
