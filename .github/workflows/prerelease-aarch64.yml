@@ -52,7 +52,7 @@ jobs:
     - name: Download flatpak artifact into workspace root
       uses: actions/download-artifact@v4
       with:
-        name: flatpak-x86_64
+        name: flatpak-aarch64
         path: .
     - uses: "dciborow/action-github-releases@v1.0.1"
       with:
