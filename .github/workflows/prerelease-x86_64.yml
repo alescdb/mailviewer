@@ -9,7 +9,7 @@ jobs:
     name: "Flatpak x86_64"
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-48
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-49
       options: --privileged
     steps:
     - uses: actions/checkout@v4
@@ -45,16 +45,13 @@ jobs:
       id: short_sha
       run: echo "short=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
     - uses: actions/download-artifact@v4
-    - name: show files
-      run: find
-    - uses: actions/checkout@v4
     - name: Rename artifacts with commit SHA
       id: rename
       run: |
-        sha=$(git rev-parse --short HEAD)
-        echo "short=${sha}" >> $GITHUB_OUTPUT
-        mv -v "./flatpak-x86_64/LICENSE" "LICENSE"
-        mv -v "./flatpak-x86_64/mailviewer-x86_64.flatpak" "mailviewer-x86_64-${GITHUB_SHA}.flatpak"
+        pwd
+        find
+        mv -v "flatpak-x86_64/LICENSE" "LICENSE"
+        mv -v "flatpak-x86_64/mailviewer-x86_64.flatpak" "mailviewer-x86_64-${{ steps.short_sha.outputs.short }}.flatpak"      
     - uses: "dciborow/action-github-releases@v1.0.1"
       with:
         repo_token: "${{ secrets.RELEASE_TOKEN }}"
@@ -62,5 +59,5 @@ jobs:
         automatic_release_tag: "latest"
         title: "Pre-release (x86_64)"
         files: |
-          ./LICENSE
-          ./mailviewer-x86_64-${{ steps.rename.outputs.short }}.flatpak
+          LICENSE
+          mailviewer-x86_64-${{ steps.short_sha.outputs.short }}.flatpak
