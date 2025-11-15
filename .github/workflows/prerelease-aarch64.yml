@@ -1,0 +1,64 @@
+on:
+  push:
+    branches: [main,develop]
+  pull_request:
+
+name: prerelease (aarch64)
+jobs:
+  flatpak:
+    name: "Flatpak aarch64"
+    runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:gnome-47
+      options: --privileged
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install packages
+      run: |
+        dnf -y install docker
+    - name: Set up QEMU
+      id: qemu
+      uses: docker/setup-qemu-action@v2
+      with:
+        platforms: arm64
+    - name: Update flatpak dependencies
+      shell: bash
+      run: |
+        dnf -y install wget python3 python3-virtualenv python3-pip || exit 0
+        wget https://raw.githubusercontent.com/flatpak/flatpak-builder-tools/refs/heads/master/cargo/flatpak-cargo-generator.py
+        python3 -m venv .venv
+        .venv/bin/pip install aiohttp toml tomlkit
+        .venv/bin/python flatpak-cargo-generator.py -o mailviewer-sources.json Cargo.lock
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      with:
+        bundle: mailviewer-aarch64.flatpak
+        manifest-path: io.github.alescdb.mailviewer.json
+        cache-key: flatpak-builder-${{ github.sha }}
+        arch: aarch64
+    - uses: actions/download-artifact@v4
+    - name: show files
+      run: find
+    - uses: actions/upload-artifact@v4
+      with:
+        name: flatpak-aarch64
+        path: |
+          LICENSE
+          *.flatpak
+
+  prerelease:
+    name: "prerelease build (aarch64)"
+    needs: [flatpak]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v4
+    - name: show files
+      run: find
+    - uses: "dciborow/action-github-releases@v1.0.1"
+      with:
+        repo_token: "${{ secrets.RELEASE_TOKEN }}"
+        prerelease: true
+        automatic_release_tag: "latest"
+        title: "Pre-release (aarch64)"
+        files: |
+          ./flatpak-aarch64/LICENSE
+          **/*.flatpak
