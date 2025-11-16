@@ -75,16 +75,24 @@ pub struct MessageParser {
 }
 
 impl MessageParser {
-  pub async fn new(file: &gio::File, cancellable: Option<&gio::Cancellable>) -> Result<Self, Box<dyn Error>> {
-    let message_type = Self::message_type(file).await?;
+  pub async fn new(
+    file: &gio::File,
+    cancellable: Option<&gio::Cancellable>,
+  ) -> Result<Self, Box<dyn Error>> {
+    let gio_type = Self::message_type(file).await.ok();
     let content = Self::message_content(file, cancellable).await?;
+    let message_type = gio_type.unwrap_or_else(|| {
+      let mt = Self::message_type_from_content(&content);
+      log::debug!("Falling back to content-based detection: {:?}", mt);
+      mt
+    });
     Ok(Self {
       parser: if message_type == MessageType::Msg {
         Box::new(OutlookMessage::new(content))
       } else {
         Box::new(ElectronicMail::new(content))
       },
-      message_type: message_type,
+      message_type,
     })
   }
 
@@ -95,6 +103,7 @@ impl MessageParser {
     v
   }
 
+  #[allow(dead_code)]
   async fn message_type(file: &gio::File) -> Result<MessageType, Box<dyn Error>> {
     let file_info = file
       .query_info_future(
@@ -130,7 +139,20 @@ impl MessageParser {
     )
   }
 
-  async fn message_content(file: &gio::File, cancellable: Option<&gio::Cancellable>) -> Result<Vec<u8>, Box<dyn Error>> {
+  #[inline]
+  fn message_type_from_content(content: &[u8]) -> MessageType {
+    const OLE_MAGIC: [u8; 8] = [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1];
+    if content.len() >= OLE_MAGIC.len() && &content[..OLE_MAGIC.len()] == OLE_MAGIC {
+      MessageType::Msg
+    } else {
+      MessageType::Eml
+    }
+  }
+
+  async fn message_content(
+    file: &gio::File,
+    cancellable: Option<&gio::Cancellable>,
+  ) -> Result<Vec<u8>, Box<dyn Error>> {
     let input_stream = file.read_future(glib::Priority::DEFAULT).await?;
 
     let read_input_stream = async || -> Result<Vec<u8>, Box<dyn Error>> {
@@ -211,8 +233,7 @@ impl Message for MessageParser {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::gio;
-  use crate::utils;
+  use crate::{gio, utils};
 
   #[test]
   fn test_sample_eml() {

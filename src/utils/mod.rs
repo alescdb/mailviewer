@@ -9,10 +9,11 @@ pub fn spawn_and_wait<R: 'static, F: std::future::Future<Output = R> + 'static>(
     Some(ctx) => ctx,
     None => &glib::MainContext::default(),
   };
-  use futures_util::FutureExt;
+  use std::any::Any;
   use std::cell::RefCell;
   use std::rc::Rc;
-  use std::any::Any;
+
+  use futures_util::FutureExt;
 
   let lp = glib::MainLoop::new(Some(ctx), false);
   let ret = Rc::new(RefCell::new(None::<Result<R, Box<dyn Any + Send>>>));
@@ -43,10 +44,10 @@ pub fn spawn_and_wait_new_ctx<R: 'static, F: std::future::Future<Output = R> + '
 
 #[cfg(test)]
 mod tests {
-  use crate::{glib, gio};
-  use crate::utils::*;
-
   use gio::prelude::*;
+
+  use crate::utils::*;
+  use crate::{gio, glib};
 
   #[test]
   fn wait_for_no_result() {
