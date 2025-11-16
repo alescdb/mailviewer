@@ -1,14 +1,13 @@
+name: prerelease
+
 on:
   push:
     branches: [main, develop]
   pull_request:
 
-name: prerelease
-
 jobs:
   flatpak:
     name: "Flatpak"
-    # On encode à la fois l'arch et le runner dans la matrice
     strategy:
       matrix:
         variant:
