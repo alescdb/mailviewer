@@ -1,4 +1,5 @@
 /_build
+/.artifacts
 /.flatpak
 /.flatpak-builder
 /.idea
