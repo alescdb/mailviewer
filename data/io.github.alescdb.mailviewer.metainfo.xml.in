@@ -43,6 +43,36 @@
   <content_rating type="oars-1.0" />
   <developer_name>Alexandre Del Bigio</developer_name>
   <releases>
+    <release version="1.0.3" date="2025-11-16">
+      <description>
+        <ul>
+          <li>GitHub Actions rewrite (alescdb)</li>
+          <li>Use an encoding library to properly decode the contents (3v1n0)</li>
+          <li>Handle Windows-1252 encoding (3v1n0)</li>
+          <li>Log parsing errors as errors (3v1n0)</li>
+          <li>Use utils::span-and-wait to wait for web policy (3v1n0)</li>
+          <li>Expose spawn_and_wait to a generic utility crate (3v1n0)</li>
+          <li>Stop parsing early if action is cancelled (3v1n0)</li>
+          <li>Cancel previous loading operation using Cancellable (3v1n0)</li>
+          <li>Add test utility function to wait for futures to complete (3v1n0)</li>
+          <li>Add x-ole-storage as supported mime type (3v1n0)</li>
+          <li>Show a spinner while loading a message (3v1n0)</li>
+          <li>Run the messages parsing in a separate thread (3v1n0)</li>
+          <li>Bind visibility of action buttons to show text state (3v1n0)</li>
+          <li>Use gtk native future to open URIs / launch files (3v1n0)</li>
+          <li>Write the attachments on disk asynchronously (3v1n0)</li>
+          <li>Use better API to spawn futures from glib (3v1n0)</li>
+          <li>Use async loading of the files contents (3v1n0)</li>
+          <li>Check file asynchronously and based on content type (3v1n0)</li>
+          <li>it, fr translations: Update Plural forms definitions (3v1n0)</li>
+          <li>Updated Dutch translation (Vistaus)</li>
+          <li>Pre-set the file name when saving an attachment (3v1n0)</li>
+          <li>Use gtk4::FileDialog to open and save files (3v1n0)</li>
+          <li>Use ngettext to translate plural forms (3v1n0)</li>
+          <li>Bump msg_parser to 0.1.2 (3v1n0)</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.2" date="2025-09-22">
       <description>
         <ul>
