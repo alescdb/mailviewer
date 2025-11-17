@@ -259,6 +259,8 @@ impl MailViewerWindow {
       .websettings
       .set_allow_universal_access_from_file_urls(false);
     imp.websettings.set_enable_javascript(false);
+    imp.websettings.set_enable_webgl(false);
+    imp.websettings.set_enable_webaudio(false);
     imp.websettings.set_auto_load_images(false);
     imp.webview.set_settings(&imp.websettings);
     imp.webview.set_editable(false);

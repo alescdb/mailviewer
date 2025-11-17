@@ -13,6 +13,9 @@ all:
 run:
 	cargo run -- sample.eml
 
+test:
+	cargo test -- --nocapture
+
 format:
 	cargo +nightly fmt
 
@@ -65,6 +68,12 @@ $(EXECUTABLE): $(BUILD_DIR) $(SOURCES)
 targets: $(BUILD_DIR)
 	cd $(BUILD_DIR) && \
 	meson introspect --targets | jq -r '.[].name'
+
+# my vscode needs this for some reasons...
+utils:
+	mkdir -p .flatpak && \
+	printf '#!/bin/bash\nrust-analyzer $$*\n' >.flatpak/rust-analyzer.sh && \
+	chmod a+x .flatpak/rust-analyzer.sh
 
 clean:
 	rm -rf $(BUILD_DIR) $(DEBUG) target buildir .flatpak .flatpak-builder .repo .venv flatpak-cargo-generator.py
