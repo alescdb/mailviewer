@@ -19,23 +19,20 @@
  */
 use std::error::Error;
 
-use crate::gio;
-use gio::prelude::*;
-
 use base64::engine::general_purpose;
 use base64::Engine;
 use encoding_rs::Encoding;
+use gio::prelude::*;
 use gmime::prelude::Cast;
 use gmime::traits::{
-  ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt,
-  StreamMemExt,
+  ContentTypeExt, DataWrapperExt, MessageExt, ObjectExt, ParserExt, PartExt, StreamExt, StreamMemExt
 };
 use gmime::{
-  glib, InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part,
-  StreamMem,
+  glib, InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part, StreamMem
 };
 use nipper::Document;
 
+use crate::gio;
 use crate::message::attachment::Attachment;
 use crate::message::message::MessageParser;
 

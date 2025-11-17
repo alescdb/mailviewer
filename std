@@ -1,0 +1,7 @@
+#!/bin/bash
+
+FILE="$HOME/.cache/$$.eml"
+
+trap "rm $FILE" ERR EXIT
+cat > "$FILE"
+io.github.alescdb.mailviewer "$FILE"

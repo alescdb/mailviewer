@@ -19,13 +19,12 @@
  */
 use std::error::Error;
 
-use crate::gio;
 use gio::prelude::*;
-
 use msg_parser::Outlook;
 
 use super::attachment::Attachment;
 use super::message::Message;
+use crate::gio;
 use crate::message::message::MessageParser;
 
 #[derive(Debug, Default, Clone)]
