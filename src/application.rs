@@ -32,7 +32,7 @@ mod imp {
 
   #[derive(Debug, Default)]
   pub struct MailViewerApplication {
-    filename: RefCell<Option<String>>,
+    pub(crate) filename: RefCell<Option<String>>,
   }
 
   #[glib::object_subclass]
@@ -58,6 +58,7 @@ mod imp {
   impl ApplicationImpl for MailViewerApplication {
     fn activate(&self) {
       let application = self.obj();
+
       let window: MailViewerWindow = if let Some(window) = application.active_window() {
         window.downcast::<MailViewerWindow>().ok().unwrap()
       } else {
@@ -75,6 +76,10 @@ mod imp {
         window.upcast()
       };
       window.present();
+
+      let stdin: bool = application.from_stdin();
+      log::debug!("file from stdin : {}", stdin);
+
       if let Err(e) = adw::prelude::WidgetExt::activate_action(
         &window,
         "win.open-file",
@@ -126,6 +131,18 @@ impl MailViewerApplication {
       .activate(move |app: &Self, _, _| app.show_about())
       .build();
     self.add_action_entries([quit_action, about_action]);
+  }
+
+  fn from_stdin(&self) -> bool {
+    if atty::isnt(atty::Stream::Stdin) {
+      // TODO: not sure this is a great idea, but it works.
+      self
+        .imp()
+        .filename
+        .replace(Some("/proc/self/fd/0".to_string()));
+      return true;
+    }
+    false
   }
 
   fn show_about(&self) {
