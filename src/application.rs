@@ -77,8 +77,8 @@ mod imp {
       };
       window.present();
 
-      let stdin: bool = application.from_stdin();
-      log::debug!("file from stdin : {}", stdin);
+      // let stdin: bool = application.from_stdin();
+      // log::debug!("file from stdin : {}", stdin);
 
       if let Err(e) = adw::prelude::WidgetExt::activate_action(
         &window,
@@ -133,6 +133,7 @@ impl MailViewerApplication {
     self.add_action_entries([quit_action, about_action]);
   }
 
+  #[allow(dead_code)]
   fn from_stdin(&self) -> bool {
     if atty::isnt(atty::Stream::Stdin) {
       // TODO: not sure this is a great idea, but it works.
