@@ -530,8 +530,7 @@ impl MailViewerWindow {
         Ok::<bool, Box<dyn std::error::Error>>(false),
         async move { win.decide_policy(&policy).await }
       ),
-    )
-    {
+    ) {
       Ok(val) => val,
       Err(e) => {
         log::error!("WebView on_decide_policy({:?})", e);

@@ -173,8 +173,7 @@ mod tests {
 
   use crate::gio::prelude::*;
   use crate::mailservice::MailService;
-  use crate::utils;
-  use crate::{gio, glib};
+  use crate::{gio, glib, utils};
 
   #[test]
   fn new_mail_service() {
