@@ -79,13 +79,23 @@ impl MessageParser {
     file: &gio::File,
     cancellable: Option<&gio::Cancellable>,
   ) -> Result<Self, Box<dyn Error>> {
-    let gio_type = Self::message_type(file).await.ok();
     let content = Self::message_content(file, cancellable).await?;
-    let message_type = gio_type.unwrap_or_else(|| {
-      let mt = Self::message_type_from_content(&content);
-      log::debug!("Falling back to content-based detection: {:?}", mt);
-      mt
-    });
+    let (content_type, _) = gio::content_type_guess(file.path(), Some(content.as_slice()));
+
+    log::debug!(
+      "MessageParser::new() message_content {:?}: {:?}",
+      file.path(),
+      content_type
+    );
+
+    // gio::content_type_guess() detects EML as text/plain if file == /dev/stdin,
+    // so we assume != MSG => EML when file
+    let message_type = if MSG_MIME_TYPES.contains(&content_type.as_str()) {
+      MessageType::Msg
+    } else {
+      MessageType::Eml
+    };
+
     Ok(Self {
       parser: if message_type == MessageType::Msg {
         Box::new(OutlookMessage::new(content))
@@ -137,16 +147,6 @@ impl MessageParser {
       )
       .into(),
     )
-  }
-
-  #[inline]
-  fn message_type_from_content(content: &[u8]) -> MessageType {
-    const OLE_MAGIC: [u8; 8] = [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1];
-    if content.len() >= OLE_MAGIC.len() && &content[..OLE_MAGIC.len()] == OLE_MAGIC {
-      MessageType::Msg
-    } else {
-      MessageType::Eml
-    }
   }
 
   async fn message_content(
@@ -235,6 +235,43 @@ mod tests {
   use super::*;
   use crate::{gio, utils};
 
+  #[test]
+  fn test_content_type_eml() {
+    utils::spawn_and_wait_new_ctx(async move {
+      let message_type = MessageParser::message_type(&gio::File::for_path("sample.eml")).await;
+      assert_eq!(message_type.unwrap(), MessageType::Eml);
+    });
+  }
+
+  #[test]
+  fn test_content_type_msg() {
+    utils::spawn_and_wait_new_ctx(async move {
+      let message_type = MessageParser::message_type(&gio::File::for_path("sample.msg")).await;
+      assert_eq!(message_type.unwrap(), MessageType::Msg);
+    });
+  }
+
+  #[test]
+  fn test_content_guess_eml() {
+    let file = gio::File::for_path("sample.eml");
+    utils::spawn_and_wait_new_ctx(async move {
+      let content = MessageParser::message_content(&file, None).await.unwrap();
+      let (content_type, _) = gio::content_type_guess(file.path(), Some(content.as_slice()));
+      println!("ContentType: {}", content_type);
+      assert_eq!(content_type, "message/rfc822")
+    });
+  }
+
+  #[test]
+  fn test_content_guess_msg() {
+    let file = gio::File::for_path("sample.msg");
+    utils::spawn_and_wait_new_ctx(async move {
+      let content = MessageParser::message_content(&file, None).await.unwrap();
+      let (content_type, _) = gio::content_type_guess(file.path(), Some(content.as_slice()));
+      println!("ContentType: {}", content_type);
+      assert_eq!(content_type, "application/x-ole-storage")
+    });
+  }
   #[test]
   fn test_sample_eml() {
     let file = gio::File::for_path("sample.eml");
