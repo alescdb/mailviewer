@@ -1,6 +1,6 @@
 [package]
 name = "mailviewer"
-version = "1.0.4"
+version = "1.0.5"
 edition = "2021"
 authors = ["Alexandre Del Bigio"]
 description = "GNOME eml and Outlook msg file viewer"
@@ -26,4 +26,3 @@ gettext-rs = { version = "0.7.7", features = ["gettext-system"] }
 hashbrown = "0.16.0"
 encoding_rs = "0.8.35"
 futures-util = "0.3.31"
-atty = "0.2.14"

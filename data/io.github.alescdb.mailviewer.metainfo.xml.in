@@ -43,13 +43,20 @@
   <content_rating type="oars-1.0" />
   <developer_name>Alexandre Del Bigio</developer_name>
   <releases>
-    <description>
-      <release version="1.0.4" date="2025-11-17">
+    <release version="1.0.5" date="2025-11-17">
+      <description>
+        <ul>
+          <li>Bug : revert changes (stdin) preventing opening from GNOME Files</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.0.4" date="2025-11-17">
+      <description>
         <ul>
           <li>Test is data present on stdin if no file is provided (eg: cat sample.eml | mailviewer)</li>
         </ul>
-      </release>
-    </description>
+      </description>
+    </release>
     <release version="1.0.3" date="2025-11-16">
       <description>
         <ul>

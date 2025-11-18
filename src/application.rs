@@ -77,9 +77,6 @@ mod imp {
       };
       window.present();
 
-      // let stdin: bool = application.from_stdin();
-      // log::debug!("file from stdin : {}", stdin);
-
       if let Err(e) = adw::prelude::WidgetExt::activate_action(
         &window,
         "win.open-file",
@@ -131,19 +128,6 @@ impl MailViewerApplication {
       .activate(move |app: &Self, _, _| app.show_about())
       .build();
     self.add_action_entries([quit_action, about_action]);
-  }
-
-  #[allow(dead_code)]
-  fn from_stdin(&self) -> bool {
-    if atty::isnt(atty::Stream::Stdin) {
-      // TODO: not sure this is a great idea, but it works.
-      self
-        .imp()
-        .filename
-        .replace(Some("/proc/self/fd/0".to_string()));
-      return true;
-    }
-    false
   }
 
   fn show_about(&self) {
