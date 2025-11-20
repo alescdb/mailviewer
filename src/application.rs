@@ -52,10 +52,29 @@ mod imp {
       obj.set_accels_for_action("app.quit", &["<primary>q"]);
       obj.set_accels_for_action("win.open-file-dialog", &["<primary>o"]);
       obj.set_accels_for_action("win.reset-zoom", &["<primary>r"]);
+
+      obj.add_main_option(
+        "stdin",
+        glib::Char::try_from('s').unwrap(),
+        glib::OptionFlags::NONE,
+        glib::OptionArg::None,
+        "Read from stdin",
+        None,
+      );
     }
   }
 
   impl ApplicationImpl for MailViewerApplication {
+    fn handle_local_options(
+      &self,
+      options: &glib::VariantDict,
+    ) -> std::ops::ControlFlow<glib::ExitCode> {
+      if options.contains("stdin") {
+        self.filename.replace(Some("/dev/stdin".to_string()));
+      }
+      std::ops::ControlFlow::Continue(())
+    }
+
     fn activate(&self) {
       let application = self.obj();
 
