@@ -8,6 +8,7 @@
   <summary>EML and MSG file viewer</summary>
   <url type="homepage">https://github.com/alescdb/mailviewer</url>
   <url type="bugtracker">https://github.com/alescdb/mailviewer/issues</url>
+  <url type="vcs-browser">https://github.com/alescdb/mailviewer</url>
   <description>
     <p>MailViewer is a GNOME application that allows users to read and decode .eml and .msg files
       (email files) without having to install any additional software or create an account.</p>
