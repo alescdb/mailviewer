@@ -597,6 +597,21 @@ impl MailViewerWindow {
     let date = imp.service.date().as_str().to_string();
     let to = imp.service.to().as_str().to_string();
     let subject = imp.service.subject().as_str().to_string();
+    let attachments = imp
+      .service
+      .attachments()
+      .iter()
+      .map(|attachment| {
+        let filename = Html::escape(&attachment.filename);
+        if let Some(mime_type) = attachment.mime_type.as_deref() {
+          if mime_type.len() > 0 {
+            return format!("<li>{filename} ({mime_type})</li>");
+          }
+        }
+        format!("<li>{filename}</li>")
+      })
+      .collect::<Vec<_>>()
+      .join("\n");
 
     format!(
       r#"<!doctype html>
@@ -613,28 +628,27 @@ impl MailViewerWindow {
       </head>
       <body>
         <table class="header">
-        <tr><td>From :&nbsp;</td><td>{}</td></tr>
-        <tr><td>To :&nbsp;</td><td>{}</td></tr>
-        <tr><td>Date :&nbsp;</td><td>{}</td></tr>
-        <tr><td>Subject :&nbsp;</td><td>{}</td></tr>
+          <tr><td>From :&nbsp;</td><td>{from}</td></tr>
+          <tr><td>To :&nbsp;</td><td>{to}</td></tr>
+          <tr><td>Date :&nbsp;</td><td>{date}</td></tr>
+          <tr><td>Subject :&nbsp;</td><td>{subject}</td></tr>
         </table>
         <hr />
         <div class="body">
-        {}
+          {content}
         </div>
+        <hr />
+        <ul>
+          {attachments}
+        </ul>
       </body>
-      </html>"#,
-      &from,
-      &to,
-      &date,
-      &subject,
-      &content
+      </html>"#
     )
   }
 
   pub async fn print(&self) {
-    log::debug!("Hello Print !");
-    let imp = self.imp();
+    log::debug!("print()");
+
     let webview = webkit6::WebView::new();
     let websettings = webkit6::Settings::new();
     let html: String = self.get_print_html();
@@ -646,13 +660,14 @@ impl MailViewerWindow {
       #[strong]
       webview,
       move |_, e| {
+        log::debug!("print load_html() event : {:?}", e);
         if e == webkit6::LoadEvent::Finished {
           let print_operation = PrintOperation::new(&webview);
           let response = print_operation.run_dialog(Some(&window));
           if response == PrintOperationResponse::Print {
-            eprintln!("Printing started");
+            log::debug!("print started");
           } else {
-            eprintln!("Printing cancelled");
+            log::debug!("print cancelled");
           }
         }
       }
