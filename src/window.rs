@@ -25,7 +25,10 @@ use adw::subclass::prelude::*;
 use gettextrs::{gettext, ngettext};
 use gtk4::{gio, glib, template_callbacks};
 use webkit6::prelude::{PolicyDecisionExt, WebViewExt};
-use webkit6::{NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, WebView};
+use webkit6::{
+  NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, PrintOperation,
+  PrintOperationResponse, WebView,
+};
 
 use crate::html::Html;
 use crate::mailservice::MailService;
@@ -141,6 +144,13 @@ mod imp {
         },
       );
       klass.install_action_async(
+        "win.print",
+        None,
+        |window, _, parameter: Option<glib::Variant>| async move {
+          window.print().await;
+        },
+      );
+      klass.install_action_async(
         "win.open-file",
         None,
         |window, _, parameter: Option<glib::Variant>| async move {
@@ -247,29 +257,29 @@ impl MailViewerWindow {
 
     self.initialize_settings();
     self.initialize_actions();
+    self.initialise_webview(&imp.webview, &imp.websettings);
 
-    imp.websettings.set_allow_file_access_from_file_urls(false);
-    imp
-      .websettings
-      .set_enable_back_forward_navigation_gestures(false);
-    imp.websettings.set_enable_developer_extras(false);
-    imp.websettings.set_enable_dns_prefetching(false);
-    imp.websettings.set_allow_modal_dialogs(false);
-    imp
-      .websettings
-      .set_allow_universal_access_from_file_urls(false);
-    imp.websettings.set_enable_javascript(false);
-    imp.websettings.set_enable_webgl(false);
-    imp.websettings.set_enable_webaudio(false);
-    imp.websettings.set_auto_load_images(false);
-    imp.webview.set_settings(&imp.websettings);
-    imp.webview.set_editable(false);
-    imp.webview.connect_context_menu(move |_, _, _| {
+    imp.placeholder.set_child(Some(&imp.webview));
+  }
+
+  fn initialise_webview(&self, webview: &webkit6::WebView, websettings: &webkit6::Settings) {
+    websettings.set_allow_file_access_from_file_urls(false);
+    websettings.set_enable_back_forward_navigation_gestures(false);
+    websettings.set_enable_developer_extras(false);
+    websettings.set_enable_dns_prefetching(false);
+    websettings.set_allow_modal_dialogs(false);
+    websettings.set_allow_universal_access_from_file_urls(false);
+    websettings.set_enable_javascript(false);
+    websettings.set_enable_webgl(false);
+    websettings.set_enable_webaudio(false);
+    websettings.set_auto_load_images(false);
+    webview.set_settings(&websettings);
+    webview.set_editable(false);
+    webview.connect_context_menu(move |_, _, _| {
       log::debug!("WebView() => context_menu() cancelled");
       true
     });
-    imp.webview.set_receives_default(false);
-    imp.placeholder.set_child(Some(&imp.webview));
+    webview.set_receives_default(false);
   }
 
   fn initialize_actions(&self) {
@@ -570,6 +580,83 @@ impl MailViewerWindow {
       .modal(true)
       .filters(&filters)
       .build();
+  }
+
+  pub fn get_print_html(&self) -> String {
+    let imp = self.imp();
+    let content: String;
+
+    if let Some(html) = imp.service.body_html() {
+      content = Html::new(&html, false).safe();
+    } else if let Some(text) = imp.service.body_text() {
+      content = format!("<pre>{}</pre>", text);
+    } else {
+      content = String::new();
+    }
+    let from = imp.service.from().as_str().to_string();
+    let date = imp.service.date().as_str().to_string();
+    let to = imp.service.to().as_str().to_string();
+    let subject = imp.service.subject().as_str().to_string();
+
+    format!(
+      r#"<!doctype html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+        pre {{
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }}
+        </style>
+      </head>
+      <body>
+        <table class="header">
+        <tr><td>From :&nbsp;</td><td>{}</td></tr>
+        <tr><td>To :&nbsp;</td><td>{}</td></tr>
+        <tr><td>Date :&nbsp;</td><td>{}</td></tr>
+        <tr><td>Subject :&nbsp;</td><td>{}</td></tr>
+        </table>
+        <hr />
+        <div class="body">
+        {}
+        </div>
+      </body>
+      </html>"#,
+      &from,
+      &to,
+      &date,
+      &subject,
+      &content
+    )
+  }
+
+  pub async fn print(&self) {
+    log::debug!("Hello Print !");
+    let imp = self.imp();
+    let webview = webkit6::WebView::new();
+    let websettings = webkit6::Settings::new();
+    let html: String = self.get_print_html();
+    self.initialise_webview(&webview, &websettings);
+    webview.load_html(&html, None);
+    webview.connect_load_changed(clone!(
+      #[strong(rename_to = window)]
+      self,
+      #[strong]
+      webview,
+      move |_, e| {
+        if e == webkit6::LoadEvent::Finished {
+          let print_operation = PrintOperation::new(&webview);
+          let response = print_operation.run_dialog(Some(&window));
+          if response == PrintOperationResponse::Print {
+            eprintln!("Printing started");
+          } else {
+            eprintln!("Printing cancelled");
+          }
+        }
+      }
+    ));
   }
 
   pub async fn open_file_dialog(&self, close_on_cancel: bool) -> bool {

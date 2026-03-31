@@ -257,6 +257,10 @@
         <attribute name="action">win.open-file-dialog</attribute>
       </item>
       <item>
+        <attribute name="label" translatable="yes">Print...</attribute>
+        <attribute name="action">win.print</attribute>
+      </item>
+      <item>
         <attribute name="label" translatable="yes">_Preferences</attribute>
         <attribute name="action">win.preferences</attribute>
       </item>

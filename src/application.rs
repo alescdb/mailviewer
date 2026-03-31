@@ -51,6 +51,7 @@ mod imp {
       obj.setup_gactions();
       obj.set_accels_for_action("app.quit", &["<primary>q"]);
       obj.set_accels_for_action("win.open-file-dialog", &["<primary>o"]);
+      obj.set_accels_for_action("win.print", &["<primary>o"]);
       obj.set_accels_for_action("win.reset-zoom", &["<primary>r"]);
     }
   }
