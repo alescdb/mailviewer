@@ -44,6 +44,13 @@
   <content_rating type="oars-1.0" />
   <developer_name>Alexandre Del Bigio</developer_name>
   <releases>
+    <release version="1.0.6" date="2026-03-31">
+      <description>
+        <ul>
+          <li>Feature : Print (in menu)</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.5" date="2025-11-17">
       <description>
         <ul>
