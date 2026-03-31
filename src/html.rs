@@ -43,6 +43,15 @@ impl Html {
     }
   }
 
+  pub fn escape(value: &str) -> String {
+    value
+      .replace('&', "&amp;")
+      .replace('<', "&lt;")
+      .replace('>', "&gt;")
+      .replace('"', "&quot;")
+      .replace('\'', "&#39;")
+  }
+
   pub fn safe(&self) -> String {
     let document = Document::from(&self.body);
     document
