@@ -146,7 +146,7 @@ mod imp {
       klass.install_action_async(
         "win.print",
         None,
-        |window, _, parameter: Option<glib::Variant>| async move {
+        |window, _, _| async move {
           window.print().await;
         },
       );
