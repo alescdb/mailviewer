@@ -44,6 +44,14 @@
   <content_rating type="oars-1.0" />
   <developer_name>Alexandre Del Bigio</developer_name>
   <releases>
+    <release version="1.0.7" date="2026-04-15">
+      <description>
+        <ul>
+          <li>Sync "Show remote images" status for html print</li>
+          <li>Outlook (msg) now support HTML</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.6" date="2026-03-31">
       <description>
         <ul>
