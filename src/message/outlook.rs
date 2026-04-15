@@ -35,6 +35,7 @@ pub struct OutlookMessage {
   pub date: String,
   pub subject: String,
   pub body: Option<String>,
+  pub html: Option<String>,
   pub attachments: Vec<Attachment>,
 }
 
@@ -47,6 +48,7 @@ impl OutlookMessage {
       date: String::new(),
       subject: String::new(),
       body: None,
+      html: None,
       attachments: vec![],
     }
   }
@@ -62,6 +64,12 @@ impl OutlookMessage {
       .collect::<Vec<String>>()
       .join(", ")
   }
+
+  /* some msg fields contains null bytes and gtk4 components can't handle them */
+  fn clean_string(mut value: String) -> String {
+    value.retain(|c| c != '\0');
+    value
+  }
 }
 
 impl Message for OutlookMessage {
@@ -72,21 +80,36 @@ impl Message for OutlookMessage {
       cancellable.set_error_if_cancelled()?;
     }
 
-    self.from = OutlookMessage::person_to_string(&outlook.sender);
-    self.to = OutlookMessage::person_list_to_string(&outlook.to);
-    self.subject = outlook.subject;
-    self.date = outlook.headers.date;
-    self.body = Some(outlook.body.clone());
+    self.from = Self::clean_string(OutlookMessage::person_to_string(&outlook.sender));
+    self.to = Self::clean_string(OutlookMessage::person_list_to_string(&outlook.to));
+    self.subject = Self::clean_string(outlook.subject);
+    self.date = Self::clean_string(outlook.headers.date);
+    self.body = Some(Self::clean_string(outlook.body.clone()));
+    self.html = if outlook.html.is_empty() {
+      None
+    } else {
+      match hex::decode(&outlook.html) {
+        Ok(bytes) => Some(
+          String::from_utf8(bytes).unwrap_or_else(|_| Self::clean_string(outlook.html.clone())),
+        ),
+        Err(e) => {
+          log::error!("Failed to decode Hex -> HTML: {}", e);
+          Some(Self::clean_string(outlook.html.clone()))
+        }
+      }
+    };
 
-    for i in 0..outlook.attachments.capacity() {
+    // log::debug!("[DEBUG] OUTLOOK HTML: {}", &outlook.html);
+    // log::debug!("[DEBUG] OUTLOOK HTML Final: {:?}", &self.html);
+
+    for att in &outlook.attachments {
       if let Some(cancellable) = cancellable {
         cancellable.set_error_if_cancelled()?;
       }
 
-      let att = &outlook.attachments[i];
       self.attachments.push(Attachment {
-        filename: att.file_name.clone(),
-        content_id: att.file_name.clone(), // Uuid::new_v4().simple().to_string(),
+        filename: Self::clean_string(att.file_name.clone()),
+        content_id: Self::clean_string(att.file_name.clone()), // Uuid::new_v4().simple().to_string(),
         body: hex::decode(&att.payload)?,
         mime_type: Some(att.mime_tag.clone()),
       });
@@ -116,7 +139,7 @@ impl Message for OutlookMessage {
   }
 
   fn body_html(&self) -> Option<String> {
-    None
+    self.html.clone()
   }
 
   fn body_text(&self) -> Option<String> {
@@ -155,5 +178,10 @@ mod tests {
       "image/png"
     );
     Ok(())
+  }
+
+  #[test]
+  fn clean_string_bytes() {
+    assert_eq!(OutlookMessage::clean_string("a\0b\0c".to_string()), "abc");
   }
 }
