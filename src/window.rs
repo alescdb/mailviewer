@@ -272,7 +272,7 @@ impl MailViewerWindow {
     websettings.set_enable_javascript(false);
     websettings.set_enable_webgl(false);
     websettings.set_enable_webaudio(false);
-    websettings.set_auto_load_images(false);
+    websettings.set_auto_load_images(self.imp().show_images.is_active());
     webview.set_settings(&websettings);
     webview.set_editable(false);
     webview.connect_context_menu(move |_, _, _| {
