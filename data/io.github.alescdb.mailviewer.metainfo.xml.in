@@ -44,6 +44,14 @@
   <content_rating type="oars-1.0" />
   <developer_name>Alexandre Del Bigio</developer_name>
   <releases>
+    <release version="1.0.8" date="2026-04-16">
+      <description>
+        <ul>
+          <li>Better print support (escape HTML when printing text)</li>
+          <li>Outlook (msg) don't show text button if text field is empty</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.7" date="2026-04-15">
       <description>
         <ul>
