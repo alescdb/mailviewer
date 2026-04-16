@@ -84,7 +84,11 @@ impl Message for OutlookMessage {
     self.to = Self::clean_string(OutlookMessage::person_list_to_string(&outlook.to));
     self.subject = Self::clean_string(outlook.subject);
     self.date = Self::clean_string(outlook.headers.date);
-    self.body = Some(Self::clean_string(outlook.body.clone()));
+    self.body = if outlook.body.is_empty() {
+      None
+    } else {
+      Some(Self::clean_string(outlook.body.clone()))
+    };
     self.html = if outlook.html.is_empty() {
       None
     } else {
