@@ -589,14 +589,14 @@ impl MailViewerWindow {
     if let Some(html) = imp.service.body_html() {
       content = Html::new(&html, false).safe();
     } else if let Some(text) = imp.service.body_text() {
-      content = format!("<pre>{}</pre>", text);
+      content = format!("<pre>{}</pre>", Html::escape(&text));
     } else {
       content = String::new();
     }
-    let from = imp.service.from().as_str().to_string();
-    let date = imp.service.date().as_str().to_string();
-    let to = imp.service.to().as_str().to_string();
-    let subject = imp.service.subject().as_str().to_string();
+    let from = Html::escape(&imp.service.from().as_str().to_string());
+    let date = Html::escape(&imp.service.date().as_str().to_string());
+    let to = Html::escape(&imp.service.to().as_str().to_string());
+    let subject = Html::escape(&imp.service.subject().as_str().to_string());
     let attachments = imp
       .service
       .attachments()
@@ -624,14 +624,18 @@ impl MailViewerWindow {
             overflow-wrap: anywhere;
             word-break: break-word;
         }}
+        th {{
+            vertical-align: top;
+            text-align: left;
+        }}
         </style>
       </head>
       <body>
         <table class="header">
-          <tr><td>From :&nbsp;</td><td>{from}</td></tr>
-          <tr><td>To :&nbsp;</td><td>{to}</td></tr>
-          <tr><td>Date :&nbsp;</td><td>{date}</td></tr>
-          <tr><td>Subject :&nbsp;</td><td>{subject}</td></tr>
+          <tr><th>From:&nbsp;</th><td>{from}</td></tr>
+          <tr><th>To:&nbsp;</th><td>{to}</td></tr>
+          <tr><th>Date:&nbsp;</th><td>{date}</td></tr>
+          <tr><th>Subject:&nbsp;</th><td>{subject}</td></tr>
         </table>
         <hr />
         <div class="body">
