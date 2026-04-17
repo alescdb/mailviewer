@@ -5,7 +5,6 @@ on:
     tags:
       - "[0-9]+.[0-9]+.[0-9]+"
 
-
 jobs:
   flatpak:
     name: "Flatpak"
@@ -60,12 +59,8 @@ jobs:
           merge-multiple: true
           path: .
 
-      - uses: dciborow/action-github-releases@v1.0.1
+      - uses: softprops/action-gh-release@v1
         with:
-          repo_token: "${{ secrets.RELEASE_TOKEN }}"
-          prerelease: false
-          automatic_release_tag: "latest"
-          title: "Pre-release"
           files: |
             LICENSE
             *.flatpak
