@@ -1,11 +1,13 @@
-CURRENT_DIR := $(shell pwd)
-BUILD_DIR   := _build
-DEBUG       := $(CURRENT_DIR)/dist
-EXECUTABLE  := $(CURRENT_DIR)/dist/bin/mailviewer
-SOURCES     := $(wildcard src/**.rs src/**.ui src/**.css src/config.rs.in)
-RESOURCES   := $(DEBUG)/share/mailviewer/mailviewer.gresource
-SCHEMAS     := $(DEBUG)/dist/share/glib-2.0/schemas/gschemas.compiled
-MANIFEST    := $(CURRENT_DIR)/io.github.alescdb.mailviewer.json
+CURRENT_DIR       := $(shell pwd)
+BUILD_DIR         := _build
+DEBUG             := $(CURRENT_DIR)/dist
+EXECUTABLE        := $(CURRENT_DIR)/dist/bin/mailviewer
+SOURCES           := $(wildcard src/**.rs src/**.ui src/**.css src/config.rs.in)
+RESOURCES         := $(DEBUG)/share/mailviewer/mailviewer.gresource
+SCHEMAS           := $(DEBUG)/dist/share/glib-2.0/schemas/gschemas.compiled
+MANIFEST          := $(CURRENT_DIR)/io.github.alescdb.mailviewer.json
+FLATPAK_SOURCES   := $(CURRENT_DIR)/mailviewer-sources.json
+FLATPAK_GENERATOR := $(CURRENT_DIR)/flatpak-cargo-generator.py
 
 all:
 	cargo build
@@ -19,7 +21,17 @@ test:
 format:
 	cargo +nightly fmt
 
-flatpak: $(SOURCES) $(MANIFEST)
+$(FLATPAK_GENERATOR):
+	@if [ ! -f "$(FLATPAK_GENERATOR)" ]; then \
+			wget -q -O "$(FLATPAK_GENERATOR)" https://raw.githubusercontent.com/flatpak/flatpak-builder-tools/refs/heads/master/cargo/flatpak-cargo-generator.py; \
+	fi
+
+$(FLATPAK_SOURCES): Cargo.lock $(FLATPAK_GENERATOR)
+	@python3 "$(FLATPAK_GENERATOR)" -o "$(FLATPAK_SOURCES)" Cargo.lock
+
+flatpak-sources: $(FLATPAK_SOURCES)
+
+flatpak-build: $(FLATPAK_SOURCES) $(SOURCES) $(MANIFEST)
 	flatpak run org.flatpak.Builder \
 		--force-clean \
 		--user \
@@ -29,6 +41,8 @@ flatpak: $(SOURCES) $(MANIFEST)
 		--mirror-screenshots-url=https://dl.flathub.org/media/ \
 		--repo=repo \
 		builddir $(MANIFEST)
+
+flatpak: flatpak-build
 	
 flatpak-run:
 	RUST_LOG=mailviewer=debug flatpak run io.github.alescdb.mailviewer sample.eml
@@ -78,4 +92,4 @@ utils:
 clean:
 	rm -rf $(BUILD_DIR) $(DEBUG) target buildir .flatpak .flatpak-builder .repo .venv flatpak-cargo-generator.py
 
-.PHONY: all format build reconfigure flatpak-run install clean po $(BUILD_DIR)
+.PHONY: all format build reconfigure flatpak flatpak-build flatpak-sources flatpak-run install clean po $(BUILD_DIR)
