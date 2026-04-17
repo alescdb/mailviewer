@@ -3,11 +3,11 @@ name: release
 on:
   push:
     tags:
-      - "[0-9]*.[0-9]*.[0-9]*"
+      - '**'
 
 jobs:
   flatpak:
-    name: "Flatpak"
+    name: "flatpak build"
     strategy:
       matrix:
         variant:
@@ -24,16 +24,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Generate flatpak sources (python container)
-        uses: docker://python:3.11
-        with:
-          args: >
-            bash -lc "set -e;
-            pip install --no-cache-dir aiohttp toml tomlkit &&
-            wget -q https://raw.githubusercontent.com/flatpak/flatpak-builder-tools/refs/heads/master/cargo/flatpak-cargo-generator.py &&
-            python3 flatpak-cargo-generator.py -o mailviewer-sources.json Cargo.lock"
+      - name: set GITHUB_SHA 
+        id: short_sha
+        run: echo "short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        name: flatpak-builder
         with:
           bundle: mailviewer-${{ matrix.variant.arch }}.flatpak
           manifest-path: io.github.alescdb.mailviewer.json
@@ -41,6 +37,7 @@ jobs:
           arch: ${{ matrix.variant.arch }}
 
       - uses: actions/upload-artifact@v4
+        name: upload
         with:
           name: flatpak-${{ matrix.variant.arch }}
           if-no-files-found: error
@@ -55,7 +52,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Download flatpak artifacts into workspace root
+      - name: download flatpak artifacts into workspace root
         uses: actions/download-artifact@v4
         with:
           pattern: flatpak-*
