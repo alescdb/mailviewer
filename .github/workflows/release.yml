@@ -3,7 +3,7 @@ name: release
 on:
   push:
     tags:
-      - "[0-9]+.[0-9]+.[0-9]+"
+      - "[0-9]*.[0-9]*.[0-9]*"
 
 jobs:
   flatpak:
@@ -18,11 +18,11 @@ jobs:
     runs-on: ${{ matrix.variant.runner }}
 
     container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-49
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-50
       options: --privileged
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Generate flatpak sources (python container)
         uses: docker://python:3.11
@@ -43,15 +43,18 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: flatpak-${{ matrix.variant.arch }}
-          path: |
-            LICENSE
-            *.flatpak
+          if-no-files-found: error
+          path: "*.flatpak"
 
   release:
     name: release
     needs: [flatpak]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
+      - uses: actions/checkout@v6
+
       - name: Download flatpak artifacts into workspace root
         uses: actions/download-artifact@v4
         with:
@@ -59,8 +62,9 @@ jobs:
           merge-multiple: true
           path: .
 
-      - uses: softprops/action-gh-release@v1
+      - uses: softprops/action-gh-release@v3
         with:
+          fail_on_unmatched_files: true
           files: |
             LICENSE
             *.flatpak
