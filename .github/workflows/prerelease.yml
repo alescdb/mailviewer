@@ -7,7 +7,7 @@ on:
 
 jobs:
   flatpak:
-    name: "Flatpak"
+    name: "flatpak build"
     strategy:
       matrix:
         variant:
@@ -51,8 +51,9 @@ jobs:
           path: "*.flatpak"
 
   prerelease:
-    name: "prerelease build"
+    name: "prerelease"
     needs: [flatpak]
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -66,9 +67,12 @@ jobs:
           merge-multiple: true
           path: .
 
-      - uses: softprops/action-gh-release@v3
+      - uses: dciborow/action-github-releases@v1.0.1
         with:
-          fail_on_unmatched_files: true
+          repo_token: ${{ secrets.RELEASE_TOKEN }}
+          prerelease: true
+          automatic_release_tag: prerelease
+          title: prerelease
           files: |
             LICENSE
             *.flatpak
