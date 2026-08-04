@@ -1,0 +1,9 @@
+MIME-Version: 1.0
+Date: Thu, 30 Jul 2026 18:06:08 +0200
+Message-ID: <date-positive-offset@mailviewer.test>
+Subject: Date test positive offset
+From: MailViewer Tests <tests@mailviewer.test>
+To: MailViewer Tests <tests@mailviewer.test>
+Content-Type: text/plain; charset="UTF-8"
+
+This message represents the same instant as date-utc.eml with a +0200 offset.

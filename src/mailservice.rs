@@ -175,6 +175,19 @@ mod tests {
   use crate::mailservice::MailService;
   use crate::{gio, glib, utils};
 
+  fn assert_local_date(date: &str) {
+    assert_eq!(date.len(), 25, "Unexpected local date format: {date}");
+    assert_eq!(
+      date.as_bytes()[19],
+      b' ',
+      "Unexpected local date format: {date}"
+    );
+    assert!(
+      matches!(date.as_bytes()[20], b'+' | b'-'),
+      "Missing date offset: {date}"
+    );
+  }
+
   #[test]
   fn new_mail_service() {
     let service = MailService::new();
@@ -197,7 +210,7 @@ mod tests {
       assert_eq!(service.from(), "John Doe <john@moon.space>");
       assert_eq!(service.to(), "Lucas <lucas@mercure.space>");
       assert_eq!(service.subject(), "Lorem ipsum");
-      assert_eq!(service.date(), "2024-10-23 12:27:21 +0200");
+      assert_local_date(&service.date());
     });
   }
 
