@@ -17,15 +17,17 @@
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-use ctor::{ctor, dtor};
-#[ctor]
+use ctor::ctor;
+use dtor::dtor;
+
+#[ctor(unsafe)]
 fn initialize_gmime() {
   unsafe {
     gmime::ffi::g_mime_init();
   }
 }
 
-#[dtor]
+#[dtor(unsafe)]
 fn shutdown_gmime() {
   unsafe {
     gmime::ffi::g_mime_shutdown();
