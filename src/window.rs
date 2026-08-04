@@ -26,8 +26,7 @@ use gettextrs::{gettext, ngettext};
 use gtk4::{gio, glib, template_callbacks};
 use webkit6::prelude::{PolicyDecisionExt, WebViewExt};
 use webkit6::{
-  NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, PrintOperation,
-  PrintOperationResponse, WebView,
+  NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, PrintOperation, PrintOperationResponse, WebView
 };
 
 use crate::html::Html;
@@ -143,13 +142,9 @@ mod imp {
           window.open_file_dialog(close).await;
         },
       );
-      klass.install_action_async(
-        "win.print",
-        None,
-        |window, _, _| async move {
-          window.print().await;
-        },
-      );
+      klass.install_action_async("win.print", None, |window, _, _| async move {
+        window.print().await;
+      });
       klass.install_action_async(
         "win.open-file",
         None,

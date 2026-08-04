@@ -17,15 +17,15 @@
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-use crate::gio;
-use gmime::glib;
 use std::error::Error;
 
 use gio::prelude::*;
+use gmime::glib;
 use msg_parser::Outlook;
 
 use super::attachment::Attachment;
 use super::message::Message;
+use crate::gio;
 use crate::message::message::MessageParser;
 
 #[derive(Debug, Default, Clone)]

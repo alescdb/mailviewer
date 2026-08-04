@@ -1,0 +1,10 @@
+MIME-Version: 1.0
+Date: Thu, 30 Jul 2026 16:06:08 +0000
+Message-ID: <date-bug-report-bst@mailviewer.test>
+Subject: Date display timezone report
+From: MailViewer Tests <tests@mailviewer.test>
+To: MailViewer Tests <tests@mailviewer.test>
+Content-Type: text/plain; charset="UTF-8"
+
+The mail client displays this message as Thu, 30 Jul 2026 17:06:08 +0100.
+The Date header is Thu, 30 Jul 2026 16:06:08 +0000.

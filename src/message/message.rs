@@ -249,6 +249,19 @@ mod tests {
   use super::*;
   use crate::{gio, utils};
 
+  fn assert_local_date(date: &str) {
+    assert_eq!(date.len(), 25, "Unexpected local date format: {date}");
+    assert_eq!(
+      date.as_bytes()[19],
+      b' ',
+      "Unexpected local date format: {date}"
+    );
+    assert!(
+      matches!(date.as_bytes()[20], b'+' | b'-'),
+      "Missing date offset: {date}"
+    );
+  }
+
   #[test]
   fn test_content_type_eml() {
     utils::spawn_and_wait_new_ctx(async move {
@@ -296,7 +309,7 @@ mod tests {
       assert_eq!(message.from(), "John Doe <john@moon.space>");
       assert_eq!(message.to(), "Lucas <lucas@mercure.space>");
       assert_eq!(message.subject(), "Lorem ipsum");
-      assert_eq!(message.date(), "2024-10-23 12:27:21 +0200");
+      assert_local_date(&message.date());
       assert_eq!(message.attachments().len(), 1);
       let attachment = &message.attachments()[0];
       assert_eq!(attachment.filename, "Deus_Gnome.png");

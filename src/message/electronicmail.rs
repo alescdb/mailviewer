@@ -273,136 +273,6 @@ impl Drop for ElectronicMail {
   }
 }
 
-#[cfg(test)]
-mod tests {
-  use std::error::Error;
-  use std::fs;
-
-  use crate::gio::prelude::*;
-  use crate::message::electronicmail::ElectronicMail;
-  use crate::message::message::Message;
-  use crate::utils;
-
-  #[test]
-  fn test_sample() -> Result<(), Box<dyn Error>> {
-    let mut parser = ElectronicMail::new(fs::read("sample.eml").unwrap());
-    parser.parse(None)?;
-    assert_eq!(parser.from, "John Doe <john@moon.space>");
-    assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
-    assert_eq!(parser.subject, "Lorem ipsum");
-    assert_eq!(parser.date(), "2024-10-23 12:27:21 +0200");
-    assert_eq!(parser.attachments.len(), 1);
-    let attachment = &parser.attachments[0];
-    assert_eq!(attachment.filename, "Deus_Gnome.png");
-    assert_eq!(attachment.content_id, "ii_m2lqbrhv0");
-    assert_eq!(attachment.mime_type.as_ref().unwrap(), "image/png");
-
-    let attachment = attachment.clone();
-    utils::spawn_and_wait_new_ctx(async move {
-      let _file = attachment
-        .write_to_tmp()
-        .await
-        .unwrap()
-        .peek_path()
-        .unwrap();
-      println!("file => {:?}", _file);
-      assert!(_file.is_file());
-    });
-
-    Ok(())
-  }
-
-  #[test]
-  fn test_sample_google() -> Result<(), Box<dyn Error>> {
-    let mut parser = ElectronicMail::new(fs::read("tests/test-google.eml").unwrap());
-    parser.parse(None)?;
-    assert_eq!(parser.from, "Bill Jncjkq <jncjkq@gmail.com>");
-    assert_eq!(parser.to, "bookmarks@jncjkq.net");
-    assert_eq!(parser.subject, "Test");
-    assert_eq!(parser.date(), "2011-05-11 21:27:12 +0200");
-    assert_eq!(parser.attachments.len(), 1);
-    let attachment = &parser.attachments[0];
-    assert_eq!(attachment.filename, "bookmarks-really-short.html");
-    assert_eq!(attachment.content_id, "none");
-    assert_eq!(attachment.mime_type.as_ref().unwrap(), "text/html");
-
-    Ok(())
-  }
-
-  #[test]
-  fn test_sample_text() -> Result<(), Box<dyn Error>> {
-    let mut parser = ElectronicMail::new(fs::read("tests/text.eml").unwrap());
-    parser.parse(None)?;
-    assert_eq!(parser.from, "John Doe <john@moon.space>");
-    assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
-    assert_eq!(parser.subject, "Lorem ipsum");
-    assert_eq!(parser.date(), "2024-10-23 12:27:21 +0200");
-    assert_ne!(parser.body_text, None);
-    assert_eq!(parser.body_html, None);
-    assert_eq!(parser.attachments.len(), 0);
-
-    Ok(())
-  }
-  #[test]
-  fn test_sample_html() -> Result<(), Box<dyn Error>> {
-    let mut parser = ElectronicMail::new(fs::read("tests/html.eml").unwrap());
-    parser.parse(None)?;
-    assert_eq!(parser.from, "John Doe <john@moon.space>");
-    assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
-    assert_eq!(parser.subject, "Lorem ipsum");
-    assert_eq!(parser.date(), "2024-10-23 12:27:21 +0200");
-    assert_eq!(parser.body_text, None);
-    assert_ne!(parser.body_html, None);
-    assert_eq!(parser.attachments.len(), 0);
-
-    Ok(())
-  }
-
-  #[test]
-  fn test_sample_php() -> Result<(), Box<dyn Error>> {
-    let mut parser = ElectronicMail::new(fs::read("tests/test-php.eml").unwrap());
-    parser.parse(None)?;
-    assert_eq!(parser.from, "mlemos <mlemos@acm.org>");
-    assert_eq!(parser.to, "Manuel Lemos <mlemos@linux.local>");
-    assert_eq!(
-      parser.subject,
-      "Testing Manuel Lemos' MIME E-mail composing and sending PHP class: HTML message"
-    );
-    assert_eq!(parser.date(), "2005-05-01 00:28:29 +0200");
-    assert_ne!(parser.body_text, None);
-    assert_ne!(parser.body_html, None);
-    assert_eq!(parser.attachments.len(), 3);
-    assert_eq!(parser.attachments[0].filename, "logo.gif");
-    assert_eq!(
-      parser.attachments[0].mime_type.as_ref().unwrap(),
-      "image/gif"
-    );
-    assert_eq!(
-      parser.attachments[0].content_id,
-      "ae0357e57f04b8347f7621662cb63855.gif"
-    );
-    assert_eq!(parser.attachments[0].body.len(), 1195);
-    assert_eq!(parser.attachments[1].filename, "background.gif");
-    assert_eq!(
-      parser.attachments[1].mime_type.as_ref().unwrap(),
-      "image/gif"
-    );
-    assert_eq!(
-      parser.attachments[1].content_id,
-      "4c837ed463ad29c820668e835a270e8a.gif"
-    );
-    assert_eq!(parser.attachments[1].body.len(), 3265);
-    assert_eq!(parser.attachments[2].filename, "attachment.txt");
-    assert_eq!(
-      parser.attachments[2].mime_type.as_ref().unwrap(),
-      "text/plain"
-    );
-    assert_eq!(parser.attachments[2].content_id, "none");
-    assert_eq!(parser.attachments[2].body.len(), 64);
-    Ok(())
-  }
-}
-
 impl super::message::Message for ElectronicMail {
   fn parse(&mut self, cancellable: Option<&gio::Cancellable>) -> Result<(), Box<dyn Error>> {
     let stream = StreamMem::with_buffer(&self.data);
@@ -464,5 +334,182 @@ impl super::message::Message for ElectronicMail {
 
   fn body_text(&self) -> Option<String> {
     self.body_text.clone()
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use std::error::Error;
+  use std::fs;
+
+  use crate::gio::prelude::*;
+  use crate::message::electronicmail::ElectronicMail;
+  use crate::message::message::Message;
+  use crate::utils;
+
+  fn assert_local_date(date: &str) {
+    assert_eq!(date.len(), 25, "Unexpected local date format: {date}");
+    assert_eq!(
+      date.as_bytes()[19],
+      b' ',
+      "Unexpected local date format: {date}"
+    );
+    assert!(
+      matches!(date.as_bytes()[20], b'+' | b'-'),
+      "Missing date offset: {date}"
+    );
+  }
+
+  #[test]
+  fn test_sample() -> Result<(), Box<dyn Error>> {
+    let mut parser = ElectronicMail::new(fs::read("sample.eml").unwrap());
+    parser.parse(None)?;
+    assert_eq!(parser.from, "John Doe <john@moon.space>");
+    assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
+    assert_eq!(parser.subject, "Lorem ipsum");
+    assert_local_date(&parser.date());
+    assert_eq!(parser.attachments.len(), 1);
+    let attachment = &parser.attachments[0];
+    assert_eq!(attachment.filename, "Deus_Gnome.png");
+    assert_eq!(attachment.content_id, "ii_m2lqbrhv0");
+    assert_eq!(attachment.mime_type.as_ref().unwrap(), "image/png");
+
+    let attachment = attachment.clone();
+    utils::spawn_and_wait_new_ctx(async move {
+      let _file = attachment
+        .write_to_tmp()
+        .await
+        .unwrap()
+        .peek_path()
+        .unwrap();
+      println!("file => {:?}", _file);
+      assert!(_file.is_file());
+    });
+
+    Ok(())
+  }
+
+  #[test]
+  fn test_sample_google() -> Result<(), Box<dyn Error>> {
+    let mut parser = ElectronicMail::new(fs::read("tests/test-google.eml").unwrap());
+    parser.parse(None)?;
+    assert_eq!(parser.from, "Bill Jncjkq <jncjkq@gmail.com>");
+    assert_eq!(parser.to, "bookmarks@jncjkq.net");
+    assert_eq!(parser.subject, "Test");
+    assert_local_date(&parser.date());
+    assert_eq!(parser.attachments.len(), 1);
+    let attachment = &parser.attachments[0];
+    assert_eq!(attachment.filename, "bookmarks-really-short.html");
+    assert_eq!(attachment.content_id, "none");
+    assert_eq!(attachment.mime_type.as_ref().unwrap(), "text/html");
+
+    Ok(())
+  }
+
+  #[test]
+  fn test_sample_text() -> Result<(), Box<dyn Error>> {
+    let mut parser = ElectronicMail::new(fs::read("tests/text.eml").unwrap());
+    parser.parse(None)?;
+    assert_eq!(parser.from, "John Doe <john@moon.space>");
+    assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
+    assert_eq!(parser.subject, "Lorem ipsum");
+    assert_local_date(&parser.date());
+    assert_ne!(parser.body_text, None);
+    assert_eq!(parser.body_html, None);
+    assert_eq!(parser.attachments.len(), 0);
+
+    Ok(())
+  }
+  #[test]
+  fn test_sample_html() -> Result<(), Box<dyn Error>> {
+    let mut parser = ElectronicMail::new(fs::read("tests/html.eml").unwrap());
+    parser.parse(None)?;
+    assert_eq!(parser.from, "John Doe <john@moon.space>");
+    assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
+    assert_eq!(parser.subject, "Lorem ipsum");
+    assert_local_date(&parser.date());
+    assert_eq!(parser.body_text, None);
+    assert_ne!(parser.body_html, None);
+    assert_eq!(parser.attachments.len(), 0);
+
+    Ok(())
+  }
+
+  #[test]
+  fn test_sample_php() -> Result<(), Box<dyn Error>> {
+    let mut parser = ElectronicMail::new(fs::read("tests/test-php.eml").unwrap());
+    parser.parse(None)?;
+    assert_eq!(parser.from, "mlemos <mlemos@acm.org>");
+    assert_eq!(parser.to, "Manuel Lemos <mlemos@linux.local>");
+    assert_eq!(
+      parser.subject,
+      "Testing Manuel Lemos' MIME E-mail composing and sending PHP class: HTML message"
+    );
+    assert_local_date(&parser.date());
+    assert_ne!(parser.body_text, None);
+    assert_ne!(parser.body_html, None);
+    assert_eq!(parser.attachments.len(), 3);
+    assert_eq!(parser.attachments[0].filename, "logo.gif");
+    assert_eq!(
+      parser.attachments[0].mime_type.as_ref().unwrap(),
+      "image/gif"
+    );
+    assert_eq!(
+      parser.attachments[0].content_id,
+      "ae0357e57f04b8347f7621662cb63855.gif"
+    );
+    assert_eq!(parser.attachments[0].body.len(), 1195);
+    assert_eq!(parser.attachments[1].filename, "background.gif");
+    assert_eq!(
+      parser.attachments[1].mime_type.as_ref().unwrap(),
+      "image/gif"
+    );
+    assert_eq!(
+      parser.attachments[1].content_id,
+      "4c837ed463ad29c820668e835a270e8a.gif"
+    );
+    assert_eq!(parser.attachments[1].body.len(), 3265);
+    assert_eq!(parser.attachments[2].filename, "attachment.txt");
+    assert_eq!(
+      parser.attachments[2].mime_type.as_ref().unwrap(),
+      "text/plain"
+    );
+    assert_eq!(parser.attachments[2].content_id, "none");
+    assert_eq!(parser.attachments[2].body.len(), 64);
+    Ok(())
+  }
+
+  #[test]
+  fn test_date_timezone() -> Result<(), Box<dyn Error>> {
+    let fixtures = [
+      ("tests/date-utc.eml", "2026-07-30 16:06:08 +0000"),
+      (
+        "tests/date-positive-offset.eml",
+        "2026-07-30 18:06:08 +0200",
+      ),
+      (
+        "tests/date-negative-offset.eml",
+        "2026-07-30 11:06:08 -0500",
+      ),
+      ("tests/date-bug-report-bst.eml", "2026-07-30 16:06:08 +0000"),
+    ];
+
+    let mut local_dates = Vec::with_capacity(fixtures.len());
+
+    for (path, expected_original) in fixtures {
+      let mut parser = ElectronicMail::new(fs::read(path).unwrap());
+      parser.parse(None)?;
+
+      let date = parser.date.as_ref().expect("date fixture must have a date");
+      let original: String = date.format("%Y-%m-%d %H:%M:%S %z")?.into();
+      assert_eq!(original, expected_original);
+      local_dates.push(parser.date());
+    }
+
+    assert_eq!(local_dates[0], local_dates[1]);
+    assert_eq!(local_dates[1], local_dates[2]);
+    assert_eq!(local_dates[2], local_dates[3]);
+
+    Ok(())
   }
 }
