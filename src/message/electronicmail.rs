@@ -52,7 +52,7 @@ pub struct ElectronicMail {
   data: Vec<u8>,
   pub from: String,
   pub to: String,
-  pub date: String,
+  pub date: Option<gmime::DateTime>,
   pub subject: String,
   pub body_html: Option<String>,
   pub body_text: Option<String>,
@@ -68,7 +68,7 @@ impl ElectronicMail {
       subject: String::new(),
       body_html: None,
       body_text: None,
-      date: String::new(),
+      date: None,
       attachments: vec![],
     }
   }
@@ -178,21 +178,12 @@ impl ElectronicMail {
   }
 
   // It seems that gmime-rs has a memory free bug with g_mime_message_get_date()
-  fn my_mime_message_get_date(e: &Message) -> Option<String> {
-    let date: Option<glib::DateTime> = unsafe {
+  fn my_mime_message_get_date(e: &Message) -> Option<glib::DateTime> {
+    unsafe {
       glib::translate::from_glib_none(gmime::ffi::g_mime_message_get_date(
         glib::translate::ToGlibPtr::to_glib_none(&e).0,
       ))
-    };
-    let fmt_date: Option<String> = if let Some(date) = date {
-      match date.format("%Y-%m-%d %H:%M:%S") {
-        Ok(f) => Some(f.into()),
-        Err(_) => None,
-      }
-    } else {
-      None
-    };
-    fmt_date
+    }
   }
 
   fn integrate_cid(&self, body: &str) -> String {
@@ -299,7 +290,7 @@ mod tests {
     assert_eq!(parser.from, "John Doe <john@moon.space>");
     assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
     assert_eq!(parser.subject, "Lorem ipsum");
-    assert_eq!(parser.date, "2024-10-23 12:27:21");
+    assert_eq!(parser.date(), "2024-10-23 12:27:21 +0200");
     assert_eq!(parser.attachments.len(), 1);
     let attachment = &parser.attachments[0];
     assert_eq!(attachment.filename, "Deus_Gnome.png");
@@ -328,7 +319,7 @@ mod tests {
     assert_eq!(parser.from, "Bill Jncjkq <jncjkq@gmail.com>");
     assert_eq!(parser.to, "bookmarks@jncjkq.net");
     assert_eq!(parser.subject, "Test");
-    assert_eq!(parser.date, "2011-05-11 13:27:12");
+    assert_eq!(parser.date(), "2011-05-11 21:27:12 +0200");
     assert_eq!(parser.attachments.len(), 1);
     let attachment = &parser.attachments[0];
     assert_eq!(attachment.filename, "bookmarks-really-short.html");
@@ -345,7 +336,7 @@ mod tests {
     assert_eq!(parser.from, "John Doe <john@moon.space>");
     assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
     assert_eq!(parser.subject, "Lorem ipsum");
-    assert_eq!(parser.date, "2024-10-23 12:27:21");
+    assert_eq!(parser.date(), "2024-10-23 12:27:21 +0200");
     assert_ne!(parser.body_text, None);
     assert_eq!(parser.body_html, None);
     assert_eq!(parser.attachments.len(), 0);
@@ -359,7 +350,7 @@ mod tests {
     assert_eq!(parser.from, "John Doe <john@moon.space>");
     assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
     assert_eq!(parser.subject, "Lorem ipsum");
-    assert_eq!(parser.date, "2024-10-23 12:27:21");
+    assert_eq!(parser.date(), "2024-10-23 12:27:21 +0200");
     assert_eq!(parser.body_text, None);
     assert_ne!(parser.body_html, None);
     assert_eq!(parser.attachments.len(), 0);
@@ -377,7 +368,7 @@ mod tests {
       parser.subject,
       "Testing Manuel Lemos' MIME E-mail composing and sending PHP class: HTML message"
     );
-    assert_eq!(parser.date, "2005-04-30 19:28:29");
+    assert_eq!(parser.date(), "2005-05-01 00:28:29 +0200");
     assert_ne!(parser.body_text, None);
     assert_ne!(parser.body_html, None);
     assert_eq!(parser.attachments.len(), 3);
@@ -435,9 +426,7 @@ impl super::message::Message for ElectronicMail {
       if let Some(subject) = &eml.subject() {
         self.subject = subject.to_string();
       }
-      if let Some(date) = ElectronicMail::my_mime_message_get_date(&eml) {
-        self.date = date;
-      }
+      self.date = ElectronicMail::my_mime_message_get_date(&eml);
       self.parse_body(&eml);
     }
     stream.close();
@@ -462,7 +451,7 @@ impl super::message::Message for ElectronicMail {
   }
 
   fn date(&self) -> String {
-    self.date.clone()
+    MessageParser::to_local_date(&self.date)
   }
 
   fn attachments(&self) -> Vec<Attachment> {

@@ -187,6 +187,20 @@ impl MessageParser {
       });
     }
   }
+
+  pub fn to_local_date(date: &Option<gmime::DateTime>) -> String {
+    if let Some(date) = date {
+      match date.to_local() {
+        Ok(local_date) => match local_date.format("%Y-%m-%d %H:%M:%S %z") {
+          Ok(formatted) => formatted.into(),
+          Err(_) => String::new(),
+        },
+        Err(_) => String::new(),
+      }
+    } else {
+      String::new()
+    }
+  }
 }
 
 impl Drop for MessageParser {
@@ -282,7 +296,7 @@ mod tests {
       assert_eq!(message.from(), "John Doe <john@moon.space>");
       assert_eq!(message.to(), "Lucas <lucas@mercure.space>");
       assert_eq!(message.subject(), "Lorem ipsum");
-      assert_eq!(message.date(), "2024-10-23 12:27:21");
+      assert_eq!(message.date(), "2024-10-23 12:27:21 +0200");
       assert_eq!(message.attachments().len(), 1);
       let attachment = &message.attachments()[0];
       assert_eq!(attachment.filename, "Deus_Gnome.png");

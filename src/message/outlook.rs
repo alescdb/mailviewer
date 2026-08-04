@@ -17,6 +17,8 @@
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
+use crate::gio;
+use gmime::glib;
 use std::error::Error;
 
 use gio::prelude::*;
@@ -24,7 +26,6 @@ use msg_parser::Outlook;
 
 use super::attachment::Attachment;
 use super::message::Message;
-use crate::gio;
 use crate::message::message::MessageParser;
 
 #[derive(Debug, Default, Clone)]
@@ -32,7 +33,7 @@ pub struct OutlookMessage {
   data: Vec<u8>,
   pub from: String,
   pub to: String,
-  pub date: String,
+  pub date: Option<gmime::DateTime>,
   pub subject: String,
   pub body: Option<String>,
   pub html: Option<String>,
@@ -45,11 +46,20 @@ impl OutlookMessage {
       data: data,
       from: String::new(),
       to: String::new(),
-      date: String::new(),
+      date: None,
       subject: String::new(),
       body: None,
       html: None,
       attachments: vec![],
+    }
+  }
+
+  fn get_date(&self, dstr: &str) -> Option<gmime::DateTime> {
+    let date = Self::clean_string(dstr.to_string());
+    unsafe {
+      glib::translate::from_glib_full(gmime::ffi::g_mime_utils_header_decode_date(
+        glib::translate::ToGlibPtr::to_glib_none(&date).0,
+      ))
     }
   }
 
@@ -83,7 +93,7 @@ impl Message for OutlookMessage {
     self.from = Self::clean_string(OutlookMessage::person_to_string(&outlook.sender));
     self.to = Self::clean_string(OutlookMessage::person_list_to_string(&outlook.to));
     self.subject = Self::clean_string(outlook.subject);
-    self.date = Self::clean_string(outlook.headers.date);
+    self.date = self.get_date(&outlook.headers.date);
     self.body = if outlook.body.is_empty() {
       None
     } else {
@@ -135,7 +145,7 @@ impl Message for OutlookMessage {
   }
 
   fn date(&self) -> String {
-    self.date.clone()
+    MessageParser::to_local_date(&self.date)
   }
 
   fn attachments(&self) -> Vec<Attachment> {
@@ -173,7 +183,7 @@ mod tests {
     assert_eq!(parser.from, "John Doe <john@moon.space>");
     assert_eq!(parser.to, "Lucas <lucas@mercure.space>");
     assert_eq!(parser.subject, "Lorem ipsum");
-    assert_eq!(parser.date, "");
+    assert!(parser.date.is_none());
     assert_eq!(parser.attachments.len(), 3);
     assert_eq!(parser.attachments[0].filename, "image001.png");
     assert!(parser.body.clone().unwrap().contains("Hello Lucas"));
