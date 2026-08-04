@@ -13,7 +13,8 @@
     "--socket=fallback-x11",
     "--device=dri",
     "--socket=wayland",
-    "--filesystem=xdg-run/mailviewer:create"
+    "--filesystem=xdg-run/mailviewer:create",
+    "--filesystem=home:ro"
   ],
   "build-options": {
     "append-path": "/usr/lib/sdk/rust-stable/bin",
@@ -33,16 +34,16 @@
     "*.a"
   ],
   "modules": [
-        {    
-      "name": "gmime",    
-      "sources": [    
-        {    
-          "type": "archive",    
-          "url": "https://github.com/jstedfast/gmime/releases/download/3.2.15/gmime-3.2.15.tar.xz",    
-          "sha256": "84cd2a481a27970ec39b5c95f72db026722904a2ccf3fdbd57b280cf2d02b5c4"    
-        }    
-      ]    
-    },    
+    {
+      "name": "gmime",
+      "sources": [
+        {
+          "type": "archive",
+          "url": "https://github.com/jstedfast/gmime/releases/download/3.2.15/gmime-3.2.15.tar.xz",
+          "sha256": "84cd2a481a27970ec39b5c95f72db026722904a2ccf3fdbd57b280cf2d02b5c4"
+        }
+      ]
+    },
     {
       "name": "mailviewer",
       "builddir": true,
