@@ -111,7 +111,7 @@
                     </child>
                     <child>
                       <object class="GtkEntry" id="date">
-                        <property name="width-request">200</property>
+                        <property name="width-request">230</property>
                         <property name="xalign">0.5</property>
                         <property name="hexpand">false</property>
                         <property name="editable">false</property>

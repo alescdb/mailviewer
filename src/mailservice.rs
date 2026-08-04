@@ -197,7 +197,7 @@ mod tests {
       assert_eq!(service.from(), "John Doe <john@moon.space>");
       assert_eq!(service.to(), "Lucas <lucas@mercure.space>");
       assert_eq!(service.subject(), "Lorem ipsum");
-      assert_eq!(service.date(), "2024-10-23 12:27:21");
+      assert_eq!(service.date(), "2024-10-23 12:27:21 +0200");
     });
   }
 

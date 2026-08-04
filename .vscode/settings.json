@@ -19,7 +19,5 @@
   },
   "mesonbuild.configureOnOpen": false,
   "mesonbuild.buildFolder": "_build",
-  "mesonbuild.mesonPath": "${workspaceFolder}/.flatpak/meson.sh",
-  "rust-analyzer.server.path": "${workspaceFolder}/.flatpak/rust-analyzer.sh",
-  "rust-analyzer.runnables.command": "${workspaceFolder}/.flatpak/cargo.sh"
+  "mesonbuild.mesonPath": "${workspaceFolder}/.flatpak/meson.sh"
 }
