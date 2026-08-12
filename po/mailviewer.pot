@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailviewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-14 17:29+0100\n"
+"POT-Creation-Date: 2026-08-12 22:09+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,8 +18,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: data/io.github.alescdb.mailviewer.desktop.in:3
-#: data/io.github.alescdb.mailviewer.desktop.in:11
+#: data/io.github.alescdb.mailviewer.desktop.in:2
+#: data/io.github.alescdb.mailviewer.desktop.in:10
 msgid "Mail Viewer"
 msgstr ""
 
@@ -31,69 +31,260 @@ msgstr ""
 msgid "EML and MSG file viewer"
 msgstr ""
 
-#: data/io.github.alescdb.mailviewer.metainfo.xml.in:12
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:13
 msgid ""
 "MailViewer is a GNOME application that allows users to read and decode .eml "
 "and .msg files (email files) without having to install any additional "
 "software or create an account."
 msgstr ""
 
-#: data/io.github.alescdb.mailviewer.metainfo.xml.in:14
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:15
 msgid ""
 "It provides a graphical interface for easy navigation and rendering of email "
 "content, including attachments, HTML, and plain text."
 msgstr ""
 
-#: data/io.github.alescdb.mailviewer.metainfo.xml.in:21
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:22
 msgid "Main Window (Light)"
 msgstr ""
 
-#: data/io.github.alescdb.mailviewer.metainfo.xml.in:26
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:27
 msgid "Attachments (Light)"
 msgstr ""
 
-#: data/io.github.alescdb.mailviewer.metainfo.xml.in:31
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:32
 msgid "Main Window (Dark)"
 msgstr ""
 
-#: data/io.github.alescdb.mailviewer.metainfo.xml.in:36
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:37
 msgid "Attachments (Dark)"
 msgstr ""
 
-#: data/io.github.alescdb.mailviewer.metainfo.xml.in:44
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:45
 msgid "Alexandre Del Bigio"
 msgstr ""
 
-#: data/io.github.alescdb.mailviewer.metainfo.xml.in:49
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:50
+msgid "Display local time with UTC offset"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:57
+msgid "Better print support (escape HTML when printing text)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:58
+msgid "Outlook (msg) don't show text button if text field is empty"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:65
+msgid "Sync \"Show remote images\" status for html print"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:66
+msgid "Outlook (msg) now support HTML"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:73
+msgid "Feature : Print (in menu)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:80
+msgid "Bug : revert changes (stdin) preventing opening from GNOME Files"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:87
+msgid ""
+"Test is data present on stdin if no file is provided (eg: cat sample.eml | "
+"mailviewer)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:94
+msgid "GitHub Actions rewrite (alescdb)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:95
+msgid "Use an encoding library to properly decode the contents (3v1n0)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:96
+msgid "Handle Windows-1252 encoding (3v1n0)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:97
+msgid "Log parsing errors as errors (3v1n0)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:98
+msgid "Use utils::span-and-wait to wait for web policy (3v1n0)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:99
+msgid "Expose spawn_and_wait to a generic utility crate (3v1n0)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:100
+msgid "Stop parsing early if action is cancelled (3v1n0)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:101
+msgid "Cancel previous loading operation using Cancellable (3v1n0)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:102
+msgid "Add test utility function to wait for futures to complete (3v1n0)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:103
+msgid "Add x-ole-storage as supported mime type (3v1n0)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:104
+msgid "Show a spinner while loading a message (3v1n0)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:105
+msgid "Run the messages parsing in a separate thread (3v1n0)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:106
+msgid "Bind visibility of action buttons to show text state (3v1n0)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:107
+msgid "Use gtk native future to open URIs / launch files (3v1n0)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:108
+msgid "Write the attachments on disk asynchronously (3v1n0)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:109
+msgid "Use better API to spawn futures from glib (3v1n0)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:110
+msgid "Use async loading of the files contents (3v1n0)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:111
+msgid "Check file asynchronously and based on content type (3v1n0)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:112
+msgid "it, fr translations: Update Plural forms definitions (3v1n0)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:113
+msgid "Updated Dutch translation (Vistaus)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:114
+msgid "Pre-set the file name when saving an attachment (3v1n0)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:115
+msgid "Use gtk4::FileDialog to open and save files (3v1n0)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:116
+msgid "Use ngettext to translate plural forms (3v1n0)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:117
+msgid "Bump msg_parser to 0.1.2 (3v1n0)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:124
+msgid "GNOME 49 (libadwaita 1.8)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:125
+msgid "Other dependencies updated"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:132
+msgid "Italian translation by albanobattistella"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:139
+msgid "Gnome 48 (libadwaita 1.7)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:146
+msgid "Dependency Updates"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:153
+msgid "Case insensitive file extensions"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:159
+msgid "Add I18N support"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:161
+msgid "French (fr_FR) by Me :-)"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:162
+msgid "Dutch (nl) by Heimen Stoffels"
+msgstr ""
+
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:169
 msgid "Add drag and drop support (file must have .eml or .msg extension)"
 msgstr ""
 
-#: data/io.github.alescdb.mailviewer.metainfo.xml.in:56
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:176
 msgid "Correct a crash when .msg has no attachments"
 msgstr ""
 
-#: data/io.github.alescdb.mailviewer.metainfo.xml.in:63
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:183
 msgid "Add support for Outlook .msg"
 msgstr ""
 
-#: data/io.github.alescdb.mailviewer.metainfo.xml.in:70
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:190
 msgid "Fix flatpak version"
 msgstr ""
 
-#: data/io.github.alescdb.mailviewer.metainfo.xml.in:71
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:191
 msgid "Fix gmime-rs date memory problem"
 msgstr ""
 
-#: data/io.github.alescdb.mailviewer.metainfo.xml.in:78
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:198
 msgid "Fix attachment adding up"
 msgstr ""
 
-#: data/io.github.alescdb.mailviewer.metainfo.xml.in:79
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:199
 msgid "Fix gmime randomly crashing"
 msgstr ""
 
-#: data/io.github.alescdb.mailviewer.metainfo.xml.in:85
+#: data/io.github.alescdb.mailviewer.metainfo.xml.in:205
 msgid "First flatpak release"
+msgstr ""
+
+#: src/gtk/help-overlay.ui:11
+msgctxt "shortcut window"
+msgid "General"
+msgstr ""
+
+#: src/gtk/help-overlay.ui:14
+msgctxt "shortcut window"
+msgid "Open File"
+msgstr ""
+
+#: src/gtk/help-overlay.ui:20
+msgctxt "shortcut window"
+msgid "Reset Zoom"
+msgstr ""
+
+#: src/gtk/help-overlay.ui:26
+msgctxt "shortcut window"
+msgid "Show Shortcuts"
+msgstr ""
+
+#: src/gtk/help-overlay.ui:32
+msgctxt "shortcut window"
+msgid "Quit"
 msgstr ""
 
 #: src/preferences.ui:8
@@ -104,137 +295,137 @@ msgstr ""
 msgid "Show file name in title bar"
 msgstr ""
 
-#: src/window.ui:20
+#: src/window.ui:28
 msgid "Menu"
 msgstr ""
 
-#: src/window.ui:27
+#: src/window.ui:37
 msgid "Show plain text"
 msgstr ""
 
-#: src/window.ui:34
+#: src/window.ui:46
 msgid "Show remote images"
 msgstr ""
 
-#: src/window.ui:41
+#: src/window.ui:55
 msgid "Force CSS"
 msgstr ""
 
-#: src/window.ui:48
+#: src/window.ui:64
 msgid "Zoom -"
 msgstr ""
 
-#: src/window.ui:55
+#: src/window.ui:73
 msgid "Zoom +"
 msgstr ""
 
-#: src/window.ui:84
+#: src/window.ui:102
 msgid "From:"
 msgstr ""
 
-#: src/window.ui:91
+#: src/window.ui:109
 msgid "From"
 msgstr ""
 
-#: src/window.ui:100
+#: src/window.ui:118
 msgid "Date"
 msgstr ""
 
-#: src/window.ui:118
+#: src/window.ui:136
 msgid "To:"
 msgstr ""
 
-#: src/window.ui:125
+#: src/window.ui:143
 msgid "To"
 msgstr ""
 
-#: src/window.ui:143
+#: src/window.ui:161
 msgid "Subject:"
 msgstr ""
 
-#: src/window.ui:150
+#: src/window.ui:168
 msgid "Subject"
 msgstr ""
 
-#: src/window.ui:160
+#: src/window.ui:178
 msgid "HTML"
 msgstr ""
 
-#: src/window.ui:172
+#: src/window.ui:190
 msgid "TEXT"
 msgstr ""
 
-#: src/window.ui:234
+#: src/window.ui:256
 msgid "_Open..."
 msgstr ""
 
-#: src/window.ui:238
+#: src/window.ui:260
+msgid "Print..."
+msgstr ""
+
+#: src/window.ui:264
 msgid "_Preferences"
 msgstr ""
 
-#: src/window.ui:242
+#: src/window.ui:268
 msgid "_Reset Zoom"
 msgstr ""
 
-#: src/window.ui:246
+#: src/window.ui:272
 msgid "_Keyboard Shortcuts"
 msgstr ""
 
-#: src/window.ui:250
+#: src/window.ui:276
 msgid "_About MailViewer"
 msgstr ""
 
-#: src/window.rs:341
+#: src/window.rs:370
 msgid "Save as..."
 msgstr ""
 
-#: src/window.rs:386
-msgid "Mail Files"
-msgstr ""
-
-#: src/window.rs:402
+#: src/window.rs:432
 msgid "Save attachment..."
 msgstr ""
 
-#: src/window.rs:398 src/window.rs:546
+#: src/window.rs:446 src/window.rs:732
 msgid "File Error"
 msgstr ""
 
-#: src/window.rs:414 src/window.rs:547
+#: src/window.rs:468 src/window.rs:733
 msgid "Failed to open file"
 msgstr ""
 
-#: src/window.rs:500
+#: src/window.rs:507
+msgid "Failed to open uri"
+msgstr ""
+
+#: src/window.rs:563
+msgid "Mail Files"
+msgstr ""
+
+#: src/window.rs:679
 msgid "Open Mail File"
 msgstr ""
 
-#: src/window.rs:510
-msgid "EML Files"
-msgstr ""
-
-#: src/window.rs:512
-msgid "Outlook Files"
-msgstr ""
-
-#: src/window.rs:604
+#: src/window.rs:779
 msgid "{total} attachment"
 msgid_plural "{total} attachments"
 msgstr[0] ""
 msgstr[1] ""
 
 #. never shown
-#: src/window.rs:602
+#: src/window.rs:789
 msgid "No attachments"
 msgstr ""
 
-#: src/window.rs:616
+#: src/window.rs:803
 msgid "Close"
 msgstr ""
 
-#: src/window.rs:668
+#: src/window.rs:855
 msgid "Settings"
 msgstr ""
 
-#: src/window.rs:669
+#: src/window.rs:856
 msgid "Failed to get settings"
 msgstr ""
