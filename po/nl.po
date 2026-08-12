@@ -104,6 +104,31 @@ msgstr "Opgelost: willekeurige crashes van gmime"
 msgid "First flatpak release"
 msgstr "Eerste Flatpakversie"
 
+#: src/gtk/help-overlay.ui:11
+msgctxt "shortcut window"
+msgid "General"
+msgstr "Algemeen"
+
+#: src/gtk/help-overlay.ui:14
+msgctxt "shortcut window"
+msgid "Open File"
+msgstr "Bestand openen"
+
+#: src/gtk/help-overlay.ui:20
+msgctxt "shortcut window"
+msgid "Reset Zoom"
+msgstr "Oorspronkelijk zoomniveau"
+
+#: src/gtk/help-overlay.ui:26
+msgctxt "shortcut window"
+msgid "Show Shortcuts"
+msgstr "Sneltoetsen tonen"
+
+#: src/gtk/help-overlay.ui:32
+msgctxt "shortcut window"
+msgid "Quit"
+msgstr "Afsluiten"
+
 #: src/preferences.ui:8
 msgid "Application"
 msgstr "Toepassing"
