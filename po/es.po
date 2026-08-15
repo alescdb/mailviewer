@@ -1,35 +1,34 @@
-# SOME DESCRIPTIVE TITLE.
+# SPANISH TRANSLATION.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the mailviewer package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Ángel Guzmán Maeso <angel@guzmanmaeso.com>, 2026.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: mailviewer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-08-12 22:09+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"PO-Revision-Date: 2026-08-12 22:15+0200\n"
+"Last-Translator: Ángel Guzmán Maeso <angel@guzmanmaeso.com>\n"
+"Language-Team: Spanish <LL@li.org>\n"
+"Language: es\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: data/io.github.alescdb.mailviewer.desktop.in:2
 #: data/io.github.alescdb.mailviewer.desktop.in:10
 msgid "Mail Viewer"
-msgstr ""
+msgstr "Visor de correo"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:3
 msgid "MailViewer"
-msgstr ""
+msgstr "MailViewer"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:8
 msgid "EML and MSG file viewer"
-msgstr ""
+msgstr "Visor de archivos EML y MSG"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:13
 msgid ""
@@ -37,395 +36,420 @@ msgid ""
 "and .msg files (email files) without having to install any additional "
 "software or create an account."
 msgstr ""
+"MailViewer es una aplicación de GNOME que permite leer y decodificar "
+"archivos .eml y .msg (archivos de correo electrónico) sin necesidad de "
+"instalar software adicional ni crear una cuenta."
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:15
 msgid ""
 "It provides a graphical interface for easy navigation and rendering of email "
 "content, including attachments, HTML, and plain text."
 msgstr ""
+"Ofrece una interfaz gráfica para navegar y ver cómodamente el contenido de "
+"los correos, incluidos los adjuntos, el HTML y el texto sin formato."
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:22
 msgid "Main Window (Light)"
-msgstr ""
+msgstr "Ventana principal (claro)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:27
 msgid "Attachments (Light)"
-msgstr ""
+msgstr "Adjuntos (claro)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:32
 msgid "Main Window (Dark)"
-msgstr ""
+msgstr "Ventana principal (oscuro)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:37
 msgid "Attachments (Dark)"
-msgstr ""
+msgstr "Adjuntos (oscuro)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:45
 msgid "Alexandre Del Bigio"
-msgstr ""
+msgstr "Alexandre Del Bigio"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:50
 msgid "Display local time with UTC offset"
-msgstr ""
+msgstr "Se muestra la hora local con el desfase UTC"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:57
 msgid "Better print support (escape HTML when printing text)"
 msgstr ""
+"Mejor compatibilidad con la impresión (se escapa el HTML al imprimir texto)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:58
 msgid "Outlook (msg) don't show text button if text field is empty"
 msgstr ""
+"Outlook (msg): no se muestra el botón de texto si el campo de texto está vacío"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:65
 msgid "Sync \"Show remote images\" status for html print"
 msgstr ""
+"Se sincroniza el estado de «Mostrar imágenes remotas» al imprimir en HTML"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:66
 msgid "Outlook (msg) now support HTML"
-msgstr ""
+msgstr "Outlook (msg) ya admite HTML"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:73
 msgid "Feature : Print (in menu)"
-msgstr ""
+msgstr "Función: impresión (en el menú)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:80
 msgid "Bug : revert changes (stdin) preventing opening from GNOME Files"
 msgstr ""
+"Error: se revierten los cambios (stdin) que impedían abrir archivos desde "
+"Archivos de GNOME"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:87
 msgid ""
 "Test is data present on stdin if no file is provided (eg: cat sample.eml | "
 "mailviewer)"
 msgstr ""
+"Se comprueba si hay datos en la entrada estándar cuando no se indica ningún "
+"archivo (p. ej.: cat sample.eml | mailviewer)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:94
 msgid "GitHub Actions rewrite (alescdb)"
-msgstr ""
+msgstr "Reescritura de GitHub Actions (alescdb)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:95
 msgid "Use an encoding library to properly decode the contents (3v1n0)"
 msgstr ""
+"Se usa una biblioteca de codificación para decodificar correctamente el "
+"contenido (3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:96
 msgid "Handle Windows-1252 encoding (3v1n0)"
-msgstr ""
+msgstr "Se admite la codificación Windows-1252 (3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:97
 msgid "Log parsing errors as errors (3v1n0)"
-msgstr ""
+msgstr "Los errores de análisis se registran como errores (3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:98
 msgid "Use utils::span-and-wait to wait for web policy (3v1n0)"
-msgstr ""
+msgstr "Se usa utils::span-and-wait para esperar a la política web (3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:99
 msgid "Expose spawn_and_wait to a generic utility crate (3v1n0)"
-msgstr ""
+msgstr "Se expone spawn_and_wait en un crate de utilidades genérico (3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:100
 msgid "Stop parsing early if action is cancelled (3v1n0)"
-msgstr ""
+msgstr "El análisis se detiene antes si se cancela la acción (3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:101
 msgid "Cancel previous loading operation using Cancellable (3v1n0)"
-msgstr ""
+msgstr "Se cancela la carga anterior mediante Cancellable (3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:102
 msgid "Add test utility function to wait for futures to complete (3v1n0)"
 msgstr ""
+"Se añade una función de prueba para esperar a que terminen los futuros (3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:103
 msgid "Add x-ole-storage as supported mime type (3v1n0)"
-msgstr ""
+msgstr "Se añade x-ole-storage como tipo MIME admitido (3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:104
 msgid "Show a spinner while loading a message (3v1n0)"
 msgstr ""
+"Se muestra un indicador de actividad mientras se carga un mensaje (3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:105
 msgid "Run the messages parsing in a separate thread (3v1n0)"
-msgstr ""
+msgstr "El análisis de los mensajes se ejecuta en un hilo aparte (3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:106
 msgid "Bind visibility of action buttons to show text state (3v1n0)"
 msgstr ""
+"La visibilidad de los botones de acción se vincula al estado de «mostrar "
+"texto» (3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:107
 msgid "Use gtk native future to open URIs / launch files (3v1n0)"
 msgstr ""
+"Se usan los futuros nativos de GTK para abrir URI o lanzar archivos (3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:108
 msgid "Write the attachments on disk asynchronously (3v1n0)"
-msgstr ""
+msgstr "Los adjuntos se escriben en el disco de forma asíncrona (3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:109
 msgid "Use better API to spawn futures from glib (3v1n0)"
-msgstr ""
+msgstr "Se usa una API mejor para lanzar futuros desde glib (3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:110
 msgid "Use async loading of the files contents (3v1n0)"
-msgstr ""
+msgstr "El contenido de los archivos se carga de forma asíncrona (3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:111
 msgid "Check file asynchronously and based on content type (3v1n0)"
 msgstr ""
+"Los archivos se comprueban de forma asíncrona y según su tipo de contenido "
+"(3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:112
 msgid "it, fr translations: Update Plural forms definitions (3v1n0)"
 msgstr ""
+"Traducciones al italiano y al francés: se actualizan las definiciones de las "
+"formas de plural (3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:113
 msgid "Updated Dutch translation (Vistaus)"
-msgstr ""
+msgstr "Traducción al neerlandés actualizada (Vistaus)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:114
 msgid "Pre-set the file name when saving an attachment (3v1n0)"
-msgstr ""
+msgstr "Se propone el nombre del archivo al guardar un adjunto (3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:115
 msgid "Use gtk4::FileDialog to open and save files (3v1n0)"
-msgstr ""
+msgstr "Se usa gtk4::FileDialog para abrir y guardar archivos (3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:116
 msgid "Use ngettext to translate plural forms (3v1n0)"
-msgstr ""
+msgstr "Se usa ngettext para traducir las formas de plural (3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:117
 msgid "Bump msg_parser to 0.1.2 (3v1n0)"
-msgstr ""
+msgstr "Se actualiza msg_parser a la versión 0.1.2 (3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:124
 msgid "GNOME 49 (libadwaita 1.8)"
-msgstr ""
+msgstr "GNOME 49 (libadwaita 1.8)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:125
 msgid "Other dependencies updated"
-msgstr ""
+msgstr "Otras dependencias actualizadas"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:132
 msgid "Italian translation by albanobattistella"
-msgstr ""
+msgstr "Traducción al italiano por albanobattistella"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:139
 msgid "Gnome 48 (libadwaita 1.7)"
-msgstr ""
+msgstr "GNOME 48 (libadwaita 1.7)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:146
 msgid "Dependency Updates"
-msgstr ""
+msgstr "Actualización de dependencias"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:153
 msgid "Case insensitive file extensions"
-msgstr ""
+msgstr "Las extensiones de archivo no distinguen mayúsculas de minúsculas"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:159
 msgid "Add I18N support"
-msgstr ""
+msgstr "Se añade compatibilidad con la internacionalización (I18N)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:161
 msgid "French (fr_FR) by Me :-)"
-msgstr ""
+msgstr "Francés (fr_FR) por mí :-)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:162
 msgid "Dutch (nl) by Heimen Stoffels"
-msgstr ""
+msgstr "Neerlandés (nl) por Heimen Stoffels"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:169
 msgid "Add drag and drop support (file must have .eml or .msg extension)"
 msgstr ""
+"Se añade la posibilidad de arrastrar y soltar (el archivo debe tener la "
+"extensión .eml o .msg)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:176
 msgid "Correct a crash when .msg has no attachments"
-msgstr ""
+msgstr "Se corrige un fallo cuando el .msg no tiene adjuntos"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:183
 msgid "Add support for Outlook .msg"
-msgstr ""
+msgstr "Se añade compatibilidad con los .msg de Outlook"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:190
 msgid "Fix flatpak version"
-msgstr ""
+msgstr "Se corrige la versión de flatpak"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:191
 msgid "Fix gmime-rs date memory problem"
-msgstr ""
+msgstr "Se corrige un problema de memoria con las fechas de gmime-rs"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:198
 msgid "Fix attachment adding up"
-msgstr ""
+msgstr "Se corrige la acumulación de adjuntos"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:199
 msgid "Fix gmime randomly crashing"
-msgstr ""
+msgstr "Se corrigen los fallos aleatorios de gmime"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:205
 msgid "First flatpak release"
-msgstr ""
+msgstr "Primera versión en flatpak"
 
 #: src/gtk/help-overlay.ui:11
 msgctxt "shortcut window"
 msgid "General"
-msgstr ""
+msgstr "General"
 
 #: src/gtk/help-overlay.ui:14
 msgctxt "shortcut window"
 msgid "Open File"
-msgstr ""
+msgstr "Abrir archivo"
 
 #: src/gtk/help-overlay.ui:20
 msgctxt "shortcut window"
 msgid "Reset Zoom"
-msgstr ""
+msgstr "Restablecer el zoom"
 
 #: src/gtk/help-overlay.ui:26
 msgctxt "shortcut window"
 msgid "Show Shortcuts"
-msgstr ""
+msgstr "Mostrar los atajos"
 
 #: src/gtk/help-overlay.ui:32
 msgctxt "shortcut window"
 msgid "Quit"
-msgstr ""
+msgstr "Salir"
 
 #: src/preferences.ui:8
 msgid "Application"
-msgstr ""
+msgstr "Aplicación"
 
 #: src/preferences.ui:11
 msgid "Show file name in title bar"
-msgstr ""
+msgstr "Mostrar el nombre del archivo en la barra de título"
 
 #: src/window.ui:28
 msgid "Menu"
-msgstr ""
+msgstr "Menú"
 
 #: src/window.ui:37
 msgid "Show plain text"
-msgstr ""
+msgstr "Mostrar el texto sin formato"
 
 #: src/window.ui:46
 msgid "Show remote images"
-msgstr ""
+msgstr "Mostrar las imágenes remotas"
 
 #: src/window.ui:55
 msgid "Force CSS"
-msgstr ""
+msgstr "Forzar el CSS"
 
 #: src/window.ui:64
 msgid "Zoom -"
-msgstr ""
+msgstr "Zoom -"
 
 #: src/window.ui:73
 msgid "Zoom +"
-msgstr ""
+msgstr "Zoom +"
 
 #: src/window.ui:102
 msgid "From:"
-msgstr ""
+msgstr "De:"
 
 #: src/window.ui:109
 msgid "From"
-msgstr ""
+msgstr "De"
 
 #: src/window.ui:118
 msgid "Date"
-msgstr ""
+msgstr "Fecha"
 
 #: src/window.ui:136
 msgid "To:"
-msgstr ""
+msgstr "Para:"
 
 #: src/window.ui:143
 msgid "To"
-msgstr ""
+msgstr "Para"
 
 #: src/window.ui:161
 msgid "Subject:"
-msgstr ""
+msgstr "Asunto:"
 
 #: src/window.ui:168
 msgid "Subject"
-msgstr ""
+msgstr "Asunto"
 
 #: src/window.ui:178
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #: src/window.ui:190
 msgid "TEXT"
-msgstr ""
+msgstr "TEXTO"
 
 #: src/window.ui:256
 msgid "_Open..."
-msgstr ""
+msgstr "_Abrir…"
 
 #: src/window.ui:260
 msgid "Print..."
-msgstr ""
+msgstr "Imprimir…"
 
 #: src/window.ui:264
 msgid "_Preferences"
-msgstr ""
+msgstr "_Preferencias"
 
 #: src/window.ui:268
 msgid "_Reset Zoom"
-msgstr ""
+msgstr "_Restablecer el zoom"
 
 #: src/window.ui:272
 msgid "_Keyboard Shortcuts"
-msgstr ""
+msgstr "Atajos de _teclado"
 
 #: src/window.ui:276
 msgid "_About MailViewer"
-msgstr ""
+msgstr "Acerca _de MailViewer"
 
 #: src/window.rs:370
 msgid "Save as..."
-msgstr ""
+msgstr "Guardar como…"
 
 #: src/window.rs:432
 msgid "Save attachment..."
-msgstr ""
+msgstr "Guardar el adjunto…"
 
 #: src/window.rs:446 src/window.rs:732
 msgid "File Error"
-msgstr ""
+msgstr "Error de archivo"
 
 #: src/window.rs:468 src/window.rs:733
 msgid "Failed to open file"
-msgstr ""
+msgstr "No se pudo abrir el archivo"
 
 #: src/window.rs:507
 msgid "Failed to open uri"
-msgstr ""
+msgstr "No se pudo abrir el URI"
 
 #: src/window.rs:563
 msgid "Mail Files"
-msgstr ""
+msgstr "Archivos de correo"
 
 #: src/window.rs:679
 msgid "Open Mail File"
-msgstr ""
+msgstr "Abrir un archivo de correo"
 
 #: src/window.rs:779
 msgid "{total} attachment"
 msgid_plural "{total} attachments"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{total} adjunto"
+msgstr[1] "{total} adjuntos"
 
 #. never shown
 #: src/window.rs:789
 msgid "No attachments"
-msgstr ""
+msgstr "Sin adjuntos"
 
 #: src/window.rs:803
 msgid "Close"
-msgstr ""
+msgstr "Cerrar"
 
 #: src/window.rs:855
 msgid "Settings"
-msgstr ""
+msgstr "Configuración"
 
 #: src/window.rs:856
 msgid "Failed to get settings"
-msgstr ""
+msgstr "No se pudo obtener la configuración"
