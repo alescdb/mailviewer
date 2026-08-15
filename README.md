@@ -64,3 +64,4 @@ Feel free to contribute an original icon, I'm not a good designer :-)
 
 - [Vistaus](https://github.com/Vistaus) : nl translation
 - [albanobattistella](https://github.com/albanobattistella) : it translation
+- [shakaran](https://github.com/shakaran) : es tranltation
