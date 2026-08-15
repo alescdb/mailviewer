@@ -100,6 +100,31 @@ msgstr "Risolto il crash casuale di gmime"
 msgid "First flatpak release"
 msgstr "Prima versione flatpak"
 
+#: src/gtk/help-overlay.ui:11
+msgctxt "shortcut window"
+msgid "General"
+msgstr "Generale"
+
+#: src/gtk/help-overlay.ui:14
+msgctxt "shortcut window"
+msgid "Open File"
+msgstr "Apri file"
+
+#: src/gtk/help-overlay.ui:20
+msgctxt "shortcut window"
+msgid "Reset Zoom"
+msgstr "Reimposta zoom"
+
+#: src/gtk/help-overlay.ui:26
+msgctxt "shortcut window"
+msgid "Show Shortcuts"
+msgstr "Mostra scorciatoie"
+
+#: src/gtk/help-overlay.ui:32
+msgctxt "shortcut window"
+msgid "Quit"
+msgstr "Esci"
+
 #: src/preferences.ui:8
 msgid "Application"
 msgstr "Applicazione"

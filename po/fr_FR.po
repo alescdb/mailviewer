@@ -107,6 +107,31 @@ msgstr ""
 msgid "First flatpak release"
 msgstr ""
 
+#: src/gtk/help-overlay.ui:11
+msgctxt "shortcut window"
+msgid "General"
+msgstr "Général"
+
+#: src/gtk/help-overlay.ui:14
+msgctxt "shortcut window"
+msgid "Open File"
+msgstr "Ouvrir un fichier"
+
+#: src/gtk/help-overlay.ui:20
+msgctxt "shortcut window"
+msgid "Reset Zoom"
+msgstr "Réinitialiser le zoom"
+
+#: src/gtk/help-overlay.ui:26
+msgctxt "shortcut window"
+msgid "Show Shortcuts"
+msgstr "Afficher les raccourcis"
+
+#: src/gtk/help-overlay.ui:32
+msgctxt "shortcut window"
+msgid "Quit"
+msgstr "Quitter"
+
 #: src/preferences.ui:8
 msgid "Application"
 msgstr ""
