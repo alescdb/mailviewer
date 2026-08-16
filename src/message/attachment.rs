@@ -62,18 +62,15 @@ impl Attachment {
   }
 
   pub async fn write_to_file(&self, file: &gio::File) -> Result<(), Box<dyn Error>> {
-    let io_stream = if file_exists(file).await.is_ok_and(|v| v) {
-      file
-        .open_readwrite_future(glib::Priority::default())
-        .await?
-    } else {
-      file
-        .create_readwrite_future(
-          gio::FileCreateFlags::REPLACE_DESTINATION,
-          glib::Priority::default(),
-        )
-        .await?
-    };
+    // replace_readwrite() truncates an existing file, open_readwrite() does not.
+    let io_stream = file
+      .replace_readwrite_future(
+        None,
+        false,
+        gio::FileCreateFlags::REPLACE_DESTINATION,
+        glib::Priority::default(),
+      )
+      .await?;
 
     let output_stream = io_stream.output_stream();
     let write_res = output_stream
@@ -119,6 +116,7 @@ impl fmt::Display for Attachment {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use crate::utils;
 
   fn attachment(filename: &str) -> Attachment {
     Attachment {
@@ -127,6 +125,26 @@ mod tests {
       body: vec![],
       mime_type: None,
     }
+  }
+
+  #[test]
+  fn write_to_file_replaces_the_previous_content() {
+    let path = std::env::temp_dir().join(format!(
+      "mailviewer-write-to-file-{}.bin",
+      std::process::id()
+    ));
+    std::fs::write(&path, b"AAAAAAAAAAAAAAAA").unwrap();
+
+    let file = gio::File::for_path(&path);
+    let mut attachment = attachment("small.bin");
+    attachment.body = b"BBBB".to_vec();
+
+    utils::spawn_and_wait_new_ctx(async move {
+      attachment.write_to_file(&file).await.unwrap();
+    });
+
+    assert_eq!(std::fs::read(&path).unwrap(), b"BBBB".to_vec());
+    std::fs::remove_file(&path).unwrap();
   }
 
   #[test]
