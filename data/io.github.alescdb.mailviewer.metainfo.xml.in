@@ -47,6 +47,7 @@
     <release version="1.0.11" date="2026-08-16">
       <description>
         <ul>
+          <li>Fix print shortcut, attachment overwrite, runtime dir and zoom (thanks to shakaran)</li>
           <li>Sanitize attachment names, restrict link schemes (thanks to shakaran)</li>
           <li>Spanish translation (thanks to shakaran)</li>
         </ul>
