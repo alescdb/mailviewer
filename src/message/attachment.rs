@@ -113,6 +113,26 @@ impl fmt::Display for Attachment {
   }
 }
 
+async fn file_exists(file: &gio::File) -> Result<bool, Box<dyn Error>> {
+  match file
+    .query_info_future(
+      gio::FILE_ATTRIBUTE_STANDARD_NAME,
+      gio::FileQueryInfoFlags::NONE,
+      glib::Priority::default(),
+    )
+    .await
+  {
+    Ok(_) => Ok(true),
+    Err(e) => {
+      if !e.matches(gio::IOErrorEnum::NotFound) {
+        return Err(Box::new(e));
+      }
+
+      Ok(false)
+    }
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
@@ -178,25 +198,5 @@ mod tests {
   #[test]
   fn safe_filename_strips_control_characters() {
     assert_eq!(attachment("a\nb\tc.png").safe_filename(), "abc.png");
-  }
-}
-
-async fn file_exists(file: &gio::File) -> Result<bool, Box<dyn Error>> {
-  match file
-    .query_info_future(
-      gio::FILE_ATTRIBUTE_STANDARD_NAME,
-      gio::FileQueryInfoFlags::NONE,
-      glib::Priority::default(),
-    )
-    .await
-  {
-    Ok(_) => Ok(true),
-    Err(e) => {
-      if !e.matches(gio::IOErrorEnum::NotFound) {
-        return Err(Box::new(e));
-      }
-
-      Ok(false)
-    }
   }
 }
