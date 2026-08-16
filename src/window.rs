@@ -95,7 +95,7 @@ mod imp {
 
   impl Default for MailViewerWindow {
     fn default() -> Self {
-      let window = MailViewerWindow {
+      MailViewerWindow {
         webview: WebView::new(),
         websettings: webkit6::Settings::new(),
         scrolled_window: ScrolledWindow::new(),
@@ -118,8 +118,7 @@ mod imp {
         settings: OnceCell::new(),
         service: MailService::new(),
         cancellable: RefCell::new(gio::Cancellable::new()),
-      };
-      window
+      }
     }
   }
 
@@ -272,7 +271,7 @@ impl MailViewerWindow {
     websettings.set_enable_webgl(false);
     websettings.set_enable_webaudio(false);
     websettings.set_auto_load_images(self.imp().show_images.is_active());
-    webview.set_settings(&websettings);
+    webview.set_settings(websettings);
     webview.set_editable(false);
     webview.connect_context_menu(move |_, _, _| {
       log::debug!("WebView() => context_menu() cancelled");
@@ -433,7 +432,7 @@ impl MailViewerWindow {
       .child(attachment.safe_filename());
 
     let save_dialog = gtk4::FileDialog::builder()
-      .title(&gettext("Save attachment..."))
+      .title(gettext("Save attachment..."))
       .modal(true)
       .initial_file(&initial_file)
       .build();
@@ -442,9 +441,9 @@ impl MailViewerWindow {
       Ok(file) => {
         let path = file.peek_path().unwrap_or_default();
         let path = path.display();
-        log::debug!("Saving attachment to {:?}", &path);
+        log::debug!("Saving attachment to {:?}", path);
         match attachment.write_to_file(&file).await {
-          Ok(_) => log::debug!("write_to_file({:?})", &path),
+          Ok(_) => log::debug!("write_to_file({:?})", path),
           Err(e) => {
             log::error!("write_to_file({})", e);
             self.alert_error(&gettext("File Error"), &e.to_string(), false);
@@ -452,7 +451,7 @@ impl MailViewerWindow {
         };
       }
       Err(e) => match e.kind() {
-        Some(gtk4::DialogError::Dismissed) | Some(gtk4::DialogError::Cancelled) => return,
+        Some(gtk4::DialogError::Dismissed) | Some(gtk4::DialogError::Cancelled) => (),
         _ => log::error!("save_dialog({})", e),
       },
     }
@@ -463,13 +462,13 @@ impl MailViewerWindow {
     match attachment.write_to_tmp().await {
       Ok(file) => {
         let path = file.peek_path().unwrap().to_string_lossy().to_string();
-        log::debug!("write_to_tmp({}) success", &path);
+        log::debug!("write_to_tmp({}) success", path);
 
         if let Err(e) = gtk4::FileLauncher::new(Some(&file))
           .launch_future(Some(self))
           .await
         {
-          log::error!("{} ({}): {}", &gettext("Failed to open file"), &path, e);
+          log::error!("{} ({}): {}", gettext("Failed to open file"), path, e);
         }
       }
       Err(e) => log::error!("write_to_tmp({})", e),
@@ -486,11 +485,11 @@ impl MailViewerWindow {
 
   fn load_html(&self, force_css: bool) {
     log::debug!("load_html({})", force_css);
-    let html = self.imp().service.body_html().unwrap_or(String::new());
+    let html = self.imp().service.body_html().unwrap_or_default();
     self
       .imp()
       .webview
-      .load_html(&*Html::new(&html, force_css).safe(), None);
+      .load_html(&Html::new(&html, force_css).safe(), None);
   }
 
   async fn decide_policy(
@@ -511,7 +510,7 @@ impl MailViewerWindow {
               policy.ignore();
 
               let allowed = utils::uri_scheme(uri.as_str())
-                .map_or(false, |scheme| ALLOWED_URI_SCHEMES.contains(&scheme.as_str()));
+                .is_some_and(|scheme| ALLOWED_URI_SCHEMES.contains(&scheme.as_str()));
               if !allowed {
                 log::warn!("WebView decide_policy(refused) => {}", uri);
                 return Ok(true);
@@ -519,7 +518,7 @@ impl MailViewerWindow {
 
               log::debug!("WebView decide_policy(launch) => {}", uri);
               if let Err(e) = gtk4::UriLauncher::new(&uri).launch_future(Some(self)).await {
-                return Err(format!("{} ({}): {}", &gettext("Failed to open uri"), &uri, e).into());
+                return Err(format!("{} ({}): {}", gettext("Failed to open uri"), uri, e).into());
               }
               return Ok(true);
             }
@@ -586,11 +585,11 @@ impl MailViewerWindow {
 
     let filters = gio::ListStore::new::<gtk4::FileFilter>();
     filters.append(&filter);
-    return gtk4::FileDialog::builder()
+    gtk4::FileDialog::builder()
       .title(title)
       .modal(true)
       .filters(&filters)
-      .build();
+      .build()
   }
 
   pub fn get_print_html(&self) -> String {
@@ -604,10 +603,10 @@ impl MailViewerWindow {
     } else {
       content = String::new();
     }
-    let from = Html::escape(&imp.service.from().as_str().to_string());
-    let date = Html::escape(&imp.service.date().as_str().to_string());
-    let to = Html::escape(&imp.service.to().as_str().to_string());
-    let subject = Html::escape(&imp.service.subject().as_str().to_string());
+    let from = Html::escape(imp.service.from().as_str());
+    let date = Html::escape(imp.service.date().as_str());
+    let to = Html::escape(imp.service.to().as_str());
+    let subject = Html::escape(imp.service.subject().as_str());
     let attachments = imp
       .service
       .attachments()
@@ -615,7 +614,7 @@ impl MailViewerWindow {
       .map(|attachment| {
         let filename = Html::escape(&attachment.filename);
         if let Some(mime_type) = attachment.mime_type.as_deref() {
-          if mime_type.len() > 0 {
+          if !mime_type.is_empty() {
             return format!("<li>{filename} ({mime_type})</li>");
           }
         }
@@ -729,7 +728,7 @@ impl MailViewerWindow {
     match self
       .imp()
       .service
-      .open_message(&file, Some(&cancellable))
+      .open_message(file, Some(&cancellable))
       .await
     {
       Ok(_) => {
@@ -746,7 +745,7 @@ impl MailViewerWindow {
         log::error!("service(ERR) : {}", e);
         self.alert_error(
           &gettext("File Error"),
-          &format!("{}:\n{}", &gettext("Failed to open file"), e),
+          &format!("{}:\n{}", gettext("Failed to open file"), e),
           true,
         );
       }
@@ -789,7 +788,7 @@ impl MailViewerWindow {
     let total = attachments.len();
     if total > 0 {
       for attachment in &attachments {
-        self.add_attachment(&attachment, &preferences_group);
+        self.add_attachment(attachment, &preferences_group);
       }
       let fmt: String = ngettext(
         "{total} attachment",

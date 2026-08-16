@@ -33,7 +33,7 @@ fn main() {
   let project: PathBuf = env::var("CARGO_MANIFEST_DIR").unwrap().into();
   let src: PathBuf = project.join("src");
   let cfg = Config {
-    out_dir: out_dir,
+    out_dir,
     project: project.clone(),
     src: src.clone(),
     config_in: src.clone().join("config.rs.in"),
@@ -45,7 +45,7 @@ fn main() {
   //for (key, value) in env::vars() {
   //  println!("cargo:warning={} => {}", key, value);
   //}
-  println!("cargo:warning=out_dir => {:?}", &cfg.out_dir);
+  println!("cargo:warning=out_dir => {:?}", cfg.out_dir);
   // println!("cargo:warning=project => {:?}", &cfg.project);
   // println!("cargo:warning=src: => {:?}", &cfg.src);
   // println!("cargo:warning=config_in => {:?}", &cfg.config_in);
@@ -81,17 +81,17 @@ fn icons(cfg: &Config) {
     .output()
     .expect("Failed to copy icons");
   if !_output.status.success() {
-    println!("cargo:warning=cp icons => {:?}", &_output);
+    println!("cargo:warning=cp icons => {:?}", _output);
     exit(5);
   }
   let _output = Command::new("gtk4-update-icon-cache")
     .arg("-t")
     .arg("-f")
-    .arg(format!("{}", cfg.out_dir.to_str().unwrap()))
+    .arg(cfg.out_dir.to_str().unwrap())
     .output()
     .expect("Failed to copy icons");
   if !_output.status.success() {
-    println!("cargo:warning=gtk4-update-icon-cache => {:?}", &_output);
+    println!("cargo:warning=gtk4-update-icon-cache => {:?}", _output);
     exit(5);
   }
   println!(
@@ -105,8 +105,8 @@ fn config(cfg: &Config) {
     fs::read_to_string(cfg.config_in.to_str().unwrap()).expect("Failed to read config.rs.in");
   let config_out = config_in
     .replace("@APP_ID@", &format!("\"{}\"", APP_ID))
-    .replace("@APP_NAME@", &format!("\"{}\"", &cfg.name))
-    .replace("@VERSION@", &format!("\"{}\"", &cfg.version))
+    .replace("@APP_NAME@", &format!("\"{}\"", cfg.name))
+    .replace("@VERSION@", &format!("\"{}\"", cfg.version))
     .replace(
       "@GETTEXT_PACKAGE@",
       &format!("\"{}\"", cfg.out_dir.to_str().unwrap()),
@@ -137,7 +137,7 @@ fn glib_compile_resources(cfg: &Config) {
     .expect("Failed to build schema");
 
   if !_output.status.success() {
-    println!("cargo:warning=glib_compile_resources => {:?}", &_output);
+    println!("cargo:warning=glib_compile_resources => {:?}", _output);
     exit(5);
   }
 }
@@ -155,7 +155,7 @@ fn glib_compile_schemas(cfg: &Config) {
   );
 
   if !_output.status.success() {
-    println!("cargo:warning=glib_compile_resources => {:?}", &_output);
+    println!("cargo:warning=glib_compile_resources => {:?}", _output);
     exit(5);
   }
 }

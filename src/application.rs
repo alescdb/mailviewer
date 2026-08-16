@@ -93,7 +93,7 @@ mod imp {
         log::debug!("[ARGUMENT] File: {:?}, Hint : {:?}", file.path(), hint);
       }
 
-      if files.is_empty() == false {
+      if !files.is_empty() {
         if let Some(path) = files[0].path() {
           let path = path.to_str().unwrap().to_string();
           self.filename.replace(Some(path.clone()));

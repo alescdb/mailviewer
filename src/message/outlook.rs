@@ -43,7 +43,7 @@ pub struct OutlookMessage {
 impl OutlookMessage {
   pub fn new(data: Vec<u8>) -> Self {
     Self {
-      data: data,
+      data,
       from: String::new(),
       to: String::new(),
       date: None,
@@ -67,10 +67,10 @@ impl OutlookMessage {
     format!("{} <{}>", person.name, person.email)
   }
 
-  fn person_list_to_string(persons: &Vec<msg_parser::Person>) -> String {
+  fn person_list_to_string(persons: &[msg_parser::Person]) -> String {
     persons
       .iter()
-      .map(|person| OutlookMessage::person_to_string(person))
+      .map(OutlookMessage::person_to_string)
       .collect::<Vec<String>>()
       .join(", ")
   }

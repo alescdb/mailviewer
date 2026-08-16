@@ -40,7 +40,7 @@ lazy_static! {
     let mut path = PathBuf::from(std::env::var("XDG_RUNTIME_DIR").unwrap());
     let uuid = Uuid::new_v4().simple().to_string();
     path.push(APP_NAME);
-    if path.exists() == false {
+    if !path.exists() {
       if let Err(e) = fs::create_dir(path.clone()) {
         log::error!("Error while creating {:?} : {}", path.to_str(), e);
       }
@@ -164,7 +164,7 @@ impl MessageParser {
         let buf = input_stream
           .read_bytes_future(8192, glib::Priority::DEFAULT)
           .await?;
-        if buf.len() == 0 {
+        if buf.is_empty() {
           break;
         }
         out.extend_from_slice(&buf);
@@ -212,7 +212,7 @@ impl Drop for MessageParser {
 
 impl Message for MessageParser {
   fn parse(&mut self, cancellable: Option<&gio::Cancellable>) -> Result<(), Box<dyn Error>> {
-    Ok(self.parser.parse(cancellable)?)
+    self.parser.parse(cancellable)
   }
 
   fn from(&self) -> String {
