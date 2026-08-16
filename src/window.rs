@@ -41,6 +41,10 @@ const SETTINGS_SHOW_FILE_NAME: &str = "show-file-name";
 /// schemes a mail is expected to link to.
 const ALLOWED_URI_SCHEMES: [&str; 3] = ["http", "https", "mailto"];
 
+const ZOOM_STEP: f64 = 0.1;
+const ZOOM_MIN: f64 = 0.3;
+const ZOOM_MAX: f64 = 5.0;
+
 mod imp {
   use std::cell::{OnceCell, RefCell};
 
@@ -240,13 +244,13 @@ impl MailViewerWindow {
   #[template_callback]
   pub fn on_zoom_minus_clicked(&self) {
     log::debug!("on_zoom_minus_clicked()");
-    self.set_zoom_level(self.imp().webview.zoom_level() - 0.1);
+    self.set_zoom_level(self.imp().webview.zoom_level() - ZOOM_STEP);
   }
 
   #[template_callback]
   pub fn on_zoom_plus_clicked(&self) {
     log::debug!("on_zoom_plus_clicked()");
-    self.set_zoom_level(self.imp().webview.zoom_level() + 0.1);
+    self.set_zoom_level(self.imp().webview.zoom_level() + ZOOM_STEP);
   }
 
   fn initialize(&self) {
@@ -320,7 +324,9 @@ impl MailViewerWindow {
     let imp = self.imp();
 
     imp.settings.set(settings.clone()).unwrap();
-    imp.webview.set_zoom_level(settings.get::<f64>("zoom"));
+    imp
+      .webview
+      .set_zoom_level(settings.get::<f64>("zoom").clamp(ZOOM_MIN, ZOOM_MAX));
 
     settings
       .bind("width", self, "default-width")
@@ -476,6 +482,7 @@ impl MailViewerWindow {
   }
 
   fn set_zoom_level(&self, zoom: f64) {
+    let zoom = zoom.clamp(ZOOM_MIN, ZOOM_MAX);
     log::debug!("set_zoom({})", zoom);
     self.imp().webview.set_zoom_level(zoom);
     if let Some(settings) = self.imp().settings.get() {
