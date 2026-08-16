@@ -37,7 +37,9 @@ const MSG_MIME_TYPES: [&str; 2] = ["application/vnd.ms-outlook", "application/x-
 
 lazy_static! {
   pub static ref TEMP_FOLDER: PathBuf = {
-    let mut path = PathBuf::from(std::env::var("XDG_RUNTIME_DIR").unwrap());
+    // XDG_RUNTIME_DIR is not always set (ssh sessions, containers), glib then
+    // falls back to the user cache directory, which is user owned too.
+    let mut path = glib::user_runtime_dir();
     let uuid = Uuid::new_v4().simple().to_string();
     path.push(APP_NAME);
     if !path.exists() {
