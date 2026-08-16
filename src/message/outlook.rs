@@ -161,13 +161,6 @@ impl Message for OutlookMessage {
   }
 }
 
-impl Drop for OutlookMessage {
-  fn drop(&mut self) {
-    log::warn!("OutlookMessage::drop()");
-    MessageParser::cleanup();
-  }
-}
-
 #[cfg(test)]
 mod tests {
   use std::error::Error;
