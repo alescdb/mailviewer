@@ -37,6 +37,10 @@ use crate::utils;
 
 const SETTINGS_SHOW_FILE_NAME: &str = "show-file-name";
 
+/// Links in a message are opened by the system handler, so only hand over the
+/// schemes a mail is expected to link to.
+const ALLOWED_URI_SCHEMES: [&str; 3] = ["http", "https", "mailto"];
+
 mod imp {
   use std::cell::{OnceCell, RefCell};
 
@@ -426,7 +430,7 @@ impl MailViewerWindow {
     let initial_file = current_file
       .parent()
       .unwrap()
-      .child(attachment.filename.as_str());
+      .child(attachment.safe_filename());
 
     let save_dialog = gtk4::FileDialog::builder()
       .title(&gettext("Save attachment..."))
@@ -502,10 +506,22 @@ impl MailViewerWindow {
               if uri.starts_with("about:") {
                 return Ok(false);
               }
+              // Decide before launching, so that a refused or failing uri is never
+              // loaded in the webview instead.
+              policy.ignore();
+
+              let allowed = utils::uri_scheme(uri.as_str())
+                .map_or(false, |scheme| ALLOWED_URI_SCHEMES.contains(&scheme.as_str()));
+              if !allowed {
+                log::warn!("WebView decide_policy(refused) => {}", uri);
+                return Ok(true);
+              }
+
               log::debug!("WebView decide_policy(launch) => {}", uri);
               if let Err(e) = gtk4::UriLauncher::new(&uri).launch_future(Some(self)).await {
                 return Err(format!("{} ({}): {}", &gettext("Failed to open uri"), &uri, e).into());
               }
+              return Ok(true);
             }
             policy.ignore();
             return Ok(true);
