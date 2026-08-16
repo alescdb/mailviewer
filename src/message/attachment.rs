@@ -24,6 +24,8 @@ use super::message::TEMP_FOLDER;
 use crate::gio::prelude::*;
 use crate::{gio, glib};
 
+const DEFAULT_FILENAME: &str = "attachment";
+
 #[derive(Debug, Clone)]
 pub struct Attachment {
   pub filename: String,
@@ -33,13 +35,31 @@ pub struct Attachment {
 }
 
 impl Attachment {
+  /// The file name comes from the message, so it can contain anything, including
+  /// path separators and dot segments. gio::File::child() resolves those, so
+  /// writing to `filename` directly can escape the target directory.
+  pub fn safe_filename(&self) -> String {
+    let name = self
+      .filename
+      .rsplit(|c| c == '/' || c == '\\')
+      .next()
+      .unwrap_or("");
+    let name: String = name.chars().filter(|c| !c.is_control()).collect();
+    let name = name.trim();
+
+    if name.is_empty() || name == "." || name == ".." {
+      return DEFAULT_FILENAME.to_string();
+    }
+    name.to_string()
+  }
+
   pub async fn write_to_tmp(&self) -> Result<gio::File, Box<dyn Error>> {
     let tmp = gio::File::for_path(TEMP_FOLDER.to_str().unwrap());
     if file_exists(&tmp).await.is_ok_and(|v| !v) {
       log::debug!("create_dir({:?})", &tmp);
       tmp.make_directory_future(glib::Priority::default()).await?;
     }
-    let tmp = tmp.child(&self.filename);
+    let tmp = tmp.child(self.safe_filename());
     log::debug!("write_to_tmp({:?})", &tmp);
     self.write_to_file(&tmp).await?;
     Ok(tmp)
@@ -97,6 +117,47 @@ impl fmt::Display for Attachment {
       self.filename,
       self.mime_type.as_deref().unwrap_or("None")
     )
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  fn attachment(filename: &str) -> Attachment {
+    Attachment {
+      filename: filename.to_string(),
+      content_id: String::new(),
+      body: vec![],
+      mime_type: None,
+    }
+  }
+
+  #[test]
+  fn safe_filename_keeps_regular_names() {
+    assert_eq!(attachment("Deus_Gnome.png").safe_filename(), "Deus_Gnome.png");
+    assert_eq!(attachment("état des lieux.pdf").safe_filename(), "état des lieux.pdf");
+  }
+
+  #[test]
+  fn safe_filename_strips_directories() {
+    assert_eq!(attachment("../../.bashrc").safe_filename(), ".bashrc");
+    assert_eq!(attachment("/etc/passwd").safe_filename(), "passwd");
+    assert_eq!(attachment("..\\..\\evil.exe").safe_filename(), "evil.exe");
+    assert_eq!(attachment("a/b/c.png").safe_filename(), "c.png");
+  }
+
+  #[test]
+  fn safe_filename_falls_back_when_nothing_is_left() {
+    assert_eq!(attachment("").safe_filename(), DEFAULT_FILENAME);
+    assert_eq!(attachment("..").safe_filename(), DEFAULT_FILENAME);
+    assert_eq!(attachment("/").safe_filename(), DEFAULT_FILENAME);
+    assert_eq!(attachment("evil/").safe_filename(), DEFAULT_FILENAME);
+  }
+
+  #[test]
+  fn safe_filename_strips_control_characters() {
+    assert_eq!(attachment("a\nb\tc.png").safe_filename(), "abc.png");
   }
 }
 
