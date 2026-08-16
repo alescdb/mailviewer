@@ -94,9 +94,13 @@ fn icons(cfg: &Config) {
     println!("cargo:warning=gtk4-update-icon-cache => {:?}", _output);
     exit(5);
   }
+  // XDG_DATA_DIRS is unset in a bare environment (containers, CI), the spec
+  // default applies then.
+  let data_dirs =
+    env::var("XDG_DATA_DIRS").unwrap_or_else(|_| "/usr/local/share:/usr/share".to_string());
   println!(
     "cargo:rustc-env=XDG_DATA_DIRS={}:{}",
-    env::var("XDG_DATA_DIRS").unwrap(),
+    data_dirs,
     cfg.out_dir.to_str().unwrap()
   );
 }
