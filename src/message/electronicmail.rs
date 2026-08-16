@@ -62,7 +62,7 @@ pub struct ElectronicMail {
 impl ElectronicMail {
   pub fn new(data: Vec<u8>) -> ElectronicMail {
     ElectronicMail {
-      data: data,
+      data,
       from: String::new(),
       to: String::new(),
       subject: String::new(),
@@ -141,7 +141,7 @@ impl ElectronicMail {
   #[cfg(debug_assertions)]
   fn write_debug_html(&self) {
     if let Some(body) = &self.body_html {
-      std::fs::write("body.html", &body).unwrap_or_else(|err| {
+      std::fs::write("body.html", body).unwrap_or_else(|err| {
         log::error!("Failed to write body.html : {}", err);
       });
     }
@@ -198,7 +198,7 @@ impl ElectronicMail {
             if let Some(mime_type) = attachment.mime_type.as_deref() {
               let b64 = general_purpose::STANDARD.encode(&attachment.body);
               log::debug!("Found CID with mime type => {}", mime_type);
-              node.set_attr("src", &format!("data:{};base64,{}", mime_type, &b64));
+              node.set_attr("src", &format!("data:{};base64,{}", mime_type, b64));
             }
           }
         }
@@ -239,7 +239,7 @@ impl ElectronicMail {
           let (decoded, _, _) = encoding.decode(&array);
           return decoded.to_string();
         } else {
-          log::error!("get_content() => to convert {} to string", &charset);
+          log::error!("get_content() => to convert {} to string", charset);
         }
       } else {
         log::error!("get_content() => size");
@@ -292,12 +292,12 @@ impl super::message::Message for ElectronicMail {
       if let Some(from) = &eml.from() {
         self.from = self.internet_list(from);
       }
-      self.to = self.internet_list(&self.merge_to(&eml));
+      self.to = self.internet_list(&self.merge_to(eml));
       if let Some(subject) = &eml.subject() {
         self.subject = subject.to_string();
       }
-      self.date = ElectronicMail::my_mime_message_get_date(&eml);
-      self.parse_body(&eml);
+      self.date = ElectronicMail::my_mime_message_get_date(eml);
+      self.parse_body(eml);
     }
     stream.close();
 

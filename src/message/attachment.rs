@@ -41,7 +41,7 @@ impl Attachment {
   pub fn safe_filename(&self) -> String {
     let name = self
       .filename
-      .rsplit(|c| c == '/' || c == '\\')
+      .rsplit(['/', '\\'])
       .next()
       .unwrap_or("");
     let name: String = name.chars().filter(|c| !c.is_control()).collect();
@@ -56,11 +56,11 @@ impl Attachment {
   pub async fn write_to_tmp(&self) -> Result<gio::File, Box<dyn Error>> {
     let tmp = gio::File::for_path(TEMP_FOLDER.to_str().unwrap());
     if file_exists(&tmp).await.is_ok_and(|v| !v) {
-      log::debug!("create_dir({:?})", &tmp);
+      log::debug!("create_dir({:?})", tmp);
       tmp.make_directory_future(glib::Priority::default()).await?;
     }
     let tmp = tmp.child(self.safe_filename());
-    log::debug!("write_to_tmp({:?})", &tmp);
+    log::debug!("write_to_tmp({:?})", tmp);
     self.write_to_file(&tmp).await?;
     Ok(tmp)
   }

@@ -25,11 +25,13 @@ use crate::message::attachment::Attachment;
 use crate::message::message::{Message, MessageParser};
 use crate::{gio, glib};
 
+type TitleChangedCallback = Box<dyn Fn(&MailService, &str) + 'static>;
+
 pub struct MailService {
   parser: RefCell<Option<MessageParser>>,
   file: RefCell<Option<gio::File>>,
   show_file_name: RefCell<bool>,
-  signal_title_changed: RefCell<Option<Box<dyn Fn(&Self, &str) + 'static>>>,
+  signal_title_changed: RefCell<Option<TitleChangedCallback>>,
 }
 
 impl MailService {
@@ -194,7 +196,7 @@ mod tests {
 
     assert!(service.parser.borrow().is_none());
     assert!(service.file.borrow().is_none());
-    assert_eq!(*service.show_file_name.borrow(), true);
+    assert!(*service.show_file_name.borrow());
   }
 
   #[test]
