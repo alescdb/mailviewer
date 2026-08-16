@@ -140,7 +140,11 @@ impl MailViewerApplication {
       .version(VERSION)
       .copyright("© 2024 Alexandre Del Bigio")
       .license_type(gtk4::License::Gpl30)
-      .developers(vec!["Alexandre Del Bigio", "Marco Trevisan (Treviño)"])
+      .developers(vec![
+        "Alexandre Del Bigio",
+        "Marco Trevisan (Treviño)",
+        "Ángel Guzmán Maeso (shakaran)",
+      ])
       .issue_url("https://github.com/alescdb/mailviewer/issues")
       .support_url("https://github.com/alescdb")
       .build();

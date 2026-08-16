@@ -39,11 +39,7 @@ impl Attachment {
   /// path separators and dot segments. gio::File::child() resolves those, so
   /// writing to `filename` directly can escape the target directory.
   pub fn safe_filename(&self) -> String {
-    let name = self
-      .filename
-      .rsplit(['/', '\\'])
-      .next()
-      .unwrap_or("");
+    let name = self.filename.rsplit(['/', '\\']).next().unwrap_or("");
     let name: String = name.chars().filter(|c| !c.is_control()).collect();
     let name = name.trim();
 
@@ -135,8 +131,14 @@ mod tests {
 
   #[test]
   fn safe_filename_keeps_regular_names() {
-    assert_eq!(attachment("Deus_Gnome.png").safe_filename(), "Deus_Gnome.png");
-    assert_eq!(attachment("état des lieux.pdf").safe_filename(), "état des lieux.pdf");
+    assert_eq!(
+      attachment("Deus_Gnome.png").safe_filename(),
+      "Deus_Gnome.png"
+    );
+    assert_eq!(
+      attachment("état des lieux.pdf").safe_filename(),
+      "état des lieux.pdf"
+    );
   }
 
   #[test]
