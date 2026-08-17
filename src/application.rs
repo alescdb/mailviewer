@@ -93,11 +93,9 @@ mod imp {
         log::debug!("[ARGUMENT] File: {:?}, Hint : {:?}", file.path(), hint);
       }
 
-      if !files.is_empty() {
-        if let Some(path) = files[0].path() {
-          let path = path.to_str().unwrap().to_string();
-          self.filename.replace(Some(path.clone()));
-        }
+      // A path is not necessarily valid utf-8, the uri always is.
+      if let Some(file) = files.first() {
+        self.filename.replace(Some(file.uri().to_string()));
       }
       self.activate();
     }

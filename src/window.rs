@@ -95,6 +95,7 @@ mod imp {
     pub settings: OnceCell<gio::Settings>,
     pub service: MailService,
     pub cancellable: RefCell<gio::Cancellable>,
+    pub print_webview: RefCell<Option<webkit6::WebView>>,
   }
 
   impl Default for MailViewerWindow {
@@ -122,6 +123,7 @@ mod imp {
         settings: OnceCell::new(),
         service: MailService::new(),
         cancellable: RefCell::new(gio::Cancellable::new()),
+        print_webview: RefCell::new(None),
       }
     }
   }
@@ -394,9 +396,12 @@ impl MailViewerWindow {
         ));
       }
     ));
+    // The file name and the mime type come from the message, don't let them
+    // through as pango markup.
     let btn = adw::ActionRow::builder()
       .title(attachment.filename.to_string())
       .subtitle(mime)
+      .use_markup(false)
       .activatable(true)
       .build();
     btn.add_prefix(&gtk4::Image::from_icon_name(icon));
@@ -674,25 +679,30 @@ impl MailViewerWindow {
     let websettings = webkit6::Settings::new();
     let html: String = self.get_print_html();
     self.initialise_webview(&webview, &websettings);
-    webview.load_html(&html, None);
+
+    // The view has to stay alive until it has loaded, but holding it in its own
+    // signal handler makes a reference cycle and neither the view nor its web
+    // process are ever freed. Hold it here and let go once printing is done.
+    self.imp().print_webview.replace(Some(webview.clone()));
+
     webview.connect_load_changed(clone!(
-      #[strong(rename_to = window)]
+      #[weak(rename_to = window)]
       self,
-      #[strong]
-      webview,
-      move |_, e| {
+      move |webview, e| {
         log::debug!("print load_html() event : {:?}", e);
         if e == webkit6::LoadEvent::Finished {
-          let print_operation = PrintOperation::new(&webview);
+          let print_operation = PrintOperation::new(webview);
           let response = print_operation.run_dialog(Some(&window));
           if response == PrintOperationResponse::Print {
             log::debug!("print started");
           } else {
             log::debug!("print cancelled");
           }
+          window.imp().print_webview.replace(None);
         }
       }
     ));
+    webview.load_html(&html, None);
   }
 
   pub async fn open_file_dialog(&self, close_on_cancel: bool) -> bool {
