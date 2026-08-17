@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 RED='\033[0;31m'
 ORANGE='\033[0;33m'
 GREEN='\033[0;32m'
@@ -29,28 +31,33 @@ fi
 ##
 current_path=$(realpath "$(dirname "$0")")
 
-flatpak run --filesystem="$current_path" --command=flatpak-builder-lint org.flatpak.Builder manifest io.github.alescdb.mailviewer.json && {
-  ##
-  ## Build flatpak
-  ##
-  flatpak run --filesystem="$current_path" org.flatpak.Builder \
-    --force-clean \
-    --sandbox \
-    --user \
-    --install \
-    --install-deps-from=flathub \
-    --ccache \
-    --mirror-screenshots-url=https://dl.flathub.org/media/ \
-    --repo=repo \
-    builddir io.github.alescdb.mailviewer.json && {
-    ##
-    ## Linter
-    ##
-    if flatpak run --filesystem="$current_path" --command=flatpak-builder-lint org.flatpak.Builder repo repo; then
-      echo -e "${GREEN}Lint Success${NC}"
-    else
-      echo -e "${RED}Lint Failed${NC}"
-    fi
-    RUST_LOG=mailviewer=debug flatpak run io.github.alescdb.mailviewer
-  }
-}
+echo "Checking Manifest"
+flatpak run \
+  --filesystem="$current_path" \
+  --command=flatpak-builder-lint \
+  org.flatpak.Builder manifest io.github.alescdb.mailviewer.json || 
+
+##
+## Build flatpak
+##
+echo "Building Flatpak"
+flatpak run --filesystem="$current_path" org.flatpak.Builder \
+  --force-clean \
+  --sandbox \
+  --user \
+  --ccache \
+  --install \
+  --install-deps-from=flathub \
+  --mirror-screenshots-url=https://dl.flathub.org/media/ \
+  --repo=repo \
+  builddir io.github.alescdb.mailviewer.json
+
+##
+## Linter
+##
+echo "Linting"
+flatpak run \
+  --filesystem="$current_path" \
+  --command=flatpak-builder-lint org.flatpak.Builder repo repo
+
+RUST_LOG=mailviewer=debug flatpak run io.github.alescdb.mailviewer
