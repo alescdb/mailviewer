@@ -508,6 +508,7 @@ impl MailViewerWindow {
   fn sanitized_html(&self, html: &str, force_css: bool) -> String {
     Html::new(html, force_css)
       .allow_remote(self.imp().show_images.is_active())
+      .inline_images(&self.imp().service.attachments())
       .safe()
   }
 
