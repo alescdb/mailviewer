@@ -90,6 +90,7 @@ mod imp {
     pub attachments_clamp: TemplateChild<adw::Clamp>,
     //
     pub scrolled_window: ScrolledWindow,
+    pub network_session: webkit6::NetworkSession,
     pub webview: webkit6::WebView,
     pub websettings: webkit6::Settings,
     pub settings: OnceCell<gio::Settings>,
@@ -100,8 +101,13 @@ mod imp {
 
   impl Default for MailViewerWindow {
     fn default() -> Self {
+      // Nothing a message pulls in has any business surviving on disk, so keep
+      // the cache and the cookies of the session in memory only.
+      let network_session = webkit6::NetworkSession::new_ephemeral();
+
       MailViewerWindow {
-        webview: WebView::new(),
+        webview: WebView::builder().network_session(&network_session).build(),
+        network_session,
         websettings: webkit6::Settings::new(),
         scrolled_window: ScrolledWindow::new(),
         from: TemplateChild::default(),
@@ -661,7 +667,9 @@ impl MailViewerWindow {
   pub async fn print(&self) {
     log::debug!("print()");
 
-    let webview = webkit6::WebView::new();
+    let webview = WebView::builder()
+      .network_session(&self.imp().network_session)
+      .build();
     let websettings = webkit6::Settings::new();
     let html: String = self.get_print_html();
     self.initialise_webview(&webview, &websettings);
