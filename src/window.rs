@@ -619,21 +619,7 @@ impl MailViewerWindow {
     let date = Html::escape(imp.service.date().as_str());
     let to = Html::escape(imp.service.to().as_str());
     let subject = Html::escape(imp.service.subject().as_str());
-    let attachments = imp
-      .service
-      .attachments()
-      .iter()
-      .map(|attachment| {
-        let filename = Html::escape(&attachment.filename);
-        if let Some(mime_type) = attachment.mime_type.as_deref() {
-          if !mime_type.is_empty() {
-            return format!("<li>{filename} ({mime_type})</li>");
-          }
-        }
-        format!("<li>{filename}</li>")
-      })
-      .collect::<Vec<_>>()
-      .join("\n");
+    let attachments = print_attachment_list(&imp.service.attachments());
 
     format!(
       r#"<!doctype html>
@@ -890,5 +876,57 @@ impl MailViewerWindow {
         );
       }
     }
+  }
+}
+
+/// The `<li>` list of attachments for the printed page. Both the file name and
+/// the mime type come from the message, so both are escaped.
+fn print_attachment_list(attachments: &[Attachment]) -> String {
+  attachments
+    .iter()
+    .map(|attachment| {
+      let filename = Html::escape(&attachment.filename);
+      match attachment.mime_type.as_deref() {
+        Some(mime_type) if !mime_type.is_empty() => {
+          format!("<li>{filename} ({})</li>", Html::escape(mime_type))
+        }
+        _ => format!("<li>{filename}</li>"),
+      }
+    })
+    .collect::<Vec<_>>()
+    .join("\n")
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  fn attachment(filename: &str, mime_type: Option<&str>) -> Attachment {
+    Attachment {
+      filename: filename.to_string(),
+      content_id: String::new(),
+      body: vec![],
+      mime_type: mime_type.map(String::from),
+    }
+  }
+
+  #[test]
+  fn print_attachment_list_escapes_both_fields() {
+    let list = print_attachment_list(&[
+      attachment("Deus_Gnome.png", Some("image/png")),
+      attachment("a&b<c>.txt", Some("text/plain")),
+      attachment("report.pdf", Some("application/pdf\"><img src=x>")),
+      attachment("no-mime.bin", None),
+      attachment("empty-mime.bin", Some("")),
+    ]);
+
+    assert_eq!(
+      list,
+      "<li>Deus_Gnome.png (image/png)</li>\n\
+       <li>a&amp;b&lt;c&gt;.txt (text/plain)</li>\n\
+       <li>report.pdf (application/pdf&quot;&gt;&lt;img src=x&gt;)</li>\n\
+       <li>no-mime.bin</li>\n\
+       <li>empty-mime.bin</li>"
+    );
   }
 }
