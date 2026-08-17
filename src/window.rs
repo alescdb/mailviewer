@@ -394,9 +394,12 @@ impl MailViewerWindow {
         ));
       }
     ));
+    // The file name and the mime type come from the message, don't let them
+    // through as pango markup.
     let btn = adw::ActionRow::builder()
       .title(attachment.filename.to_string())
       .subtitle(mime)
+      .use_markup(false)
       .activatable(true)
       .build();
     btn.add_prefix(&gtk4::Image::from_icon_name(icon));
