@@ -247,6 +247,8 @@ impl MailViewerWindow {
     let show = self.imp().show_images.is_active();
     log::debug!("on_show_images_clicked({})", show);
     self.imp().websettings.set_auto_load_images(show);
+    // The policy travels with the html, so the message has to be rendered again.
+    self.load_html(self.imp().force_css.is_active());
   }
 
   #[template_callback]
@@ -501,13 +503,21 @@ impl MailViewerWindow {
     }
   }
 
+  /// Sanitizes the body of the message, allowing remote content only while the
+  /// "Show remote images" button is on.
+  fn sanitized_html(&self, html: &str, force_css: bool) -> String {
+    Html::new(html, force_css)
+      .allow_remote(self.imp().show_images.is_active())
+      .safe()
+  }
+
   fn load_html(&self, force_css: bool) {
     log::debug!("load_html({})", force_css);
     let html = self.imp().service.body_html().unwrap_or_default();
     self
       .imp()
       .webview
-      .load_html(&Html::new(&html, force_css).safe(), None);
+      .load_html(&self.sanitized_html(&html, force_css), None);
   }
 
   async fn decide_policy(
@@ -615,7 +625,7 @@ impl MailViewerWindow {
     let content: String;
 
     if let Some(html) = imp.service.body_html() {
-      content = Html::new(&html, false).safe();
+      content = self.sanitized_html(&html, false);
     } else if let Some(text) = imp.service.body_text() {
       content = format!("<pre>{}</pre>", Html::escape(&text));
     } else {
@@ -782,7 +792,9 @@ impl MailViewerWindow {
     }
 
     if let Some(html) = imp.service.body_html() {
-      imp.webview.load_html(&Html::new(&html, false).safe(), None);
+      imp
+        .webview
+        .load_html(&self.sanitized_html(&html, false), None);
       has_html = true;
     }
 
