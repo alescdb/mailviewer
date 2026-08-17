@@ -93,7 +93,15 @@ impl Html {
     } else {
       CSP_BLOCK_REMOTE
     };
-    insert_csp(&document.html(), policy)
+    // As a node, not by editing the serialized html : an attribute of the head
+    // can carry a '>' and swallow the tag.
+    let mut head = document.select("head");
+    let content = head.html();
+    head.set_html(format!(
+      "<meta http-equiv=\"Content-Security-Policy\" content=\"{policy}\">{content}"
+    ));
+
+    document.html().to_string()
   }
 
   fn parse(&self, root: &Node) {
@@ -124,22 +132,6 @@ impl Html {
       && s.as_bytes()[0].eq_ignore_ascii_case(&b'o')
       && s.as_bytes()[1].eq_ignore_ascii_case(&b'n')
   }
-}
-
-/// Puts the policy right after the opening `<head>`, so that nothing declared
-/// in the message is parsed before it.
-fn insert_csp(html: &str, policy: &str) -> String {
-  let meta = format!(
-    "<meta http-equiv=\"Content-Security-Policy\" content=\"{}\">",
-    policy
-  );
-  if let Some(start) = html.find("<head") {
-    if let Some(end) = html[start..].find('>') {
-      let at = start + end + 1;
-      return format!("{}{}{}", &html[..at], meta, &html[at..]);
-    }
-  }
-  format!("{meta}{html}")
 }
 
 #[cfg(test)]
@@ -204,6 +196,22 @@ mod tests {
 
     assert!(body.contains("img-src data: http: https:;"));
     assert!(body.contains("font-src http: https:;"));
+  }
+
+  #[test]
+  fn csp_is_not_swallowed_by_an_attribute_of_the_head() {
+    // A '>' inside an attribute of the head used to end the tag as far as a
+    // textual insertion was concerned, and the meta landed in the attribute.
+    let body = crate::html::Html::new(
+      "<html><head title=\">\"><style>@import url(http://tracker/x.css);</style></head><body>hi</body></html>",
+      false,
+    )
+    .safe();
+
+    assert!(
+      body.contains("<head title=\">\"><meta http-equiv=\"Content-Security-Policy\""),
+      "the policy must be an element of the head, not part of an attribute: {body}"
+    );
   }
 
   #[test]
