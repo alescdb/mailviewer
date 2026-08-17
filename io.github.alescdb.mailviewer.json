@@ -13,8 +13,7 @@
     "--socket=fallback-x11",
     "--device=dri",
     "--socket=wayland",
-    "--filesystem=xdg-run/mailviewer:create",
-    "--filesystem=home:ro"
+    "--filesystem=xdg-run/mailviewer:create"
   ],
   "build-options": {
     "append-path": "/usr/lib/sdk/rust-stable/bin",
