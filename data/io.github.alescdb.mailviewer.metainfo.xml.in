@@ -44,6 +44,14 @@
   <content_rating type="oars-1.0" />
   <developer_name>Alexandre Del Bigio</developer_name>
   <releases>
+    <release version="1.0.12" date="2026-08-17">
+      <description>
+        <ul>
+          <li>Fix non-utf-8 file names, markup in attachment rows and a print leak (shakaran)</li>
+          <li>Improve temporary file cleanup (shakaran)</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.11" date="2026-08-16">
       <description>
         <ul>

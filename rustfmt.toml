@@ -15,3 +15,4 @@ normalize_comments = false
 short_array_element_width_threshold = 3
 single_line_let_else_max_width = 80
 trailing_comma = "Vertical"
+ignore = ["src/config.rs"]
