@@ -266,13 +266,6 @@ impl ElectronicMail {
   }
 }
 
-impl Drop for ElectronicMail {
-  fn drop(&mut self) {
-    log::debug!("Drop ElectronicMail()");
-    MessageParser::cleanup();
-  }
-}
-
 impl super::message::Message for ElectronicMail {
   fn parse(&mut self, cancellable: Option<&gio::Cancellable>) -> Result<(), Box<dyn Error>> {
     let stream = StreamMem::with_buffer(&self.data);

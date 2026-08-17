@@ -1,0 +1,29 @@
+name: test
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  test:
+    name: "cargo test"
+    runs-on: ubuntu-24.04
+
+    # gtk 4.22 and libadwaita 1.9 are not in the runner image, so run in a
+    # container that has them.
+    container:
+      image: ubuntu:26.04
+
+    steps:
+      - name: install dependencies
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
+            build-essential ca-certificates cargo git gtk-update-icon-cache \
+            libadwaita-1-dev libgmime-3.0-dev libwebkitgtk-6.0-dev pkg-config rustc
+
+      - uses: actions/checkout@v6
+
+      - name: cargo test
+        run: cargo test

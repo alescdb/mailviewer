@@ -205,13 +205,6 @@ impl MessageParser {
   }
 }
 
-impl Drop for MessageParser {
-  fn drop(&mut self) {
-    log::debug!("MessageParser::drop()");
-    Self::cleanup();
-  }
-}
-
 impl Message for MessageParser {
   fn parse(&mut self, cancellable: Option<&gio::Cancellable>) -> Result<(), Box<dyn Error>> {
     self.parser.parse(cancellable)
