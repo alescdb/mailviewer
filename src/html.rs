@@ -30,9 +30,21 @@ pub const CSS: &str = r#"
 </style>
 "#;
 
+/// Removing tags is not enough to keep a message offline : css can reach the
+/// network on its own through @import, @font-face and url(). A policy is
+/// enforced by the engine, so it covers what the sanitizer cannot see.
+/// data: stays allowed, it is what inline (cid) images are rewritten to.
+const CSP_BLOCK_REMOTE: &str =
+  "default-src 'none'; style-src 'unsafe-inline'; img-src data:; media-src data:";
+
+const CSP_ALLOW_REMOTE: &str = "default-src 'none'; style-src 'unsafe-inline' http: https:; \
+                                img-src data: http: https:; font-src http: https:; \
+                                media-src data: http: https:";
+
 pub struct Html {
   body: String,
   strip_css: bool,
+  allow_remote: bool,
 }
 
 impl Html {
@@ -40,7 +52,15 @@ impl Html {
     Self {
       body: body.to_string(),
       strip_css,
+      allow_remote: false,
     }
+  }
+
+  /// Whether the message may pull content from the network, i.e. the state of
+  /// the "Show remote images" button.
+  pub fn allow_remote(mut self, allow_remote: bool) -> Self {
+    self.allow_remote = allow_remote;
+    self
   }
 
   pub fn escape(value: &str) -> String {
@@ -68,7 +88,12 @@ impl Html {
         .first()
         .append_html(CSS);
     }
-    document.html().to_string()
+    let policy = if self.allow_remote {
+      CSP_ALLOW_REMOTE
+    } else {
+      CSP_BLOCK_REMOTE
+    };
+    insert_csp(&document.html(), policy)
   }
 
   fn parse(&self, root: &Node) {
@@ -101,6 +126,22 @@ impl Html {
   }
 }
 
+/// Puts the policy right after the opening `<head>`, so that nothing declared
+/// in the message is parsed before it.
+fn insert_csp(html: &str, policy: &str) -> String {
+  let meta = format!(
+    "<meta http-equiv=\"Content-Security-Policy\" content=\"{}\">",
+    policy
+  );
+  if let Some(start) = html.find("<head") {
+    if let Some(end) = html[start..].find('>') {
+      let at = start + end + 1;
+      return format!("{}{}{}", &html[..at], meta, &html[at..]);
+    }
+  }
+  format!("{meta}{html}")
+}
+
 #[cfg(test)]
 mod tests {
   use std::error::Error;
@@ -119,7 +160,9 @@ mod tests {
     assert!(!body.contains("class="));
 
     assert!(!body.contains("<script"));
-    assert!(!body.contains("<meta"));
+    // every meta of the message is gone, the only one left is our own policy
+    assert_eq!(body.matches("<meta").count(), 1);
+    assert!(body.contains("<meta http-equiv=\"content-security-policy\""));
     assert!(!body.contains("<audio"));
     assert!(!body.contains("<video"));
     assert!(!body.contains("<iframe"));
@@ -132,5 +175,48 @@ mod tests {
     assert!(body.contains(&crate::html::CSS.to_lowercase()));
 
     Ok(())
+  }
+
+  #[test]
+  fn csp_is_the_first_thing_in_the_head() {
+    let body = crate::html::Html::new("<p>hello</p>", false).safe();
+    let head = body.find("<head>").expect("a head is always serialized");
+
+    assert!(body[head..].starts_with(
+      "<head><meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none';"
+    ));
+  }
+
+  #[test]
+  fn csp_blocks_remote_content_by_default() {
+    let body = crate::html::Html::new("<p>hello</p>", false).safe();
+
+    assert!(body.contains("img-src data:;"));
+    assert!(!body.contains("img-src data: http:"));
+    assert!(!body.contains("font-src"));
+  }
+
+  #[test]
+  fn csp_opens_up_when_remote_content_is_allowed() {
+    let body = crate::html::Html::new("<p>hello</p>", false)
+      .allow_remote(true)
+      .safe();
+
+    assert!(body.contains("img-src data: http: https:;"));
+    assert!(body.contains("font-src http: https:;"));
+  }
+
+  #[test]
+  fn csp_survives_a_message_that_brings_its_own_head() {
+    let body = crate::html::Html::new(
+      "<html><head><style>@import url(http://tracker/x.css);</style></head><body>hi</body></html>",
+      false,
+    )
+    .safe();
+    let head = body.find("<head>").unwrap();
+    let meta = body.find("Content-Security-Policy").unwrap();
+    let style = body.find("<style>").unwrap();
+
+    assert!(head < meta && meta < style, "the policy must come first");
   }
 }
