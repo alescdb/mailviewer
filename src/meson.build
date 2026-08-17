@@ -56,8 +56,43 @@ message('buildtype=' + get_option('buildtype'))
 message('cargo_opt=')
 message(cargo_opt)
 
+cargo_clippy = custom_target(
+  'cargo-clippy',
+  output: 'cargo-clippy.done',
+  build_by_default: true,
+  build_always_stale: true,
+  console: true,
+  command: [
+    'env',
+    cargo_env,
+    cargo_bin,
+    'clippy',
+    cargo_opt,
+    '--all-targets',
+    '--',
+    '-D', 'warnings',
+  ],
+)
+
+cargo_test = custom_target(
+  'cargo-test',
+  output: 'cargo-test.done',
+  build_by_default: true,
+  build_always_stale: true,
+  console: true,
+  command: [
+    'env',
+    cargo_env,
+    cargo_bin,
+    'test',
+    cargo_opt,
+    '--locked',
+  ],
+)
+
 custom_target(
   'cargo-build',
+  depends: [cargo_clippy, cargo_test],
   build_by_default: true,
   build_always_stale: true,
   output: meson.project_name(),
