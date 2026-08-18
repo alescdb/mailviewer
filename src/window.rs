@@ -498,6 +498,18 @@ impl MailViewerWindow {
     let zoom = zoom.clamp(ZOOM_MIN, ZOOM_MAX);
     log::debug!("set_zoom({})", zoom);
     self.imp().webview.set_zoom_level(zoom);
+
+    if zoom <= ZOOM_MIN {
+      self.imp().zoom_minus.set_sensitive(false);
+    } else {
+      self.imp().zoom_minus.set_sensitive(true);
+    }
+    if zoom >= ZOOM_MAX {
+      self.imp().zoom_plus.set_sensitive(false);
+    } else {
+      self.imp().zoom_plus.set_sensitive(true);
+    }
+
     if let Some(settings) = self.imp().settings.get() {
       let _ = settings.set("zoom", zoom);
     }
@@ -626,53 +638,24 @@ impl MailViewerWindow {
     let content: String;
 
     if let Some(html) = imp.service.body_html() {
-      content = self.sanitized_html(&html, false);
+      content = html;
     } else if let Some(text) = imp.service.body_text() {
       content = format!("<pre>{}</pre>", Html::escape(&text));
     } else {
       content = String::new();
     }
-    let from = Html::escape(imp.service.from().as_str());
-    let date = Html::escape(imp.service.date().as_str());
-    let to = Html::escape(imp.service.to().as_str());
-    let subject = Html::escape(imp.service.subject().as_str());
-    let attachments = print_attachment_list(&imp.service.attachments());
+    let attachments = &imp.service.attachments();
 
-    format!(
-      r#"<!doctype html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <style>
-        pre {{
-            white-space: pre-wrap;
-            overflow-wrap: anywhere;
-            word-break: break-word;
-        }}
-        th {{
-            vertical-align: top;
-            text-align: left;
-        }}
-        </style>
-      </head>
-      <body>
-        <table class="header">
-          <tr><th>From:&nbsp;</th><td>{from}</td></tr>
-          <tr><th>To:&nbsp;</th><td>{to}</td></tr>
-          <tr><th>Date:&nbsp;</th><td>{date}</td></tr>
-          <tr><th>Subject:&nbsp;</th><td>{subject}</td></tr>
-        </table>
-        <hr />
-        <div class="body">
-          {content}
-        </div>
-        <hr />
-        <ul>
-          {attachments}
-        </ul>
-      </body>
-      </html>"#
-    )
+    Html::new(&content, false)
+      .allow_remote(imp.show_images.is_active())
+      .inline_images(attachments)
+      .safe_print(
+        imp.service.from().as_str(),
+        imp.service.to().as_str(),
+        imp.service.date().as_str(),
+        imp.service.subject().as_str(),
+        attachments,
+      )
   }
 
   pub async fn print(&self) {
@@ -897,57 +880,5 @@ impl MailViewerWindow {
         );
       }
     }
-  }
-}
-
-/// The `<li>` list of attachments for the printed page. Both the file name and
-/// the mime type come from the message, so both are escaped.
-fn print_attachment_list(attachments: &[Attachment]) -> String {
-  attachments
-    .iter()
-    .map(|attachment| {
-      let filename = Html::escape(&attachment.filename);
-      match attachment.mime_type.as_deref() {
-        Some(mime_type) if !mime_type.is_empty() => {
-          format!("<li>{filename} ({})</li>", Html::escape(mime_type))
-        }
-        _ => format!("<li>{filename}</li>"),
-      }
-    })
-    .collect::<Vec<_>>()
-    .join("\n")
-}
-
-#[cfg(test)]
-mod tests {
-  use super::*;
-
-  fn attachment(filename: &str, mime_type: Option<&str>) -> Attachment {
-    Attachment {
-      filename: filename.to_string(),
-      content_id: String::new(),
-      body: vec![],
-      mime_type: mime_type.map(String::from),
-    }
-  }
-
-  #[test]
-  fn print_attachment_list_escapes_both_fields() {
-    let list = print_attachment_list(&[
-      attachment("Deus_Gnome.png", Some("image/png")),
-      attachment("a&b<c>.txt", Some("text/plain")),
-      attachment("report.pdf", Some("application/pdf\"><img src=x>")),
-      attachment("no-mime.bin", None),
-      attachment("empty-mime.bin", Some("")),
-    ]);
-
-    assert_eq!(
-      list,
-      "<li>Deus_Gnome.png (image/png)</li>\n\
-       <li>a&amp;b&lt;c&gt;.txt (text/plain)</li>\n\
-       <li>report.pdf (application/pdf&quot;&gt;&lt;img src=x&gt;)</li>\n\
-       <li>no-mime.bin</li>\n\
-       <li>empty-mime.bin</li>"
-    );
   }
 }

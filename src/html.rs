@@ -92,20 +92,19 @@ impl Html {
   }
 
   pub fn escape(value: &str) -> String {
-    value
-      .replace('&', "&amp;")
-      .replace('<', "&lt;")
-      .replace('>', "&gt;")
-      .replace('"', "&quot;")
-      .replace('\'', "&#39;")
+    ammonia::clean_text(value)
   }
 
-  pub fn safe(&self) -> String {
-    let policy = if self.allow_remote {
+  pub fn policy(&self) -> &str {
+    if self.allow_remote {
       CSP_ALLOW_REMOTE
     } else {
       CSP_BLOCK_REMOTE
-    };
+    }
+  }
+
+  pub fn safe(&self) -> String {
+    let policy = self.policy();
 
     // The document is built here rather than taken from the message, so the
     // head is ours and nothing of the message is parsed before the policy.
@@ -162,6 +161,78 @@ impl Html {
     });
 
     builder.clean(&self.body).to_string()
+  }
+
+  /// The `<li>` list of attachments for the printed page. Both the file name and
+  /// the mime type come from the message, so both are escaped.
+  fn print_attachment_list(attachments: &[Attachment]) -> String {
+    attachments
+      .iter()
+      .map(|attachment| {
+        let filename = Html::escape(&attachment.filename);
+        match attachment.mime_type.as_deref() {
+          Some(mime_type) if !mime_type.is_empty() => {
+            format!("<li>{filename} ({})</li>", Html::escape(mime_type))
+          }
+          _ => format!("<li>{filename}</li>"),
+        }
+      })
+      .collect::<Vec<_>>()
+      .join("\n")
+  }
+
+  pub fn safe_print(
+    &self,
+    from: &str,
+    to: &str,
+    date: &str,
+    subject: &str,
+    attachments: &[Attachment],
+  ) -> String {
+    let from = Self::escape(from);
+    let to = Self::escape(to);
+    let date = Self::escape(date);
+    let subject = Self::escape(subject);
+    let policy = self.policy();
+    let content = self.clean().to_string();
+    let attachments = Self::print_attachment_list(attachments);
+
+    format!(
+      r#"<!doctype html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta http-equiv="Content-Security-Policy" content="{policy}">
+        <style>
+        pre {{
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }}
+        th {{
+            vertical-align: top;
+            text-align: left;
+        }}
+        </style>
+      </head>
+      <body>
+        <table class="header">
+          <tr><th>From:&nbsp;</th><td>{from}</td></tr>
+          <tr><th>To:&nbsp;</th><td>{to}</td></tr>
+          <tr><th>Date:&nbsp;</th><td>{date}</td></tr>
+          <tr><th>Subject:&nbsp;</th><td>{subject}</td></tr>
+        </table>
+        <hr />
+        <div class="body">
+          {content}
+        </div>
+        <hr />
+        <ul>
+          {attachments}
+        </ul>
+      </body>
+      </html>"#
+    )
   }
 }
 
@@ -300,5 +371,34 @@ mod tests {
 
     assert!(!body.contains("cid:"));
     assert!(!body.contains("src="));
+  }
+
+  fn attachment(filename: &str, mime_type: Option<&str>) -> crate::message::attachment::Attachment {
+    crate::message::attachment::Attachment {
+      filename: filename.to_string(),
+      content_id: String::new(),
+      body: vec![],
+      mime_type: mime_type.map(String::from),
+    }
+  }
+
+  #[test]
+  fn print_attachment_list_escapes_both_fields() {
+    let list = Html::print_attachment_list(&[
+      attachment("Deus_Gnome.png", Some("image/png")),
+      attachment("a&b<c>.txt", Some("text/plain")),
+      attachment("report.pdf", Some("application/pdf\"><img src=x>")),
+      attachment("no-mime.bin", None),
+      attachment("empty-mime.bin", Some("")),
+    ]);
+
+    assert_eq!(
+      list,
+      "<li>Deus_Gnome.png (image&#47;png)</li>\n\
+       <li>a&amp;b&lt;c&gt;.txt (text&#47;plain)</li>\n\
+       <li>report.pdf (application&#47;pdf&quot;&gt;&lt;img&#32;src&#61;x&gt;)</li>\n\
+       <li>no-mime.bin</li>\n\
+       <li>empty-mime.bin</li>"
+    );
   }
 }
