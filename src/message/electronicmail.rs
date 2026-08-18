@@ -19,8 +19,6 @@
  */
 use std::error::Error;
 
-use base64::engine::general_purpose;
-use base64::Engine;
 use encoding_rs::Encoding;
 use gio::prelude::*;
 use gmime::prelude::Cast;
@@ -30,7 +28,6 @@ use gmime::traits::{
 use gmime::{
   glib, InternetAddressExt, InternetAddressList, InternetAddressListExt, Message, Parser, Part, StreamMem
 };
-use nipper::Document;
 
 use crate::gio;
 use crate::message::attachment::Attachment;
@@ -131,7 +128,7 @@ impl ElectronicMail {
       }
     });
     if let Some(html) = html {
-      self.body_html = Some(self.integrate_cid(&html));
+      self.body_html = Some(html);
       // for debugging parsed html
       // self.write_debug_html();
     }
@@ -184,27 +181,6 @@ impl ElectronicMail {
         glib::translate::ToGlibPtr::to_glib_none(&e).0,
       ))
     }
-  }
-
-  fn integrate_cid(&self, body: &str) -> String {
-    let document = Document::from(body);
-    document.select("img").iter().for_each(|mut node| {
-      if let Some(src) = node.attr("src") {
-        if src.starts_with("cid:") {
-          let cid = src.split_at(4).1;
-          log::debug!("Found CID => {}", cid);
-          if let Some(attachment) = self.attachments.iter().find(|a| a.content_id == cid) {
-            log::debug!("Found CID Attachment => {}", attachment.filename);
-            if let Some(mime_type) = attachment.mime_type.as_deref() {
-              let b64 = general_purpose::STANDARD.encode(&attachment.body);
-              log::debug!("Found CID with mime type => {}", mime_type);
-              node.set_attr("src", &format!("data:{};base64,{}", mime_type, b64));
-            }
-          }
-        }
-      }
-    });
-    document.html().to_string()
   }
 
   fn get_content(&self, part: &Part) -> String {

@@ -17,7 +17,13 @@
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-use nipper::{Document, Node};
+use std::borrow::Cow;
+use std::collections::{HashMap, HashSet};
+
+use base64::engine::general_purpose;
+use base64::Engine;
+
+use crate::message::attachment::Attachment;
 
 pub const CSS: &str = r#"
 <style>
@@ -30,9 +36,22 @@ pub const CSS: &str = r#"
 </style>
 "#;
 
+/// Removing tags is not enough to keep a message offline : css can reach the
+/// network on its own through @import, @font-face and url(). A policy is
+/// enforced by the engine, so it covers what the sanitizer cannot see.
+/// data: stays allowed, it is what inline (cid) images are rewritten to.
+const CSP_BLOCK_REMOTE: &str =
+  "default-src 'none'; style-src 'unsafe-inline'; img-src data:; media-src data:";
+
+const CSP_ALLOW_REMOTE: &str = "default-src 'none'; style-src 'unsafe-inline' http: https:; \
+                                img-src data: http: https:; font-src http: https:; \
+                                media-src data: http: https:";
+
 pub struct Html {
   body: String,
   strip_css: bool,
+  allow_remote: bool,
+  inline_images: HashMap<String, String>,
 }
 
 impl Html {
@@ -40,7 +59,36 @@ impl Html {
     Self {
       body: body.to_string(),
       strip_css,
+      allow_remote: false,
+      inline_images: HashMap::new(),
     }
+  }
+
+  /// Whether the message may pull content from the network, i.e. the state of
+  /// the "Show remote images" button.
+  pub fn allow_remote(mut self, allow_remote: bool) -> Self {
+    self.allow_remote = allow_remote;
+    self
+  }
+
+  /// The attachments a `cid:` source can point at.
+  pub fn inline_images(mut self, attachments: &[Attachment]) -> Self {
+    self.inline_images = attachments
+      .iter()
+      .filter(|attachment| !attachment.content_id.is_empty())
+      .filter_map(|attachment| {
+        let mime_type = attachment.mime_type.as_deref()?;
+        Some((
+          attachment.content_id.clone(),
+          format!(
+            "data:{};base64,{}",
+            mime_type,
+            general_purpose::STANDARD.encode(&attachment.body)
+          ),
+        ))
+      })
+      .collect();
+    self
   }
 
   pub fn escape(value: &str) -> String {
@@ -53,51 +101,67 @@ impl Html {
   }
 
   pub fn safe(&self) -> String {
-    let document = Document::from(&self.body);
-    document
-      .select("script,meta,audio,video,iframe,link,object,embed,applet,form")
-      .iter()
-      .for_each(|mut node| {
-        node.remove();
-      });
-    self.parse(&document.root());
-    if self.strip_css {
-      document
-        .select("html")
-        .select("head")
-        .first()
-        .append_html(CSS);
-    }
-    document.html().to_string()
+    let policy = if self.allow_remote {
+      CSP_ALLOW_REMOTE
+    } else {
+      CSP_BLOCK_REMOTE
+    };
+
+    // The document is built here rather than taken from the message, so the
+    // head is ours and nothing of the message is parsed before the policy.
+    format!(
+      concat!(
+        "<!doctype html><html><head>",
+        "<meta charset=\"utf-8\">",
+        "<meta http-equiv=\"Content-Security-Policy\" content=\"{}\">",
+        "{}</head><body>{}</body></html>"
+      ),
+      policy,
+      if self.strip_css { CSS } else { "" },
+      self.clean()
+    )
   }
 
-  fn parse(&self, root: &Node) {
-    root.children().iter().for_each(|node| {
-      if node.node_name().is_some() {
-        if self.strip_css {
-          node.remove_attr("style");
-          node.remove_attr("class");
-        }
-        // Collect attribute names that start with "on"
-        let attrs_to_remove: Vec<String> = node
-          .attrs()
-          .iter()
-          .filter(|attr| Self::starts_with_on(&attr.name.local))
-          .map(|attr| attr.name.local.as_ref().to_string())
-          .collect();
+  fn clean(&self) -> String {
+    let mut builder = ammonia::Builder::default();
 
-        for attr_name in attrs_to_remove {
-          node.remove_attr(&attr_name);
+    // cid: is not rendered, it only has to survive long enough for the filter
+    // below to turn it into the data: uri of the attachment it points at.
+    let mut schemes: HashSet<&str> = ammonia::Builder::default().clone_url_schemes();
+    schemes.insert("data");
+    schemes.insert("cid");
+    builder.url_schemes(schemes);
+
+    if !self.strip_css {
+      // A <style> of the message is kept as it is : it cannot script, and the
+      // policy above is what keeps it from reaching the network.
+      let mut tags: HashSet<&str> = ammonia::Builder::default().clone_tags();
+      tags.insert("style");
+      let mut content: HashSet<&str> = ammonia::Builder::default().clone_clean_content_tags();
+      content.remove("style");
+      let mut attributes: HashSet<&str> = ammonia::Builder::default().clone_generic_attributes();
+      attributes.insert("style");
+      attributes.insert("class");
+
+      builder
+        .tags(tags)
+        .clean_content_tags(content)
+        .generic_attributes(attributes);
+    }
+
+    let inline_images = self.inline_images.clone();
+    builder.attribute_filter(move |element, attribute, value| {
+      if element == "img" && attribute == "src" {
+        if let Some(content_id) = value.strip_prefix("cid:") {
+          return inline_images
+            .get(content_id)
+            .map(|uri| Cow::Owned(uri.clone()));
         }
       }
-      self.parse(node);
+      Some(Cow::Borrowed(value))
     });
-  }
 
-  fn starts_with_on(s: &str) -> bool {
-    s.len() >= 2
-      && s.as_bytes()[0].eq_ignore_ascii_case(&b'o')
-      && s.as_bytes()[1].eq_ignore_ascii_case(&b'n')
+    builder.clean(&self.body).to_string()
   }
 }
 
@@ -106,20 +170,27 @@ mod tests {
   use std::error::Error;
   use std::fs;
 
+  use crate::html::Html;
+  use crate::message::message::{Message, MessageParser};
+  use crate::{gio, utils};
+
+  const SHELL: &str = "<!doctype html><html><head><meta charset=\"utf-8\"><meta http-equiv=\"Content-Security-Policy\" content=\"";
+
   #[test]
   fn html() -> Result<(), Box<dyn Error>> {
-    let html = crate::html::Html::new(&fs::read_to_string("tests/test.html")?, true);
-    let body = html.safe().to_lowercase();
+    let body = Html::new(&fs::read_to_string("tests/test.html")?, true)
+      .safe()
+      .to_lowercase();
 
-    // eprintln!("{}", &body);
     assert!(!body.contains("onblur="));
     assert!(!body.contains("onclick="));
     assert!(!body.contains("onchange="));
-    assert!(!body.contains("style="));
+    // forcing the css drops what the message brought
+    assert!(!body.contains("style=\"color"));
     assert!(!body.contains("class="));
 
     assert!(!body.contains("<script"));
-    assert!(!body.contains("<meta"));
+    assert!(!body.contains("console.log"));
     assert!(!body.contains("<audio"));
     assert!(!body.contains("<video"));
     assert!(!body.contains("<iframe"));
@@ -132,5 +203,102 @@ mod tests {
     assert!(body.contains(&crate::html::CSS.to_lowercase()));
 
     Ok(())
+  }
+
+  #[test]
+  fn the_document_is_ours() {
+    let body = Html::new("<p>hello</p>", false).safe();
+
+    assert!(body.starts_with(SHELL), "unexpected shell: {body}");
+    assert!(body.ends_with("<p>hello</p></body></html>"));
+  }
+
+  #[test]
+  fn the_head_of_the_message_is_dropped() {
+    // A '>' in an attribute of the head used to swallow the policy back when it
+    // was inserted into the html of the message.
+    let body = Html::new(
+      "<html><head title=\">\"><title>t</title></head><body>hi</body></html>",
+      false,
+    )
+    .safe();
+
+    assert!(body.starts_with(SHELL));
+    assert!(!body.contains("title=\">\""));
+    assert_eq!(body.matches("Content-Security-Policy").count(), 1);
+  }
+
+  #[test]
+  fn csp_blocks_remote_content_by_default() {
+    let body = Html::new("<p>hello</p>", false).safe();
+
+    assert!(body.contains("img-src data:;"));
+    assert!(!body.contains("font-src"));
+  }
+
+  #[test]
+  fn csp_opens_up_when_remote_content_is_allowed() {
+    let body = Html::new("<p>hello</p>", false).allow_remote(true).safe();
+
+    assert!(body.contains("img-src data: http: https:;"));
+    assert!(body.contains("font-src http: https:;"));
+  }
+
+  #[test]
+  fn a_style_of_the_message_is_kept_as_it_is() {
+    let message = "<style>td > p { color: red; }</style><p>hi</p>";
+
+    let body = Html::new(message, false).safe();
+    assert!(body.contains("<style>td > p { color: red; }</style>"));
+
+    // ... unless the css is forced
+    let body = Html::new(message, true).safe();
+    assert!(!body.contains("color: red"));
+  }
+
+  #[test]
+  fn tags_that_are_not_expected_in_a_message_are_dropped() {
+    let body = Html::new(
+      "<svg><use href=\"http://x/y\"/></svg><base href=\"http://evil/\"><template><img src=\"http://x\"></template>",
+      false,
+    )
+    .safe();
+
+    assert!(!body.contains("<svg"));
+    assert!(!body.contains("<base"));
+    assert!(!body.contains("<template"));
+    assert!(!body.contains("http://"));
+  }
+
+  #[test]
+  fn a_javascript_link_does_not_survive() {
+    let body = Html::new("<a href=\"javascript:alert(1)\">x</a>", false).safe();
+
+    assert!(!body.contains("javascript:"));
+  }
+
+  #[test]
+  fn an_inline_image_becomes_a_data_uri() {
+    let file = gio::File::for_path("sample.eml");
+
+    utils::spawn_and_wait_new_ctx(async move {
+      let mut message = MessageParser::new(&file, None).await.expect("File opened");
+      message.parse(None).unwrap();
+
+      let body = Html::new(&message.body_html().unwrap(), false)
+        .inline_images(&message.attachments())
+        .safe();
+
+      assert!(!body.contains("cid:"), "a cid: source was left behind");
+      assert!(body.contains("<img src=\"data:image/png;base64,iVBOR"));
+    });
+  }
+
+  #[test]
+  fn an_inline_image_without_its_attachment_is_dropped() {
+    let body = Html::new("<img src=\"cid:nothing\">", false).safe();
+
+    assert!(!body.contains("cid:"));
+    assert!(!body.contains("src="));
   }
 }
