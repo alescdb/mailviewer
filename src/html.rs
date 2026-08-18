@@ -383,6 +383,37 @@ mod tests {
   }
 
   #[test]
+  fn the_printed_page_carries_the_policy_in_its_own_head() {
+    let page = Html::new("<p>hi</p>", false).safe_print(
+      "John Doe <john@moon.space>",
+      "Lucas <lucas@mercure.space>",
+      "2026-08-18 09:00:00 +0200",
+      "Lorem ipsum",
+      &[],
+    );
+
+    let head = page.find("<head>").expect("no head");
+    let meta = page.find("Content-Security-Policy").expect("no policy");
+    let body = page.find("<body>").expect("no body");
+
+    assert!(head < meta && meta < body, "the policy must be in the head");
+  }
+
+  #[test]
+  fn the_printed_page_is_a_single_document() {
+    // Embedding the message with safe() brings a document of its own along;
+    // its head is then dropped when the page is parsed, and a policy outside
+    // of a head is ignored.
+    let page = Html::new("<p>hi</p>", false).safe_print("f", "t", "d", "s", &[]);
+
+    assert_eq!(page.matches("<!doctype").count(), 1);
+    assert_eq!(page.matches("<html").count(), 1);
+    assert_eq!(page.matches("<head>").count(), 1);
+    assert_eq!(page.matches("Content-Security-Policy").count(), 1);
+    assert!(page.contains("<p>hi</p>"));
+  }
+
+  #[test]
   fn print_attachment_list_escapes_both_fields() {
     let list = Html::print_attachment_list(&[
       attachment("Deus_Gnome.png", Some("image/png")),
