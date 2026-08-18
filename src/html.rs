@@ -25,16 +25,38 @@ use base64::Engine;
 
 use crate::message::attachment::Attachment;
 
-pub const CSS: &str = r#"
+/// The style that replaces the one of the message when the css is forced.
+/// There are two, so that forcing it on a dark desktop does not turn the
+/// message into a white slab.
+const CSS_LIGHT: &str = r#"
 <style>
   * {
-    color: black; 
+    color: black;
     background-color: white;
     font-family: Poppins, Roboto, sans-serif;
     font-size: 20px;
   }
 </style>
 "#;
+
+const CSS_DARK: &str = r#"
+<style>
+  * {
+    color: #ffffff;
+    background-color: #242424;
+    font-family: Poppins, Roboto, sans-serif;
+    font-size: 20px;
+  }
+</style>
+"#;
+
+pub fn forced_css(dark: bool) -> &'static str {
+  if dark {
+    CSS_DARK
+  } else {
+    CSS_LIGHT
+  }
+}
 
 /// Removing tags is not enough to keep a message offline : css can reach the
 /// network on its own through @import, @font-face and url(). A policy is
@@ -51,6 +73,7 @@ pub struct Html {
   body: String,
   strip_css: bool,
   allow_remote: bool,
+  dark: bool,
   inline_images: HashMap<String, String>,
 }
 
@@ -60,6 +83,7 @@ impl Html {
       body: body.to_string(),
       strip_css,
       allow_remote: false,
+      dark: false,
       inline_images: HashMap::new(),
     }
   }
@@ -68,6 +92,14 @@ impl Html {
   /// the "Show remote images" button.
   pub fn allow_remote(mut self, allow_remote: bool) -> Self {
     self.allow_remote = allow_remote;
+    self
+  }
+
+  /// Whether the forced css is the dark one, i.e. the colour scheme of the
+  /// desktop. Only used when the css is forced : the style a message brings is
+  /// left alone, recolouring it would break as much as it fixes.
+  pub fn dark(mut self, dark: bool) -> Self {
+    self.dark = dark;
     self
   }
 
@@ -116,7 +148,11 @@ impl Html {
         "{}</head><body>{}</body></html>"
       ),
       policy,
-      if self.strip_css { CSS } else { "" },
+      if self.strip_css {
+        forced_css(self.dark)
+      } else {
+        ""
+      },
       self.clean()
     )
   }
@@ -271,9 +307,32 @@ mod tests {
     assert!(!body.contains("<applet"));
     assert!(!body.contains("<form"));
 
-    assert!(body.contains(&crate::html::CSS.to_lowercase()));
+    assert!(body.contains(&crate::html::forced_css(false).to_lowercase()));
 
     Ok(())
+  }
+
+  #[test]
+  fn forcing_the_css_follows_the_colour_scheme() {
+    let light = Html::new("<p>hi</p>", true).safe();
+    let dark = Html::new("<p>hi</p>", true).dark(true).safe();
+
+    assert!(light.contains("background-color: white"));
+    assert!(!light.contains("#242424"));
+    assert!(dark.contains("background-color: #242424"));
+    assert!(!dark.contains("background-color: white"));
+  }
+
+  #[test]
+  fn the_style_of_the_message_is_left_alone_in_the_dark() {
+    // Only the forced css carries our colours; recolouring a message that
+    // brings its own style would break as much as it fixes.
+    let body = Html::new("<p style=\"color: #333\">hi</p>", false)
+      .dark(true)
+      .safe();
+
+    assert!(!body.contains("#242424"));
+    assert!(body.contains("color: #333"));
   }
 
   #[test]

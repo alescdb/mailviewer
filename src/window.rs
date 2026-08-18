@@ -322,6 +322,19 @@ impl MailViewerWindow {
       }
     ));
 
+    // The forced css carries the colours, so it has to be rendered again when
+    // the desktop switches between light and dark.
+    adw::StyleManager::default().connect_dark_notify(clone!(
+      #[weak(rename_to = window)]
+      self,
+      move |_| {
+        if window.imp().force_css.is_active() {
+          log::debug!("colour scheme changed, rendering again");
+          window.load_html(true);
+        }
+      }
+    ));
+
     imp.webview.connect_decide_policy(clone!(
       #[strong]
       win,
@@ -522,6 +535,7 @@ impl MailViewerWindow {
   fn sanitized_html(&self, html: &str, force_css: bool) -> String {
     Html::new(html, force_css)
       .allow_remote(self.imp().show_images.is_active())
+      .dark(adw::StyleManager::default().is_dark())
       .inline_images(&self.imp().service.attachments())
       .safe()
   }
