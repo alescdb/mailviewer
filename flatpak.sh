@@ -24,6 +24,8 @@ if [[ "$1" == "--deps" ]]; then
   .venv/bin/python flatpak-cargo-generator.py \
     -o mailviewer-sources.json \
     Cargo.lock
+    
+  exit 0
 fi
 
 ##
