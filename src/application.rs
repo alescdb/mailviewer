@@ -19,6 +19,7 @@
  */
 use adw::prelude::AdwDialogExt;
 use adw::subclass::prelude::*;
+use gettextrs::gettext;
 use gtk4::prelude::*;
 use gtk4::{gio, glib};
 
@@ -84,7 +85,7 @@ mod imp {
         Some(&glib::Variant::from(self.filename.borrow().clone())),
       ) {
         log::debug!("open_file_dialog({e})");
-        window.alert_error("File Error", &e.to_string(), false);
+        window.alert_error(&gettext("File Error"), &e.to_string(), false);
       }
     }
 
