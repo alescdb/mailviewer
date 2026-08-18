@@ -12,7 +12,6 @@ license = "GPL-3.0+"
 webkit6 = "0.6.1"
 gmime = "0.8.1"
 gtk4 = { version = "0.11.4", features = ["v4_22"] }
-nipper = "0.1.9"
 log = "0.4.33"
 env_logger = "0.11.11"
 base64 = "0.23.1"
@@ -27,3 +26,4 @@ gettext-rs = { version = "0.8.0", features = ["gettext-system"] }
 hashbrown = "0.17.1"
 encoding_rs = "0.8.35"
 futures-util = "0.3.34"
+ammonia = "4.1.4"

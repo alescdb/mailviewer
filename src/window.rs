@@ -90,6 +90,7 @@ mod imp {
     pub attachments_clamp: TemplateChild<adw::Clamp>,
     //
     pub scrolled_window: ScrolledWindow,
+    pub network_session: webkit6::NetworkSession,
     pub webview: webkit6::WebView,
     pub websettings: webkit6::Settings,
     pub settings: OnceCell<gio::Settings>,
@@ -100,8 +101,13 @@ mod imp {
 
   impl Default for MailViewerWindow {
     fn default() -> Self {
+      // Nothing a message pulls in has any business surviving on disk, so keep
+      // the cache and the cookies of the session in memory only.
+      let network_session = webkit6::NetworkSession::new_ephemeral();
+
       MailViewerWindow {
-        webview: WebView::new(),
+        webview: WebView::builder().network_session(&network_session).build(),
+        network_session,
         websettings: webkit6::Settings::new(),
         scrolled_window: ScrolledWindow::new(),
         from: TemplateChild::default(),
@@ -241,6 +247,8 @@ impl MailViewerWindow {
     let show = self.imp().show_images.is_active();
     log::debug!("on_show_images_clicked({})", show);
     self.imp().websettings.set_auto_load_images(show);
+    // The policy travels with the html, so the message has to be rendered again.
+    self.load_html(self.imp().force_css.is_active());
   }
 
   #[template_callback]
@@ -495,13 +503,22 @@ impl MailViewerWindow {
     }
   }
 
+  /// Sanitizes the body of the message, allowing remote content only while the
+  /// "Show remote images" button is on.
+  fn sanitized_html(&self, html: &str, force_css: bool) -> String {
+    Html::new(html, force_css)
+      .allow_remote(self.imp().show_images.is_active())
+      .inline_images(&self.imp().service.attachments())
+      .safe()
+  }
+
   fn load_html(&self, force_css: bool) {
     log::debug!("load_html({})", force_css);
     let html = self.imp().service.body_html().unwrap_or_default();
     self
       .imp()
       .webview
-      .load_html(&Html::new(&html, force_css).safe(), None);
+      .load_html(&self.sanitized_html(&html, force_css), None);
   }
 
   async fn decide_policy(
@@ -609,7 +626,7 @@ impl MailViewerWindow {
     let content: String;
 
     if let Some(html) = imp.service.body_html() {
-      content = Html::new(&html, false).safe();
+      content = self.sanitized_html(&html, false);
     } else if let Some(text) = imp.service.body_text() {
       content = format!("<pre>{}</pre>", Html::escape(&text));
     } else {
@@ -619,21 +636,7 @@ impl MailViewerWindow {
     let date = Html::escape(imp.service.date().as_str());
     let to = Html::escape(imp.service.to().as_str());
     let subject = Html::escape(imp.service.subject().as_str());
-    let attachments = imp
-      .service
-      .attachments()
-      .iter()
-      .map(|attachment| {
-        let filename = Html::escape(&attachment.filename);
-        if let Some(mime_type) = attachment.mime_type.as_deref() {
-          if !mime_type.is_empty() {
-            return format!("<li>{filename} ({mime_type})</li>");
-          }
-        }
-        format!("<li>{filename}</li>")
-      })
-      .collect::<Vec<_>>()
-      .join("\n");
+    let attachments = print_attachment_list(&imp.service.attachments());
 
     format!(
       r#"<!doctype html>
@@ -675,7 +678,9 @@ impl MailViewerWindow {
   pub async fn print(&self) {
     log::debug!("print()");
 
-    let webview = webkit6::WebView::new();
+    let webview = WebView::builder()
+      .network_session(&self.imp().network_session)
+      .build();
     let websettings = webkit6::Settings::new();
     let html: String = self.get_print_html();
     self.initialise_webview(&webview, &websettings);
@@ -788,7 +793,9 @@ impl MailViewerWindow {
     }
 
     if let Some(html) = imp.service.body_html() {
-      imp.webview.load_html(&Html::new(&html, false).safe(), None);
+      imp
+        .webview
+        .load_html(&self.sanitized_html(&html, false), None);
       has_html = true;
     }
 
@@ -890,5 +897,57 @@ impl MailViewerWindow {
         );
       }
     }
+  }
+}
+
+/// The `<li>` list of attachments for the printed page. Both the file name and
+/// the mime type come from the message, so both are escaped.
+fn print_attachment_list(attachments: &[Attachment]) -> String {
+  attachments
+    .iter()
+    .map(|attachment| {
+      let filename = Html::escape(&attachment.filename);
+      match attachment.mime_type.as_deref() {
+        Some(mime_type) if !mime_type.is_empty() => {
+          format!("<li>{filename} ({})</li>", Html::escape(mime_type))
+        }
+        _ => format!("<li>{filename}</li>"),
+      }
+    })
+    .collect::<Vec<_>>()
+    .join("\n")
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  fn attachment(filename: &str, mime_type: Option<&str>) -> Attachment {
+    Attachment {
+      filename: filename.to_string(),
+      content_id: String::new(),
+      body: vec![],
+      mime_type: mime_type.map(String::from),
+    }
+  }
+
+  #[test]
+  fn print_attachment_list_escapes_both_fields() {
+    let list = print_attachment_list(&[
+      attachment("Deus_Gnome.png", Some("image/png")),
+      attachment("a&b<c>.txt", Some("text/plain")),
+      attachment("report.pdf", Some("application/pdf\"><img src=x>")),
+      attachment("no-mime.bin", None),
+      attachment("empty-mime.bin", Some("")),
+    ]);
+
+    assert_eq!(
+      list,
+      "<li>Deus_Gnome.png (image/png)</li>\n\
+       <li>a&amp;b&lt;c&gt;.txt (text/plain)</li>\n\
+       <li>report.pdf (application/pdf&quot;&gt;&lt;img src=x&gt;)</li>\n\
+       <li>no-mime.bin</li>\n\
+       <li>empty-mime.bin</li>"
+    );
   }
 }
