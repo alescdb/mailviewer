@@ -97,6 +97,7 @@ mod imp {
     pub service: MailService,
     pub cancellable: RefCell<gio::Cancellable>,
     pub print_webview: RefCell<Option<webkit6::WebView>>,
+    pub print_operation: RefCell<Option<webkit6::PrintOperation>>,
   }
 
   impl Default for MailViewerWindow {
@@ -130,6 +131,7 @@ mod imp {
         service: MailService::new(),
         cancellable: RefCell::new(gio::Cancellable::new()),
         print_webview: RefCell::new(None),
+        print_operation: RefCell::new(None),
       }
     }
   }
@@ -680,13 +682,32 @@ impl MailViewerWindow {
         log::debug!("print load_html() event : {:?}", e);
         if e == webkit6::LoadEvent::Finished {
           let print_operation = PrintOperation::new(webview);
+
+          print_operation.connect_failed(move |_, error| {
+            log::error!("print failed: {}", error);
+          });
+          print_operation.connect_finished(clone!(
+            #[weak(rename_to = window)]
+            window,
+            move |_| {
+              log::debug!("print finished");
+              window.imp().print_operation.replace(None);
+              window.imp().print_webview.replace(None);
+            }
+          ));
+
+          window
+            .imp()
+            .print_operation
+            .replace(Some(print_operation.clone()));
           let response = print_operation.run_dialog(Some(&window));
           if response == PrintOperationResponse::Print {
             log::debug!("print started");
           } else {
             log::debug!("print cancelled");
+            window.imp().print_operation.replace(None);
+            window.imp().print_webview.replace(None);
           }
-          window.imp().print_webview.replace(None);
         }
       }
     ));
