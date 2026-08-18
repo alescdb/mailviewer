@@ -26,7 +26,7 @@ use gettextrs::{gettext, ngettext};
 use gtk4::{gio, glib, template_callbacks};
 use webkit6::prelude::{PolicyDecisionExt, WebViewExt};
 use webkit6::{
-  NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, PrintOperation, PrintOperationResponse, WebView
+  FindOptions, NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, PrintOperation, PrintOperationResponse, WebView
 };
 
 use crate::html::Html;
@@ -88,6 +88,10 @@ mod imp {
     pub content_box: TemplateChild<gtk4::Box>,
     #[template_child]
     pub attachments_clamp: TemplateChild<adw::Clamp>,
+    #[template_child]
+    pub search_bar: TemplateChild<gtk4::SearchBar>,
+    #[template_child]
+    pub search_entry: TemplateChild<gtk4::SearchEntry>,
     //
     pub scrolled_window: ScrolledWindow,
     pub network_session: webkit6::NetworkSession,
@@ -125,6 +129,8 @@ mod imp {
         stack: TemplateChild::default(),
         pull_label: TemplateChild::default(),
         attachments_clamp: TemplateChild::default(),
+        search_bar: TemplateChild::default(),
+        search_entry: TemplateChild::default(),
         content_box: TemplateChild::default(),
         sheet: TemplateChild::default(),
         settings: OnceCell::new(),
@@ -182,6 +188,9 @@ mod imp {
           }
         },
       );
+      klass.install_action("win.search", None, move |win, _, _| {
+        win.start_search();
+      });
       klass.install_action("win.preferences", None, move |win, _, _| {
         win.show_preferences();
       });
@@ -251,6 +260,62 @@ impl MailViewerWindow {
     self.imp().websettings.set_auto_load_images(show);
     // The policy travels with the html, so the message has to be rendered again.
     self.load_html(self.imp().force_css.is_active());
+  }
+
+  /// Ctrl+F. The bar rides on the html view, the plain text one is a
+  /// GtkTextView and does not go through the find controller.
+  fn start_search(&self) {
+    if self.imp().show_text.is_active() {
+      return;
+    }
+    self.imp().search_bar.set_search_mode(true);
+    self.imp().search_entry.grab_focus();
+  }
+
+  fn find_controller(&self) -> Option<webkit6::FindController> {
+    self.imp().webview.find_controller()
+  }
+
+  #[template_callback]
+  pub fn on_search_changed(&self) {
+    let text = self.imp().search_entry.text();
+    let Some(controller) = self.find_controller() else {
+      return;
+    };
+
+    if text.is_empty() {
+      controller.search_finish();
+      return;
+    }
+    log::debug!("on_search_changed({})", text);
+    controller.search(
+      &text,
+      (FindOptions::CASE_INSENSITIVE | FindOptions::WRAP_AROUND).bits(),
+      u32::MAX,
+    );
+  }
+
+  #[template_callback]
+  pub fn on_search_next(&self) {
+    if let Some(controller) = self.find_controller() {
+      controller.search_next();
+    }
+  }
+
+  #[template_callback]
+  pub fn on_search_previous(&self) {
+    if let Some(controller) = self.find_controller() {
+      controller.search_previous();
+    }
+  }
+
+  #[template_callback]
+  pub fn on_search_stopped(&self) {
+    log::debug!("on_search_stopped()");
+    if let Some(controller) = self.find_controller() {
+      controller.search_finish();
+    }
+    self.imp().search_bar.set_search_mode(false);
   }
 
   #[template_callback]
@@ -740,6 +805,7 @@ impl MailViewerWindow {
     log::debug!("open_file({:?})", file.peek_path().unwrap_or_default());
 
     self.on_show_text(true);
+    self.on_search_stopped();
     self.imp().content_box.get().set_sensitive(false);
     self.imp().sheet.get().set_open(false);
 
