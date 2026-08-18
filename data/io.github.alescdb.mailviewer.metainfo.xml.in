@@ -44,10 +44,15 @@
   <content_rating type="oars-1.0" />
   <developer_name>Alexandre Del Bigio</developer_name>
   <releases>
-    <release version="1.0.12" date="2026-08-17">
+    <release version="1.0.13" date="2026-08-18">
       <description>
         <ul>
-          <li>Fix non-utf-8 file names, markup in attachment rows and a print leak (shakaran)</li>
+          <li>Fix printing to file and PDF</li>
+          <li>Disable zoom buttons at the minimum and maximum zoom levels</li>
+          <li>Improve HTML email sanitization and security (shakaran)</li>
+          <li>Block unwanted remote content in emails (shakaran)</li>
+          <li>Improve HTML escaping for filenames and message metadata</li>
+          <li>Fix non-UTF-8 filenames and markup in attachment rows (shakaran)</li>
           <li>Improve temporary file cleanup (shakaran)</li>
         </ul>
       </description>

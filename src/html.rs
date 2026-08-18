@@ -401,4 +401,37 @@ mod tests {
        <li>empty-mime.bin</li>"
     );
   }
+
+  #[test]
+  fn the_printed_page_carries_the_policy_in_its_own_head() {
+    let html = Html::new("<p>hi</p>", false);
+    let policy = html.policy().to_string();
+
+    let page = html.safe_print(
+      "john@moon.space",
+      "lucas@mercure.space",
+      "2026-08-18",
+      "Lorem ipsum",
+      &[],
+    );
+
+    let head = page.find("<head>").unwrap();
+    let meta = page.find("Content-Security-Policy").unwrap();
+    let body = page.find("<body>").unwrap();
+
+    assert!(head < meta && meta < body, "the policy must be in the head");
+    assert!(page.contains(&format!("content=\"{policy}\"")));
+  }
+
+  #[test]
+  fn the_printed_page_is_a_single_document() {
+    // The message used to be embedded with safe(), which brought a whole
+    // document along, and the policy ended up outside of any head.
+    let page = Html::new("<p>hi</p>", false).safe_print("from", "to", "date", "subject", &[]);
+
+    assert_eq!(page.matches("<!doctype").count(), 1);
+    assert_eq!(page.matches("<html").count(), 1);
+    assert_eq!(page.matches("<head>").count(), 1);
+    assert_eq!(page.matches("Content-Security-Policy").count(), 1);
+  }
 }
