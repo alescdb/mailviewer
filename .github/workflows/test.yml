@@ -21,7 +21,8 @@ jobs:
           apt-get update
           DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
             build-essential ca-certificates cargo git gtk-update-icon-cache \
-            libadwaita-1-dev libgmime-3.0-dev libwebkitgtk-6.0-dev pkg-config rustc
+            libadwaita-1-dev libgmime-3.0-dev libwebkitgtk-6.0-dev pkg-config rustc \
+            blueprint-compiler
 
       - uses: actions/checkout@v6
 
