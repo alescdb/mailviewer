@@ -93,9 +93,8 @@ msgstr ""
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:55
 msgid "Fix non-UTF-8 filenames and markup in attachment rows (shakaran)"
 msgstr ""
-"Se corrigen los nombres de archivo que no son UTF-8 y el markup en las filas "
-"de adjuntos (shakaran)Se corrigen los nombres de archivo que no son UTF-8, el "
-"markup en las filas de adjuntos y una fuga al imprimir (gracias a shakaran)"
+"Se corrigen los nombres de archivo que no son UTF-8 y el marcado en las filas "
+"de adjuntos (shakaran)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:56
 msgid "Improve temporary file cleanup (shakaran)"
