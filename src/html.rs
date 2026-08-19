@@ -104,23 +104,42 @@ impl Html {
   }
 
   /// The attachments a `cid:` source can point at.
+  ///
+  /// Only the ones the message refers to are encoded. A message can carry tens
+  /// of megabytes of attachments with a Content-ID that no image ever uses, and
+  /// base64 adds another third on top of each one, on every render.
   pub fn inline_images(mut self, attachments: &[Attachment]) -> Self {
-    self.inline_images = attachments
-      .iter()
-      .filter(|attachment| !attachment.content_id.is_empty())
-      .filter_map(|attachment| {
-        let mime_type = attachment.mime_type.as_deref()?;
-        Some((
-          attachment.content_id.clone(),
-          format!(
-            "data:{};base64,{}",
-            mime_type,
-            general_purpose::STANDARD.encode(&attachment.body)
-          ),
-        ))
-      })
-      .collect();
+    let images = {
+      // A prefix of a longer id matches here too, so the scan can include one
+      // attachment that is not used in the end. It is a filter for waste, not a
+      // rule about what may be rendered.
+      let body = &self.body;
+      attachments
+        .iter()
+        .filter(|attachment| !attachment.content_id.is_empty())
+        .filter(|attachment| {
+          body.contains(&format!("cid:{}", attachment.content_id.to_lowercase()))
+        })
+        .filter_map(|attachment| {
+          let mime_type = attachment.mime_type.as_deref()?;
+          Some((
+            attachment.content_id.clone(),
+            format!(
+              "data:{};base64,{}",
+              mime_type,
+              general_purpose::STANDARD.encode(&attachment.body)
+            ),
+          ))
+        })
+        .collect()
+    };
+    self.inline_images = images;
     self
+  }
+
+  #[cfg(test)]
+  fn encoded_image_count(&self) -> usize {
+    self.inline_images.len()
   }
 
   pub fn escape(value: &str) -> String {
@@ -422,6 +441,29 @@ mod tests {
       assert!(!body.contains("cid:"), "a cid: source was left behind");
       assert!(body.contains("<img src=\"data:image/png;base64,iVBOR"));
     });
+  }
+
+  #[test]
+  fn only_the_images_the_message_uses_are_encoded() {
+    let used = crate::message::attachment::Attachment {
+      filename: "used.png".to_string(),
+      content_id: "used".to_string(),
+      body: vec![1, 2, 3],
+      mime_type: Some("image/png".to_string()),
+    };
+    let unused = crate::message::attachment::Attachment {
+      filename: "unused.pdf".to_string(),
+      content_id: "unused".to_string(),
+      body: vec![4, 5, 6],
+      mime_type: Some("application/pdf".to_string()),
+    };
+
+    let html =
+      Html::new("<img src=\"cid:used\">", false).inline_images(&[used.clone(), unused.clone()]);
+    assert_eq!(html.encoded_image_count(), 1);
+
+    let html = Html::new("<p>no images here</p>", false).inline_images(&[used, unused]);
+    assert_eq!(html.encoded_image_count(), 0);
   }
 
   #[test]
