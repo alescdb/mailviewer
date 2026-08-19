@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailviewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-18 11:46+0200\n"
+"POT-Creation-Date: 2026-08-18 20:49+0200\n"
 "PO-Revision-Date: 2025-11-12 20:10+0100\n"
 "Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
 "Language-Team: \n"
@@ -329,15 +329,20 @@ msgstr "Bestand afdrukken"
 
 #: src/gtk/help-overlay.ui:26
 msgctxt "shortcut window"
+msgid "Find in Message"
+msgstr "Zoeken in bericht"
+
+#: src/gtk/help-overlay.ui:32
+msgctxt "shortcut window"
 msgid "Reset Zoom"
 msgstr "Oorspronkelijk zoomniveau"
 
-#: src/gtk/help-overlay.ui:32
+#: src/gtk/help-overlay.ui:38
 msgctxt "shortcut window"
 msgid "Show Shortcuts"
 msgstr "Sneltoetsen tonen"
 
-#: src/gtk/help-overlay.ui:38
+#: src/gtk/help-overlay.ui:44
 msgctxt "shortcut window"
 msgid "Quit"
 msgstr "Afsluiten"
@@ -402,87 +407,86 @@ msgstr "Onderwerp:"
 msgid "Subject"
 msgstr "Onderwerp"
 
-#: src/window.ui:178
+#: src/window.ui:193
 msgid "HTML"
 msgstr "Html"
 
-#: src/window.ui:190
+#: src/window.ui:205
 msgid "TEXT"
 msgstr "Tekst"
 
-#: src/window.ui:256
+#: src/window.ui:271
 msgid "_Open..."
 msgstr "_Openen…"
 
-#: src/window.ui:260
+#: src/window.ui:275
 msgid "Pr_int..."
 msgstr "Af_drukken…"
 
-#: src/window.ui:264
+#: src/window.ui:279
 msgid "_Preferences"
 msgstr "_Voorkeuren"
 
-#: src/window.ui:268
+#: src/window.ui:283
 msgid "_Reset Zoom"
 msgstr "Oo_rspronkelijk zoomniveau"
 
-#: src/window.ui:272
+#: src/window.ui:287
 msgid "_Keyboard Shortcuts"
 msgstr "_Sneltoetsen"
 
-#: src/window.ui:276
+#: src/window.ui:291
 msgid "_About MailViewer"
 msgstr "Over MailWeerg_ave"
 
-#: src/window.rs:391
+#: src/window.rs:457
 msgid "Save as..."
 msgstr "Opslaan als…"
 
-#: src/window.rs:456
+#: src/window.rs:522
 msgid "Save attachment..."
 msgstr "Bijlage opslaan…"
 
-#: src/window.rs:470 src/window.rs:773
+#: src/window.rs:536 src/window.rs:840
 msgid "File Error"
 msgstr "Bestandsfout"
 
-#: src/window.rs:564
-msgid "Failed to open uri"
-msgstr "Kan de URI niet openen"
-
-#: src/window.rs:621
-msgid "Mail Files"
-msgstr "Mailbestanden"
-
-#: src/window.rs:720
-msgid "Open Mail File"
-msgstr "Mailbestand openen"
-
-#: src/window.rs:774
+#: src/window.rs:558 src/window.rs:841
 msgid "Failed to open file"
 msgstr "Kan de URI niet openen"
 
-#: src/window.rs:822
-#, rust-format
+#: src/window.rs:630
+msgid "Failed to open uri"
+msgstr "Kan de URI niet openen"
+
+#: src/window.rs:687
+msgid "Mail Files"
+msgstr "Mailbestanden"
+
+#: src/window.rs:786
+msgid "Open Mail File"
+msgstr "Mailbestand openen"
+
+#: src/window.rs:889
 msgid "{total} attachment"
 msgid_plural "{total} attachments"
 msgstr[0] "{total} bijlage"
 msgstr[1] "{total} bijlagen"
 
 #. never shown
-#: src/window.rs:832
+#: src/window.rs:899
 msgid "No attachments"
 msgstr "Er zijn geen bijlagen"
 
-#: src/window.rs:846
+#: src/window.rs:913
 msgid "Close"
 msgstr "Sluiten"
 
-#: src/window.rs:898
+#: src/window.rs:965
 msgid "Settings"
 msgstr "Voorkeuren"
 
-#: src/window.rs:899
+#: src/window.rs:966
 msgid "Failed to get settings"
 msgstr "De voorkeuren zijn niet beschikbaar"
 
