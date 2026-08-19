@@ -26,8 +26,7 @@ use gettextrs::{gettext, ngettext};
 use gtk4::{gio, glib, template_callbacks};
 use webkit6::prelude::{PolicyDecisionExt, WebViewExt};
 use webkit6::{
-  NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, PrintOperation,
-  PrintOperationResponse, WebView,
+  FindOptions, NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, PrintOperation, PrintOperationResponse, WebView
 };
 
 use crate::html::Html;
@@ -445,9 +444,12 @@ impl MailViewerWindow {
       }
     ));
 
-
-    imp.service.set_show_file_name(self.get_settings_show_file_name());
-    imp.force_css.set_active(self.get_settings_bool(SETTINGS_FORCE_CSS));
+    imp
+      .service
+      .set_show_file_name(self.get_settings_show_file_name());
+    imp
+      .force_css
+      .set_active(self.get_settings_bool(SETTINGS_FORCE_CSS));
   }
 
   fn reset_zoom(&self) {
@@ -954,7 +956,7 @@ impl MailViewerWindow {
     self.imp().force_css.set_active(force);
     self.load_html(force);
   }
-  
+
   fn get_settings_bool(&self, key: &str) -> bool {
     if let Some(settings) = self.imp().settings.get() {
       settings.get::<bool>(key)
