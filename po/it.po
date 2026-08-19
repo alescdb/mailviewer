@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailviewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-18 20:49+0200\n"
+"POT-Creation-Date: 2026-08-19 16:37+0200\n"
 "PO-Revision-Date: 2025-05-07 22:22+0100\n"
 "Last-Translator: Albano Battistella <albanobattistella@gmail.com>\n"
 "Language-Team: Italian <LL@li.org>\n"
@@ -353,6 +353,10 @@ msgstr "Applicazione"
 msgid "Show file name in title bar"
 msgstr "Mostra il nome del file nella barra del titolo"
 
+#: src/preferences.ui:16
+msgid "Enable forced CSS by default"
+msgstr "Abilita il CSS forzato per impostazione predefinita"
+
 #: src/window.ui:28
 msgid "Menu"
 msgstr "Menu"
@@ -437,54 +441,55 @@ msgstr "_Scorciatoie da tastiera"
 msgid "_About MailViewer"
 msgstr "_Informazioni su MailViewer"
 
-#: src/window.rs:457
+#: src/window.rs:476
 msgid "Save as..."
 msgstr "Salva con nome..."
 
-#: src/window.rs:522
+#: src/window.rs:541
 msgid "Save attachment..."
 msgstr "Salva allegato..."
 
-#: src/window.rs:536 src/window.rs:840
+#: src/window.rs:555 src/window.rs:860
 msgid "File Error"
 msgstr "Errore file"
 
-#: src/window.rs:558 src/window.rs:841
-msgid "Failed to open file"
-msgstr "Impossibile aprire il file"
-
-#: src/window.rs:630
+#: src/window.rs:650
 msgid "Failed to open uri"
 msgstr "Impossibile aprire il file"
 
-#: src/window.rs:687
+#: src/window.rs:707
 msgid "Mail Files"
 msgstr "Apri file di posta"
 
-#: src/window.rs:786
+#: src/window.rs:806
 msgid "Open Mail File"
 msgstr "Apri file di posta"
 
-#: src/window.rs:889
+#: src/window.rs:861
+msgid "Failed to open file"
+msgstr "Impossibile aprire il file"
+
+#: src/window.rs:912
+#, rust-format
 msgid "{total} attachment"
 msgid_plural "{total} attachments"
 msgstr[0] "{total} allegato"
 msgstr[1] "{total} allegati"
 
 #. never shown
-#: src/window.rs:899
+#: src/window.rs:922
 msgid "No attachments"
 msgstr "Nessun allegato"
 
-#: src/window.rs:913
+#: src/window.rs:936
 msgid "Close"
 msgstr "Chiudi"
 
-#: src/window.rs:965
+#: src/window.rs:1007
 msgid "Settings"
 msgstr "Impostazioni"
 
-#: src/window.rs:966
+#: src/window.rs:1008
 msgid "Failed to get settings"
 msgstr "Impossibile ottenere le impostazioni"
 

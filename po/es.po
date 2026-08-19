@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailviewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-18 20:49+0200\n"
+"POT-Creation-Date: 2026-08-19 16:37+0200\n"
 "PO-Revision-Date: 2026-08-12 22:15+0200\n"
 "Last-Translator: Ángel Guzmán Maeso <angel@guzmanmaeso.com>\n"
 "Language-Team: Spanish <LL@li.org>\n"
@@ -78,7 +78,8 @@ msgstr "Se desactivan los botones de zoom al llegar al mínimo y al máximo"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:52
 msgid "Improve HTML email sanitization and security (shakaran)"
-msgstr "Se mejoran el saneado y la seguridad del HTML de los correos (shakaran)"
+msgstr ""
+"Se mejoran el saneado y la seguridad del HTML de los correos (shakaran)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:53
 msgid "Block unwanted remote content in emails (shakaran)"
@@ -93,8 +94,8 @@ msgstr ""
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:55
 msgid "Fix non-UTF-8 filenames and markup in attachment rows (shakaran)"
 msgstr ""
-"Se corrigen los nombres de archivo que no son UTF-8 y el marcado en las filas "
-"de adjuntos (shakaran)"
+"Se corrigen los nombres de archivo que no son UTF-8 y el marcado en las "
+"filas de adjuntos (shakaran)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:56
 msgid "Improve temporary file cleanup (shakaran)"
@@ -130,7 +131,8 @@ msgstr ""
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:80
 msgid "Outlook (msg) don't show text button if text field is empty"
 msgstr ""
-"Outlook (msg): no se muestra el botón de texto si el campo de texto está vacío"
+"Outlook (msg): no se muestra el botón de texto si el campo de texto está "
+"vacío"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:87
 msgid "Sync \"Show remote images\" status for html print"
@@ -196,7 +198,8 @@ msgstr "Se cancela la carga anterior mediante Cancellable (3v1n0)"
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:124
 msgid "Add test utility function to wait for futures to complete (3v1n0)"
 msgstr ""
-"Se añade una función de prueba para esperar a que terminen los futuros (3v1n0)"
+"Se añade una función de prueba para esperar a que terminen los futuros "
+"(3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:125
 msgid "Add x-ole-storage as supported mime type (3v1n0)"
@@ -379,6 +382,10 @@ msgstr "Aplicación"
 msgid "Show file name in title bar"
 msgstr "Mostrar el nombre del archivo en la barra de título"
 
+#: src/preferences.ui:16
+msgid "Enable forced CSS by default"
+msgstr "Activar el CSS forzado de forma predeterminada"
+
 #: src/window.ui:28
 msgid "Menu"
 msgstr "Menú"
@@ -463,53 +470,54 @@ msgstr "Atajos de _teclado"
 msgid "_About MailViewer"
 msgstr "Acerca _de MailViewer"
 
-#: src/window.rs:457
+#: src/window.rs:476
 msgid "Save as..."
 msgstr "Guardar como…"
 
-#: src/window.rs:522
+#: src/window.rs:541
 msgid "Save attachment..."
 msgstr "Guardar el adjunto…"
 
-#: src/window.rs:536 src/window.rs:840
+#: src/window.rs:555 src/window.rs:860
 msgid "File Error"
 msgstr "Error de archivo"
 
-#: src/window.rs:558 src/window.rs:841
-msgid "Failed to open file"
-msgstr "No se pudo abrir el archivo"
-
-#: src/window.rs:630
+#: src/window.rs:650
 msgid "Failed to open uri"
 msgstr "No se pudo abrir el URI"
 
-#: src/window.rs:687
+#: src/window.rs:707
 msgid "Mail Files"
 msgstr "Archivos de correo"
 
-#: src/window.rs:786
+#: src/window.rs:806
 msgid "Open Mail File"
 msgstr "Abrir un archivo de correo"
 
-#: src/window.rs:889
+#: src/window.rs:861
+msgid "Failed to open file"
+msgstr "No se pudo abrir el archivo"
+
+#: src/window.rs:912
+#, rust-format
 msgid "{total} attachment"
 msgid_plural "{total} attachments"
 msgstr[0] "{total} adjunto"
 msgstr[1] "{total} adjuntos"
 
 #. never shown
-#: src/window.rs:899
+#: src/window.rs:922
 msgid "No attachments"
 msgstr "Sin adjuntos"
 
-#: src/window.rs:913
+#: src/window.rs:936
 msgid "Close"
 msgstr "Cerrar"
 
-#: src/window.rs:965
+#: src/window.rs:1007
 msgid "Settings"
 msgstr "Configuración"
 
-#: src/window.rs:966
+#: src/window.rs:1008
 msgid "Failed to get settings"
 msgstr "No se pudo obtener la configuración"

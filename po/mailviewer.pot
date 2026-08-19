@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailviewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-18 20:49+0200\n"
+"POT-Creation-Date: 2026-08-19 16:37+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -347,6 +347,10 @@ msgstr ""
 msgid "Show file name in title bar"
 msgstr ""
 
+#: src/preferences.ui:16
+msgid "Enable forced CSS by default"
+msgstr ""
+
 #: src/window.ui:28
 msgid "Menu"
 msgstr ""
@@ -431,53 +435,54 @@ msgstr ""
 msgid "_About MailViewer"
 msgstr ""
 
-#: src/window.rs:457
+#: src/window.rs:476
 msgid "Save as..."
 msgstr ""
 
-#: src/window.rs:522
+#: src/window.rs:541
 msgid "Save attachment..."
 msgstr ""
 
-#: src/window.rs:536 src/window.rs:840
+#: src/window.rs:555 src/window.rs:860
 msgid "File Error"
 msgstr ""
 
-#: src/window.rs:558 src/window.rs:841
-msgid "Failed to open file"
-msgstr ""
-
-#: src/window.rs:630
+#: src/window.rs:650
 msgid "Failed to open uri"
 msgstr ""
 
-#: src/window.rs:687
+#: src/window.rs:707
 msgid "Mail Files"
 msgstr ""
 
-#: src/window.rs:786
+#: src/window.rs:806
 msgid "Open Mail File"
 msgstr ""
 
-#: src/window.rs:889
+#: src/window.rs:861
+msgid "Failed to open file"
+msgstr ""
+
+#: src/window.rs:912
+#, rust-format
 msgid "{total} attachment"
 msgid_plural "{total} attachments"
 msgstr[0] ""
 msgstr[1] ""
 
 #. never shown
-#: src/window.rs:899
+#: src/window.rs:922
 msgid "No attachments"
 msgstr ""
 
-#: src/window.rs:913
+#: src/window.rs:936
 msgid "Close"
 msgstr ""
 
-#: src/window.rs:965
+#: src/window.rs:1007
 msgid "Settings"
 msgstr ""
 
-#: src/window.rs:966
+#: src/window.rs:1008
 msgid "Failed to get settings"
 msgstr ""
