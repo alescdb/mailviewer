@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailviewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-18 11:46+0200\n"
+"POT-Creation-Date: 2026-08-18 20:49+0200\n"
 "PO-Revision-Date: 2024-11-14 17:23+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -332,15 +332,20 @@ msgstr "Imprimer un fichier"
 
 #: src/gtk/help-overlay.ui:26
 msgctxt "shortcut window"
+msgid "Find in Message"
+msgstr "Rechercher dans le message"
+
+#: src/gtk/help-overlay.ui:32
+msgctxt "shortcut window"
 msgid "Reset Zoom"
 msgstr "Réinitialiser le zoom"
 
-#: src/gtk/help-overlay.ui:32
+#: src/gtk/help-overlay.ui:38
 msgctxt "shortcut window"
 msgid "Show Shortcuts"
 msgstr "Afficher les raccourcis"
 
-#: src/gtk/help-overlay.ui:38
+#: src/gtk/help-overlay.ui:44
 msgctxt "shortcut window"
 msgid "Quit"
 msgstr "Quitter"
@@ -405,87 +410,86 @@ msgstr "Sujet:"
 msgid "Subject"
 msgstr "Sujet"
 
-#: src/window.ui:178
+#: src/window.ui:193
 msgid "HTML"
 msgstr "HTML"
 
-#: src/window.ui:190
+#: src/window.ui:205
 msgid "TEXT"
 msgstr "TEXTE"
 
-#: src/window.ui:256
+#: src/window.ui:271
 msgid "_Open..."
 msgstr "_Ouvrir..."
 
-#: src/window.ui:260
+#: src/window.ui:275
 msgid "Pr_int..."
 msgstr "_Imprimer..."
 
-#: src/window.ui:264
+#: src/window.ui:279
 msgid "_Preferences"
 msgstr "_Préférences"
 
-#: src/window.ui:268
+#: src/window.ui:283
 msgid "_Reset Zoom"
 msgstr "_Réinitialiser le zoom"
 
-#: src/window.ui:272
+#: src/window.ui:287
 msgid "_Keyboard Shortcuts"
 msgstr "Raccourcis clavier"
 
-#: src/window.ui:276
+#: src/window.ui:291
 msgid "_About MailViewer"
 msgstr "_A propos de MailViewer"
 
-#: src/window.rs:391
+#: src/window.rs:457
 msgid "Save as..."
 msgstr "Enregister sous..."
 
-#: src/window.rs:456
+#: src/window.rs:522
 msgid "Save attachment..."
 msgstr "Enregister le fichier attaché..."
 
-#: src/window.rs:470 src/window.rs:773
+#: src/window.rs:536 src/window.rs:840
 msgid "File Error"
 msgstr "Erreur de fichier"
 
-#: src/window.rs:564
-msgid "Failed to open uri"
-msgstr "Impossible d'ouvrir le fichier"
-
-#: src/window.rs:621
-msgid "Mail Files"
-msgstr "Ouvrir un fichier"
-
-#: src/window.rs:720
-msgid "Open Mail File"
-msgstr "Ouvrir un message"
-
-#: src/window.rs:774
+#: src/window.rs:558 src/window.rs:841
 msgid "Failed to open file"
 msgstr "Impossible d'ouvrir le fichier"
 
-#: src/window.rs:822
-#, rust-format
+#: src/window.rs:630
+msgid "Failed to open uri"
+msgstr "Impossible d'ouvrir le fichier"
+
+#: src/window.rs:687
+msgid "Mail Files"
+msgstr "Ouvrir un fichier"
+
+#: src/window.rs:786
+msgid "Open Mail File"
+msgstr "Ouvrir un message"
+
+#: src/window.rs:889
 msgid "{total} attachment"
 msgid_plural "{total} attachments"
 msgstr[0] "{total} fichier attaché"
 msgstr[1] "{total} fichiers attachés"
 
 #. never shown
-#: src/window.rs:832
+#: src/window.rs:899
 msgid "No attachments"
 msgstr "Aucun fichier attaché"
 
-#: src/window.rs:846
+#: src/window.rs:913
 msgid "Close"
 msgstr "Fermer"
 
-#: src/window.rs:898
+#: src/window.rs:965
 msgid "Settings"
 msgstr "Préférences"
 
-#: src/window.rs:899
+#: src/window.rs:966
 msgid "Failed to get settings"
 msgstr "Impossible de trouver les préférences"
 

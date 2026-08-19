@@ -54,6 +54,7 @@ mod imp {
       obj.set_accels_for_action("win.open-file-dialog", &["<primary>o"]);
       obj.set_accels_for_action("win.print", &["<primary>p"]);
       obj.set_accels_for_action("win.reset-zoom", &["<primary>r"]);
+      obj.set_accels_for_action("win.search", &["<primary>f"]);
     }
   }
 

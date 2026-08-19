@@ -171,6 +171,21 @@
                   </object>
                 </child>
                 <child>
+                  <object class="GtkSearchBar" id="search_bar">
+                    <property name="visible" bind-source="show_text"
+                        bind-property="active" bind-flags="invert-boolean | sync-create" />
+                    <property name="child">
+                      <object class="GtkSearchEntry" id="search_entry">
+                        <property name="hexpand">true</property>
+                        <signal name="search-changed" handler="on_search_changed" swapped="true" />
+                        <signal name="next-match" handler="on_search_next" swapped="true" />
+                        <signal name="previous-match" handler="on_search_previous" swapped="true" />
+                        <signal name="stop-search" handler="on_search_stopped" swapped="true" />
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
                   <object class="AdwViewStack" id="stack">
                     <child>
                       <object class="AdwViewStackPage">

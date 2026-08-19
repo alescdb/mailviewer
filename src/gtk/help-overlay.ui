@@ -23,6 +23,12 @@
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes" context="shortcut window">Find in Message</property>
+                <property name="action-name">win.search</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
                 <property name="title" translatable="yes" context="shortcut window">Reset Zoom</property>
                 <property name="action-name">win.reset-zoom</property>
               </object>
