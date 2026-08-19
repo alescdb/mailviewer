@@ -11,6 +11,11 @@
                 <property name="title" translatable="yes">Show file name in title bar</property>
               </object>
             </child>
+            <child>
+              <object class="AdwSwitchRow" id="force_css">
+                <property name="title" translatable="yes">Enable forced CSS by default</property>
+              </object>
+            </child>
           </object>
         </child>
       </object>
