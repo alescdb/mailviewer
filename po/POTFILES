@@ -1,7 +1,7 @@
 data/io.github.alescdb.mailviewer.desktop.in
 data/io.github.alescdb.mailviewer.metainfo.xml.in
 data/io.github.alescdb.mailviewer.gschema.xml
-src/gtk/help-overlay.ui
-src/preferences.ui
-src/window.ui
+src/gtk/help-overlay.blp
+src/preferences.blp
+src/window.blp
 src/window.rs
