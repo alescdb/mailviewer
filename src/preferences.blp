@@ -1,0 +1,18 @@
+using Gtk 4.0;
+using Adw 1;
+
+Adw.PreferencesDialog preferences {
+  Adw.PreferencesPage {
+    Adw.PreferencesGroup {
+      title: _("Application");
+
+      Adw.SwitchRow show_file_name {
+        title: _("Show file name in title bar");
+      }
+
+      Adw.SwitchRow force_css {
+        title: _("Enable forced CSS by default");
+      }
+    }
+  }
+}

@@ -1,0 +1,263 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $MailViewerWindow: Adw.ApplicationWindow {
+  default-width: 1200;
+  default-height: 900;
+  resizable: true;
+
+  content: Adw.BottomSheet sheet {
+    can-open: bind content_box.sensitive;
+
+    content: Adw.ToolbarView {
+      [top]
+      Adw.HeaderBar header_bar {
+        [start]
+        Spinner spinner {
+          spinning: bind content_box.sensitive inverted;
+        }
+
+        [end]
+        MenuButton {
+          primary: true;
+          icon-name: "open-menu-symbolic";
+          tooltip-text: _("Menu");
+          menu-model: primary_menu;
+        }
+
+        [end]
+        ToggleButton show_text {
+          visible: false;
+          active: true;
+          icon-name: "text-x-generic-symbolic";
+          tooltip-text: _("Show plain text");
+          clicked => $on_show_text_clicked() swapped;
+        }
+
+        [end]
+        ToggleButton show_images {
+          visible: bind show_text.active inverted;
+          icon-name: "image-x-generic-symbolic";
+          tooltip-text: _("Show remote images");
+          clicked => $on_show_images_clicked() swapped;
+        }
+
+        [end]
+        ToggleButton force_css {
+          visible: bind show_text.active inverted;
+          icon-name: "font-x-generic-symbolic";
+          tooltip-text: _("Force CSS");
+          clicked => $on_force_css_clicked() swapped;
+        }
+
+        [end]
+        Button zoom_minus {
+          visible: bind show_text.active inverted;
+          icon-name: "loupe-minus-symbolic";
+          tooltip-text: _("Zoom -");
+          clicked => $on_zoom_minus_clicked() swapped;
+        }
+
+        [end]
+        ToggleButton zoom_plus {
+          visible: bind show_text.active inverted;
+          icon-name: "loupe-plus-symbolic";
+          tooltip-text: _("Zoom +");
+          clicked => $on_zoom_plus_clicked() swapped;
+        }
+      }
+
+      content: Box content_box {
+        margin-bottom: bind sheet.bottom-bar-height no-sync-create;
+        hexpand: true;
+        spacing: 10;
+        margin-start: 10;
+        margin-end: 10;
+        margin-top: 5;
+        orientation: vertical;
+
+        Box {
+          hexpand: true;
+          orientation: horizontal;
+          spacing: 10;
+
+          styles [
+            "title-box",
+          ]
+
+          Label {
+            xalign: 0;
+            halign: start;
+            width-request: 80;
+            label: _("From:");
+          }
+
+          Entry from {
+            hexpand: true;
+            editable: false;
+            tooltip-text: _("From");
+          }
+
+          Entry date {
+            width-request: 230;
+            xalign: 0.5;
+            hexpand: false;
+            editable: false;
+            tooltip-text: _("Date");
+          }
+        }
+
+        Box {
+          hexpand: true;
+          orientation: horizontal;
+          spacing: 10;
+
+          styles [
+            "title-box",
+          ]
+
+          Label {
+            xalign: 0;
+            width-request: 80;
+            halign: start;
+            label: _("To:");
+          }
+
+          Entry to {
+            hexpand: true;
+            editable: false;
+            tooltip-text: _("To");
+          }
+        }
+
+        Box {
+          hexpand: true;
+          orientation: horizontal;
+          spacing: 10;
+
+          styles [
+            "title-box",
+          ]
+
+          Label {
+            xalign: 0;
+            width-request: 80;
+            halign: start;
+            label: _("Subject:");
+          }
+
+          Entry subject {
+            hexpand: true;
+            editable: false;
+            tooltip-text: _("Subject");
+          }
+        }
+
+        SearchBar search_bar {
+          visible: bind show_text.active inverted;
+
+          child: SearchEntry search_entry {
+            hexpand: true;
+            search-changed => $on_search_changed() swapped;
+            next-match => $on_search_next() swapped;
+            previous-match => $on_search_previous() swapped;
+            stop-search => $on_search_stopped() swapped;
+          };
+        }
+
+        Adw.ViewStack stack {
+          Adw.ViewStackPage {
+            name: "html";
+            title: _("HTML");
+
+            child: ScrolledWindow placeholder {
+              hexpand: true;
+              vexpand: true;
+            };
+          }
+
+          Adw.ViewStackPage {
+            name: "text";
+            title: _("TEXT");
+
+            child: ScrolledWindow advanced_scrolledWindow {
+              hscrollbar-policy: never;
+
+              TextView body_text {
+                wrap-mode: word;
+                hexpand: true;
+                vexpand: true;
+                editable: false;
+              }
+            };
+          }
+        }
+      };
+    };
+
+    sheet: Adw.ToolbarView {
+      sensitive: bind content_box.sensitive;
+
+      [top]
+      Adw.HeaderBar {}
+
+      content: ScrolledWindow {
+        height-request: 300;
+
+        Adw.Clamp attachments_clamp {}
+      };
+    };
+
+    bottom-bar: Box {
+      sensitive: bind content_box.sensitive;
+
+      styles [
+        "toolbar",
+      ]
+
+      height-request: 40;
+
+      Image {
+        icon-name: "mail-attachment-symbolic";
+      }
+
+      Label pull_label {
+        ellipsize: end;
+      }
+    };
+  };
+}
+
+menu primary_menu {
+  section {
+    item {
+      label: _("_Open...");
+      action: "win.open-file-dialog";
+    }
+
+    item {
+      label: _("Pr_int...");
+      action: "win.print";
+    }
+
+    item {
+      label: _("_Preferences");
+      action: "win.preferences";
+    }
+
+    item {
+      label: _("_Reset Zoom");
+      action: "win.reset-zoom";
+    }
+
+    item {
+      label: _("_Keyboard Shortcuts");
+      action: "app.shortcuts";
+    }
+
+    item {
+      label: _("_About MailViewer");
+      action: "app.about";
+    }
+  }
+}
