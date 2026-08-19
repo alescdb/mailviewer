@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailviewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-18 20:49+0200\n"
+"POT-Creation-Date: 2026-08-19 16:37+0200\n"
 "PO-Revision-Date: 2024-11-14 17:23+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -358,6 +358,10 @@ msgstr ""
 msgid "Show file name in title bar"
 msgstr "Afficher le nom du fichier dans la barre de titre"
 
+#: src/preferences.ui:16
+msgid "Enable forced CSS by default"
+msgstr "Activer le CSS forcé par défaut"
+
 #: src/window.ui:28
 msgid "Menu"
 msgstr "Menu"
@@ -442,54 +446,55 @@ msgstr "Raccourcis clavier"
 msgid "_About MailViewer"
 msgstr "_A propos de MailViewer"
 
-#: src/window.rs:457
+#: src/window.rs:476
 msgid "Save as..."
 msgstr "Enregister sous..."
 
-#: src/window.rs:522
+#: src/window.rs:541
 msgid "Save attachment..."
 msgstr "Enregister le fichier attaché..."
 
-#: src/window.rs:536 src/window.rs:840
+#: src/window.rs:555 src/window.rs:860
 msgid "File Error"
 msgstr "Erreur de fichier"
 
-#: src/window.rs:558 src/window.rs:841
-msgid "Failed to open file"
-msgstr "Impossible d'ouvrir le fichier"
-
-#: src/window.rs:630
+#: src/window.rs:650
 msgid "Failed to open uri"
 msgstr "Impossible d'ouvrir le fichier"
 
-#: src/window.rs:687
+#: src/window.rs:707
 msgid "Mail Files"
 msgstr "Ouvrir un fichier"
 
-#: src/window.rs:786
+#: src/window.rs:806
 msgid "Open Mail File"
 msgstr "Ouvrir un message"
 
-#: src/window.rs:889
+#: src/window.rs:861
+msgid "Failed to open file"
+msgstr "Impossible d'ouvrir le fichier"
+
+#: src/window.rs:912
+#, rust-format
 msgid "{total} attachment"
 msgid_plural "{total} attachments"
 msgstr[0] "{total} fichier attaché"
 msgstr[1] "{total} fichiers attachés"
 
 #. never shown
-#: src/window.rs:899
+#: src/window.rs:922
 msgid "No attachments"
 msgstr "Aucun fichier attaché"
 
-#: src/window.rs:913
+#: src/window.rs:936
 msgid "Close"
 msgstr "Fermer"
 
-#: src/window.rs:965
+#: src/window.rs:1007
 msgid "Settings"
 msgstr "Préférences"
 
-#: src/window.rs:966
+#: src/window.rs:1008
 msgid "Failed to get settings"
 msgstr "Impossible de trouver les préférences"
 
