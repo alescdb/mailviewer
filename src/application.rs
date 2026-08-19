@@ -137,9 +137,7 @@ impl MailViewerApplication {
 
   fn show_shortcuts(&self) {
     let window = self.active_window().unwrap();
-    let builder = gtk4::Builder::from_string(gtk4::include_blueprint!(
-      "src/gtk/help-overlay.blp"
-    ));
+    let builder = gtk4::Builder::from_string(gtk4::include_blueprint!("src/gtk/help-overlay.blp"));
     let dialog: adw::ShortcutsDialog = builder.object("shortcuts_dialog").unwrap();
     dialog.present(Some(&window));
   }
