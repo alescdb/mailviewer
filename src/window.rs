@@ -26,7 +26,8 @@ use gettextrs::{gettext, ngettext};
 use gtk4::{gio, glib, template_callbacks};
 use webkit6::prelude::{PolicyDecisionExt, WebViewExt};
 use webkit6::{
-  NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, PrintOperation, PrintOperationResponse, WebView
+  NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, PrintOperation,
+  PrintOperationResponse, WebView,
 };
 
 use crate::html::Html;
@@ -36,6 +37,7 @@ use crate::message::message::MessageParser;
 use crate::utils;
 
 const SETTINGS_SHOW_FILE_NAME: &str = "show-file-name";
+const SETTINGS_FORCE_CSS: &str = "force-css";
 
 /// Links in a message are opened by the system handler, so only hand over the
 /// schemes a mail is expected to link to.
@@ -377,7 +379,10 @@ impl MailViewerWindow {
         window.set_title(Some(title));
       }
     ));
-    imp.service.set_show_file_name(self.get_show_file_name());
+
+
+    imp.service.set_show_file_name(self.get_settings_show_file_name());
+    imp.force_css.set_active(self.get_settings_bool(SETTINGS_FORCE_CSS));
   }
 
   fn reset_zoom(&self) {
@@ -878,12 +883,26 @@ impl MailViewerWindow {
     alert
   }
 
-  fn get_show_file_name(&self) -> bool {
+  fn set_force_css(&self, force: bool) {
+    log::debug!("set_force_css({})", force);
+    self.imp().force_css.set_active(force);
+    self.load_html(force);
+  }
+  
+  fn get_settings_bool(&self, key: &str) -> bool {
     if let Some(settings) = self.imp().settings.get() {
-      settings.get::<bool>(SETTINGS_SHOW_FILE_NAME)
+      settings.get::<bool>(key)
     } else {
       false
     }
+  }
+
+  fn get_settings_show_file_name(&self) -> bool {
+    self.get_settings_bool(SETTINGS_SHOW_FILE_NAME)
+  }
+
+  fn get_settings_force_css(&self) -> bool {
+    self.get_settings_bool(SETTINGS_FORCE_CSS)
   }
 
   fn show_preferences(&self) {
@@ -892,8 +911,12 @@ impl MailViewerWindow {
       Some(settings) => {
         let builder = gtk4::Builder::from_resource("/io/github/alescdb/mailviewer/preferences.ui");
         let show_file_name: adw::SwitchRow = builder.object("show_file_name").unwrap();
+        let force_css: adw::SwitchRow = builder.object("force_css").unwrap();
         settings
           .bind(SETTINGS_SHOW_FILE_NAME, &show_file_name, "active")
+          .build();
+        settings
+          .bind(SETTINGS_FORCE_CSS, &force_css, "active")
           .build();
 
         let prefs: adw::PreferencesDialog = builder.object("preferences").unwrap();
@@ -906,7 +929,8 @@ impl MailViewerWindow {
             win
               .imp()
               .service
-              .set_show_file_name(win.get_show_file_name());
+              .set_show_file_name(win.get_settings_show_file_name());
+            win.set_force_css(win.get_settings_force_css());
           }
         ));
       }
