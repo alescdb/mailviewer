@@ -110,10 +110,11 @@ impl Html {
   /// base64 adds another third on top of each one, on every render.
   pub fn inline_images(mut self, attachments: &[Attachment]) -> Self {
     let images = {
-      // A prefix of a longer id matches here too, so the scan can include one
-      // attachment that is not used in the end. It is a filter for waste, not a
-      // rule about what may be rendered.
-      let body = &self.body;
+      // Lowercased because the scheme is not case sensitive. The id is folded
+      // along with it, and a prefix of a longer id matches too, so the scan can
+      // include one attachment that is not used in the end. It is a filter for
+      // waste, not a rule about what may be rendered.
+      let body = self.body.to_lowercase();
       attachments
         .iter()
         .filter(|attachment| !attachment.content_id.is_empty())
@@ -205,14 +206,18 @@ impl Html {
 
     let inline_images = self.inline_images.clone();
     builder.attribute_filter(move |element, attribute, value| {
-      if element == "img" && attribute == "src" {
-        if let Some(content_id) = value.strip_prefix("cid:") {
-          return inline_images
-            .get(content_id)
-            .map(|uri| Cow::Owned(uri.clone()));
-        }
+      let Some(content_id) = content_id_of(value) else {
+        return Some(Cow::Borrowed(value));
+      };
+
+      // cid: is allowed through the scheme check only so that it can be turned
+      // into the attachment it points at. Anywhere else it means nothing.
+      if element != "img" || attribute != "src" {
+        return None;
       }
-      Some(Cow::Borrowed(value))
+      inline_images
+        .get(content_id)
+        .map(|uri| Cow::Owned(uri.clone()))
     });
 
     builder.clean(&self.body).to_string()
@@ -288,6 +293,16 @@ impl Html {
       </body>
       </html>"#
     )
+  }
+}
+
+/// The part after `cid:`, if that is the scheme of `value`. Schemes are not
+/// case sensitive, so `CID:` counts too.
+fn content_id_of(value: &str) -> Option<&str> {
+  if value.get(..4)?.eq_ignore_ascii_case("cid:") {
+    value.get(4..)
+  } else {
+    None
   }
 }
 
@@ -464,6 +479,31 @@ mod tests {
 
     let html = Html::new("<p>no images here</p>", false).inline_images(&[used, unused]);
     assert_eq!(html.encoded_image_count(), 0);
+  }
+
+  #[test]
+  fn the_scheme_of_an_inline_image_is_not_case_sensitive() {
+    let attachment = crate::message::attachment::Attachment {
+      filename: "x.png".to_string(),
+      content_id: "abc".to_string(),
+      body: vec![1, 2, 3],
+      mime_type: Some("image/png".to_string()),
+    };
+    let body = Html::new("<img src=\"CID:abc\">", false)
+      .inline_images(&[attachment])
+      .safe();
+
+    assert!(body.contains("data:image/png;base64,"));
+    assert!(!body.to_lowercase().contains("cid:"));
+  }
+
+  #[test]
+  fn a_cid_outside_an_image_source_is_dropped() {
+    let body = Html::new("<a href=\"cid:whatever\">link</a>", false).safe();
+
+    assert!(!body.contains("cid:"));
+    assert!(!body.contains("href="));
+    assert!(body.contains("link"));
   }
 
   #[test]
