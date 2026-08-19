@@ -44,6 +44,16 @@
   <content_rating type="oars-1.0" />
   <developer_name>Alexandre Del Bigio</developer_name>
   <releases>
+    <release version="1.0.14" date="2026-08-19">
+      <description>
+        <ul>
+          <li>Search within HTML emails with Ctrl+F (by shakaran)</li>
+          <li>Light and dark for HTML messages (if Force CSS is enabled) (by shakaran)</li>
+          <li>Setting for Force CSS</li>
+          <li>Updated translations</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.13" date="2026-08-18">
       <description>
         <ul>
