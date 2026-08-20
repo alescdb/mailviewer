@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailviewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-19 17:35+0200\n"
+"POT-Creation-Date: 2026-08-20 19:32+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -338,7 +338,7 @@ msgstr ""
 
 #: src/gtk/help-overlay.blp:19
 msgctxt "shortcut window"
-msgid "Find in Message"
+msgid "Find text (HTML only)"
 msgstr ""
 
 #: src/gtk/help-overlay.blp:24
@@ -464,6 +464,10 @@ msgstr ""
 msgid "File Error"
 msgstr ""
 
+#: src/window.rs:577 src/window.rs:861
+msgid "Failed to open file"
+msgstr ""
+
 #: src/window.rs:650
 msgid "Failed to open uri"
 msgstr ""
@@ -476,12 +480,7 @@ msgstr ""
 msgid "Open Mail File"
 msgstr ""
 
-#: src/window.rs:861
-msgid "Failed to open file"
-msgstr ""
-
 #: src/window.rs:912
-#, rust-format
 msgid "{total} attachment"
 msgid_plural "{total} attachments"
 msgstr[0] ""

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailviewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-19 17:35+0200\n"
+"POT-Creation-Date: 2026-08-20 19:32+0200\n"
 "PO-Revision-Date: 2025-05-07 22:22+0100\n"
 "Last-Translator: Albano Battistella <albanobattistella@gmail.com>\n"
 "Language-Team: Italian <LL@li.org>\n"
@@ -345,8 +345,8 @@ msgstr "Stampa file"
 
 #: src/gtk/help-overlay.blp:19
 msgctxt "shortcut window"
-msgid "Find in Message"
-msgstr "Cerca nel messaggio"
+msgid "Find text (HTML only)"
+msgstr "Cerca testo (solo HTML)"
 
 #: src/gtk/help-overlay.blp:24
 msgctxt "shortcut window"
@@ -471,6 +471,10 @@ msgstr "Salva allegato..."
 msgid "File Error"
 msgstr "Errore file"
 
+#: src/window.rs:577 src/window.rs:861
+msgid "Failed to open file"
+msgstr "Impossibile aprire il file"
+
 #: src/window.rs:650
 msgid "Failed to open uri"
 msgstr "Impossibile aprire il file"
@@ -483,12 +487,7 @@ msgstr "Apri file di posta"
 msgid "Open Mail File"
 msgstr "Apri file di posta"
 
-#: src/window.rs:861
-msgid "Failed to open file"
-msgstr "Impossibile aprire il file"
-
 #: src/window.rs:912
-#, rust-format
 msgid "{total} attachment"
 msgid_plural "{total} attachments"
 msgstr[0] "{total} allegato"
@@ -510,6 +509,10 @@ msgstr "Impostazioni"
 #: src/window.rs:1008
 msgid "Failed to get settings"
 msgstr "Impossibile ottenere le impostazioni"
+
+#~ msgctxt "shortcut window"
+#~ msgid "Find in Message"
+#~ msgstr "Cerca nel messaggio"
 
 #~ msgid "_Cancel"
 #~ msgstr "_Annulla"

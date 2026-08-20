@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailviewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-19 17:35+0200\n"
+"POT-Creation-Date: 2026-08-20 19:32+0200\n"
 "PO-Revision-Date: 2025-11-12 20:10+0100\n"
 "Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
 "Language-Team: \n"
@@ -347,8 +347,8 @@ msgstr "Bestand afdrukken"
 
 #: src/gtk/help-overlay.blp:19
 msgctxt "shortcut window"
-msgid "Find in Message"
-msgstr "Zoeken in bericht"
+msgid "Find text (HTML only)"
+msgstr "Tekst zoeken (alleen HTML)"
 
 #: src/gtk/help-overlay.blp:24
 msgctxt "shortcut window"
@@ -473,6 +473,10 @@ msgstr "Bijlage opslaan…"
 msgid "File Error"
 msgstr "Bestandsfout"
 
+#: src/window.rs:577 src/window.rs:861
+msgid "Failed to open file"
+msgstr "Kan de URI niet openen"
+
 #: src/window.rs:650
 msgid "Failed to open uri"
 msgstr "Kan de URI niet openen"
@@ -485,12 +489,7 @@ msgstr "Mailbestanden"
 msgid "Open Mail File"
 msgstr "Mailbestand openen"
 
-#: src/window.rs:861
-msgid "Failed to open file"
-msgstr "Kan de URI niet openen"
-
 #: src/window.rs:912
-#, rust-format
 msgid "{total} attachment"
 msgid_plural "{total} attachments"
 msgstr[0] "{total} bijlage"
@@ -512,6 +511,10 @@ msgstr "Voorkeuren"
 #: src/window.rs:1008
 msgid "Failed to get settings"
 msgstr "De voorkeuren zijn niet beschikbaar"
+
+#~ msgctxt "shortcut window"
+#~ msgid "Find in Message"
+#~ msgstr "Zoeken in bericht"
 
 #~ msgid "EML Files"
 #~ msgstr "Eml-bestanden"

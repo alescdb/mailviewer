@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailviewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-19 17:35+0200\n"
+"POT-Creation-Date: 2026-08-20 19:32+0200\n"
 "PO-Revision-Date: 2026-08-12 22:15+0200\n"
 "Last-Translator: Ángel Guzmán Maeso <angel@guzmanmaeso.com>\n"
 "Language-Team: Spanish <LL@li.org>\n"
@@ -70,22 +70,20 @@ msgstr "Alexandre Del Bigio"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:50
 msgid "Search within HTML emails with Ctrl+F (by shakaran)"
-msgstr ""
+msgstr "Buscar dentro de los correos HTML con Ctrl+F (por shakaran)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:51
-msgid ""
-"Light and dark for HTML messages (if Force CSS is enabled) (by shakaran)"
+msgid "Light and dark for HTML messages (if Force CSS is enabled) (by shakaran)"
 msgstr ""
+"Claro y oscuro para los mensajes HTML (si se fuerza el CSS) (por shakaran)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:52
-#, fuzzy
 msgid "Setting for Force CSS"
-msgstr "Forzar el CSS"
+msgstr "Ajuste para forzar el CSS"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:53
-#, fuzzy
 msgid "Updated translations"
-msgstr "Traducción al neerlandés actualizada (Vistaus)"
+msgstr "Traducciones actualizadas"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:60
 msgid "Fix printing to file and PDF"
@@ -97,8 +95,7 @@ msgstr "Se desactivan los botones de zoom al llegar al mínimo y al máximo"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:62
 msgid "Improve HTML email sanitization and security (shakaran)"
-msgstr ""
-"Se mejoran el saneado y la seguridad del HTML de los correos (shakaran)"
+msgstr "Se mejoran el saneado y la seguridad del HTML de los correos (shakaran)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:63
 msgid "Block unwanted remote content in emails (shakaran)"
@@ -113,8 +110,8 @@ msgstr ""
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:65
 msgid "Fix non-UTF-8 filenames and markup in attachment rows (shakaran)"
 msgstr ""
-"Se corrigen los nombres de archivo que no son UTF-8 y el marcado en las "
-"filas de adjuntos (shakaran)"
+"Se corrigen los nombres de archivo que no son UTF-8 y el marcado en las filas "
+"de adjuntos (shakaran)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:66
 msgid "Improve temporary file cleanup (shakaran)"
@@ -150,8 +147,7 @@ msgstr ""
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:90
 msgid "Outlook (msg) don't show text button if text field is empty"
 msgstr ""
-"Outlook (msg): no se muestra el botón de texto si el campo de texto está "
-"vacío"
+"Outlook (msg): no se muestra el botón de texto si el campo de texto está vacío"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:97
 msgid "Sync \"Show remote images\" status for html print"
@@ -217,8 +213,7 @@ msgstr "Se cancela la carga anterior mediante Cancellable (3v1n0)"
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:134
 msgid "Add test utility function to wait for futures to complete (3v1n0)"
 msgstr ""
-"Se añade una función de prueba para esperar a que terminen los futuros "
-"(3v1n0)"
+"Se añade una función de prueba para esperar a que terminen los futuros (3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:135
 msgid "Add x-ole-storage as supported mime type (3v1n0)"
@@ -375,8 +370,8 @@ msgstr "Imprimir archivo"
 
 #: src/gtk/help-overlay.blp:19
 msgctxt "shortcut window"
-msgid "Find in Message"
-msgstr "Buscar en el mensaje"
+msgid "Find text (HTML only)"
+msgstr "Buscar texto (solo HTML)"
 
 #: src/gtk/help-overlay.blp:24
 msgctxt "shortcut window"
@@ -501,6 +496,10 @@ msgstr "Guardar el adjunto…"
 msgid "File Error"
 msgstr "Error de archivo"
 
+#: src/window.rs:577 src/window.rs:861
+msgid "Failed to open file"
+msgstr "No se pudo abrir el archivo"
+
 #: src/window.rs:650
 msgid "Failed to open uri"
 msgstr "No se pudo abrir el URI"
@@ -513,12 +512,7 @@ msgstr "Archivos de correo"
 msgid "Open Mail File"
 msgstr "Abrir un archivo de correo"
 
-#: src/window.rs:861
-msgid "Failed to open file"
-msgstr "No se pudo abrir el archivo"
-
 #: src/window.rs:912
-#, rust-format
 msgid "{total} attachment"
 msgid_plural "{total} attachments"
 msgstr[0] "{total} adjunto"
@@ -540,3 +534,7 @@ msgstr "Configuración"
 #: src/window.rs:1008
 msgid "Failed to get settings"
 msgstr "No se pudo obtener la configuración"
+
+#~ msgctxt "shortcut window"
+#~ msgid "Find in Message"
+#~ msgstr "Buscar en el mensaje"

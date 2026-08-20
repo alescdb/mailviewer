@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailviewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-19 17:35+0200\n"
+"POT-Creation-Date: 2026-08-20 19:32+0200\n"
 "PO-Revision-Date: 2024-11-14 17:23+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -350,8 +350,8 @@ msgstr "Imprimer un fichier"
 
 #: src/gtk/help-overlay.blp:19
 msgctxt "shortcut window"
-msgid "Find in Message"
-msgstr "Rechercher dans le message"
+msgid "Find text (HTML only)"
+msgstr "Rechercher du texte (HTML uniquement)"
 
 #: src/gtk/help-overlay.blp:24
 msgctxt "shortcut window"
@@ -476,6 +476,10 @@ msgstr "Enregister le fichier attaché..."
 msgid "File Error"
 msgstr "Erreur de fichier"
 
+#: src/window.rs:577 src/window.rs:861
+msgid "Failed to open file"
+msgstr "Impossible d'ouvrir le fichier"
+
 #: src/window.rs:650
 msgid "Failed to open uri"
 msgstr "Impossible d'ouvrir le fichier"
@@ -488,12 +492,7 @@ msgstr "Ouvrir un fichier"
 msgid "Open Mail File"
 msgstr "Ouvrir un message"
 
-#: src/window.rs:861
-msgid "Failed to open file"
-msgstr "Impossible d'ouvrir le fichier"
-
 #: src/window.rs:912
-#, rust-format
 msgid "{total} attachment"
 msgid_plural "{total} attachments"
 msgstr[0] "{total} fichier attaché"
@@ -515,6 +514,10 @@ msgstr "Préférences"
 #: src/window.rs:1008
 msgid "Failed to get settings"
 msgstr "Impossible de trouver les préférences"
+
+#~ msgctxt "shortcut window"
+#~ msgid "Find in Message"
+#~ msgstr "Rechercher dans le message"
 
 #~ msgid "_Cancel"
 #~ msgstr "_Annuler"
