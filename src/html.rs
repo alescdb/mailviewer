@@ -19,6 +19,7 @@
  */
 use std::borrow::Cow;
 use std::collections::{HashMap, HashSet};
+use std::sync::{Arc, Mutex};
 
 use base64::engine::general_purpose;
 use base64::Engine;
@@ -69,12 +70,19 @@ const CSP_ALLOW_REMOTE: &str = "default-src 'none'; style-src 'unsafe-inline' ht
                                 img-src data: http: https:; font-src http: https:; \
                                 media-src data: http: https:";
 
+#[derive(Clone)]
+struct InlineImage {
+  mime_type: String,
+  body: Arc<[u8]>,
+}
+
 pub struct Html {
   body: String,
   strip_css: bool,
   allow_remote: bool,
   dark: bool,
-  inline_images: HashMap<String, String>,
+  inline_images: HashMap<String, InlineImage>,
+  encoded: Arc<Mutex<HashMap<String, String>>>,
 }
 
 impl Html {
@@ -85,6 +93,7 @@ impl Html {
       allow_remote: false,
       dark: false,
       inline_images: HashMap::new(),
+      encoded: Arc::new(Mutex::new(HashMap::new())),
     }
   }
 
@@ -103,34 +112,29 @@ impl Html {
     self
   }
 
-  /// The attachments a `cid:` source can point at.
+  /// The attachments a `cid:` source can point at, keyed by content id in
+  /// lower case, since the scheme and the id are matched without case.
   ///
-  /// Only the ones the message refers to are encoded. A message can carry tens
-  /// of megabytes of attachments with a Content-ID that no image ever uses, and
-  /// base64 adds another third on top of each one, on every render.
+  /// The body is scanned first so that an attachment nothing mentions is not
+  /// even copied here. The scan is a prefilter and matches a `cid:` anywhere,
+  /// which is coarser than the rewriting: encoding happens later, only when an
+  /// image actually uses it.
   pub fn inline_images(mut self, attachments: &[Attachment]) -> Self {
     let images = {
-      // Lowercased because the scheme is not case sensitive. The id is folded
-      // along with it, and a prefix of a longer id matches too, so the scan can
-      // include one attachment that is not used in the end. It is a filter for
-      // waste, not a rule about what may be rendered.
       let body = self.body.to_lowercase();
       attachments
         .iter()
         .filter(|attachment| !attachment.content_id.is_empty())
-        .filter(|attachment| {
-          body.contains(&format!("cid:{}", attachment.content_id.to_lowercase()))
-        })
         .filter_map(|attachment| {
+          let content_id = attachment.content_id.to_lowercase();
+          if !body.contains(&format!("cid:{content_id}")) {
+            return None;
+          }
           let mime_type = attachment.mime_type.as_deref()?;
-          Some((
-            attachment.content_id.clone(),
-            format!(
-              "data:{};base64,{}",
-              mime_type,
-              general_purpose::STANDARD.encode(&attachment.body)
-            ),
-          ))
+          Some((content_id, InlineImage {
+            mime_type: mime_type.to_string(),
+            body: Arc::from(attachment.body.as_slice()),
+          }))
         })
         .collect()
     };
@@ -140,7 +144,7 @@ impl Html {
 
   #[cfg(test)]
   fn encoded_image_count(&self) -> usize {
-    self.inline_images.len()
+    self.encoded.lock().unwrap().len()
   }
 
   pub fn escape(value: &str) -> String {
@@ -205,6 +209,7 @@ impl Html {
     }
 
     let inline_images = self.inline_images.clone();
+    let encoded = Arc::clone(&self.encoded);
     builder.attribute_filter(move |element, attribute, value| {
       let Some(content_id) = content_id_of(value) else {
         return Some(Cow::Borrowed(value));
@@ -215,9 +220,20 @@ impl Html {
       if element != "img" || attribute != "src" {
         return None;
       }
-      inline_images
-        .get(content_id)
-        .map(|uri| Cow::Owned(uri.clone()))
+
+      let content_id = content_id.to_lowercase();
+      let image = inline_images.get(&content_id)?;
+      // Encoded here rather than up front, so that only what an image uses is
+      // paid for, and only once per message.
+      let mut encoded = encoded.lock().unwrap();
+      let uri = encoded.entry(content_id).or_insert_with(|| {
+        format!(
+          "data:{};base64,{}",
+          image.mime_type,
+          general_purpose::STANDARD.encode(&image.body)
+        )
+      });
+      Some(Cow::Owned(uri.clone()))
     });
 
     builder.clean(&self.body).to_string()
@@ -458,26 +474,28 @@ mod tests {
     });
   }
 
+  fn attachment_named(content_id: &str, mime_type: &str) -> crate::message::attachment::Attachment {
+    crate::message::attachment::Attachment {
+      filename: format!("{content_id}.bin"),
+      content_id: content_id.to_string(),
+      body: vec![1, 2, 3],
+      mime_type: Some(mime_type.to_string()),
+    }
+  }
+
   #[test]
   fn only_the_images_the_message_uses_are_encoded() {
-    let used = crate::message::attachment::Attachment {
-      filename: "used.png".to_string(),
-      content_id: "used".to_string(),
-      body: vec![1, 2, 3],
-      mime_type: Some("image/png".to_string()),
-    };
-    let unused = crate::message::attachment::Attachment {
-      filename: "unused.pdf".to_string(),
-      content_id: "unused".to_string(),
-      body: vec![4, 5, 6],
-      mime_type: Some("application/pdf".to_string()),
-    };
+    let used = attachment_named("used", "image/png");
+    let unused = attachment_named("unused", "application/pdf");
 
     let html =
       Html::new("<img src=\"cid:used\">", false).inline_images(&[used.clone(), unused.clone()]);
+    let body = html.safe();
+    assert!(body.contains("data:image/png;base64,"));
     assert_eq!(html.encoded_image_count(), 1);
 
     let html = Html::new("<p>no images here</p>", false).inline_images(&[used, unused]);
+    html.safe();
     assert_eq!(html.encoded_image_count(), 0);
   }
 
@@ -511,19 +529,27 @@ mod tests {
   }
 
   #[test]
-  fn the_scheme_of_an_inline_image_is_not_case_sensitive() {
-    let attachment = crate::message::attachment::Attachment {
-      filename: "x.png".to_string(),
-      content_id: "abc".to_string(),
-      body: vec![1, 2, 3],
-      mime_type: Some("image/png".to_string()),
-    };
-    let body = Html::new("<img src=\"CID:abc\">", false)
-      .inline_images(&[attachment])
-      .safe();
+  fn a_cid_that_is_not_an_image_source_is_never_encoded() {
+    // The body scan is coarser than the rewriting on purpose, so a reference
+    // from anywhere else must not end up costing an encoding.
+    let attachment = attachment_named("thing", "application/pdf");
+    let html = Html::new("<a href=\"cid:thing\">link</a>", false).inline_images(&[attachment]);
+    let body = html.safe();
 
-    assert!(body.contains("data:image/png;base64,"));
-    assert!(!body.to_lowercase().contains("cid:"));
+    assert_eq!(html.encoded_image_count(), 0);
+    assert!(!body.contains("base64,"));
+    assert!(!body.contains("cid:"));
+  }
+
+  #[test]
+  fn the_same_image_twice_is_encoded_once() {
+    let attachment = attachment_named("twice", "image/png");
+    let html = Html::new("<img src=\"cid:twice\"><img src=\"CID:TWICE\">", false)
+      .inline_images(&[attachment]);
+    let body = html.safe();
+
+    assert_eq!(html.encoded_image_count(), 1);
+    assert_eq!(body.matches("data:image/png;base64,").count(), 2);
   }
 
   #[test]
