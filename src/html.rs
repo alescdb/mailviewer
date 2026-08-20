@@ -482,6 +482,35 @@ mod tests {
   }
 
   #[test]
+  fn cid_text_not_encoded() {
+    let attachment = crate::message::attachment::Attachment {
+      filename: "image.png".to_string(),
+      content_id: "ii_m2lqbrhv0".to_string(),
+      body: vec![1, 2, 3],
+      mime_type: Some("image/png".to_string()),
+    };
+    let html = Html::new("<pre>cid:ii_m2lqbrhv0</pre>", false).inline_images(&[attachment]);
+
+    assert_eq!(html.encoded_image_count(), 0);
+    assert!(html.safe().contains("<pre>cid:ii_m2lqbrhv0</pre>"));
+  }
+
+  #[test]
+  fn cid_case_insensitive() {
+    let attachment = crate::message::attachment::Attachment {
+      filename: "image.png".to_string(),
+      content_id: "ii_m2lqbrhv0".to_string(),
+      body: vec![1, 2, 3],
+      mime_type: Some("image/png".to_string()),
+    };
+    let body = Html::new("<img src=\"CID:II_M2LQBRHV0\">", false)
+      .inline_images(&[attachment])
+      .safe();
+
+    assert!(body.contains("<img src=\"data:image/png;base64,"));
+  }
+
+  #[test]
   fn the_scheme_of_an_inline_image_is_not_case_sensitive() {
     let attachment = crate::message::attachment::Attachment {
       filename: "x.png".to_string(),
