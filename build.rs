@@ -54,8 +54,6 @@ fn main() {
   // println!("cargo:warning=target => {:?}", &cfg.target);
 
   println!("cargo::rerun-if-changed=build.rs");
-  println!("cargo::rerun-if-changed=src/window.ui");
-  println!("cargo::rerun-if-changed=src/preferences.ui");
   println!("cargo::rerun-if-changed=src/mailviewer.gresource.xml");
   println!("cargo::rerun-if-changed=data/io.github.alescdb.mailviewer.gschema.xml");
   println!(

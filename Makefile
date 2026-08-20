@@ -2,7 +2,7 @@ CURRENT_DIR       := $(shell pwd)
 BUILD_DIR         := _build
 DEBUG             := $(CURRENT_DIR)/dist
 EXECUTABLE        := $(CURRENT_DIR)/dist/bin/mailviewer
-SOURCES           := $(wildcard src/**.rs src/**.ui src/**.css src/config.rs.in)
+SOURCES           := $(wildcard src/**.rs src/**.blp src/**.css src/config.rs.in)
 RESOURCES         := $(DEBUG)/share/mailviewer/mailviewer.gresource
 SCHEMAS           := $(DEBUG)/dist/share/glib-2.0/schemas/gschemas.compiled
 MANIFEST          := $(CURRENT_DIR)/io.github.alescdb.mailviewer.json
@@ -59,6 +59,7 @@ po:
 
 run-fr: build po
 	RUST_LOG="mailviewer=debug" \
+	XDG_DATA_DIRS="$(DEBUG)/share:$${XDG_DATA_DIRS:-/usr/local/share:/usr/share}" \
 	GSETTINGS_SCHEMA_DIR="$(DEBUG)/share/glib-2.0/schemas" \
 	LC_ALL="fr_FR.UTF-8" $(EXECUTABLE) sample.eml 
 
