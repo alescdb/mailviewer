@@ -55,6 +55,7 @@ mod imp {
       obj.set_accels_for_action("win.print", &["<primary>p"]);
       obj.set_accels_for_action("win.reset-zoom", &["<primary>r"]);
       obj.set_accels_for_action("win.search", &["<primary>f"]);
+      obj.set_accels_for_action("app.shortcuts", &["<primary>question"]);
     }
   }
 
@@ -128,7 +129,17 @@ impl MailViewerApplication {
     let about_action = gio::ActionEntry::builder("about")
       .activate(move |app: &Self, _, _| app.show_about())
       .build();
-    self.add_action_entries([quit_action, about_action]);
+    let shortcuts_action = gio::ActionEntry::builder("shortcuts")
+      .activate(move |app: &Self, _, _| app.show_shortcuts())
+      .build();
+    self.add_action_entries([quit_action, about_action, shortcuts_action]);
+  }
+
+  fn show_shortcuts(&self) {
+    let window = self.active_window().unwrap();
+    let builder = gtk4::Builder::from_string(gtk4::include_blueprint!("src/gtk/help-overlay.blp"));
+    let dialog: adw::ShortcutsDialog = builder.object("shortcuts_dialog").unwrap();
+    dialog.present(Some(&window));
   }
 
   fn show_about(&self) {

@@ -1,0 +1,38 @@
+using Gtk 4.0;
+using Adw 1;
+
+Adw.ShortcutsDialog shortcuts_dialog {
+  Adw.ShortcutsSection {
+    title: C_("shortcut window", "General");
+
+    Adw.ShortcutsItem {
+      title: C_("shortcut window", "Open File");
+      action-name: "win.open-file-dialog";
+    }
+
+    Adw.ShortcutsItem {
+      title: C_("shortcut window", "Print File");
+      action-name: "win.print";
+    }
+
+    Adw.ShortcutsItem {
+      title: C_("shortcut window", "Find in Message");
+      action-name: "win.search";
+    }
+
+    Adw.ShortcutsItem {
+      title: C_("shortcut window", "Reset Zoom");
+      action-name: "win.reset-zoom";
+    }
+
+    Adw.ShortcutsItem {
+      title: C_("shortcut window", "Show Shortcuts");
+      action-name: "app.shortcuts";
+    }
+
+    Adw.ShortcutsItem {
+      title: C_("shortcut window", "Quit");
+      action-name: "app.quit";
+    }
+  }
+}

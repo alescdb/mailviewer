@@ -55,7 +55,7 @@ mod imp {
   use super::*;
 
   #[derive(Debug, gtk4::CompositeTemplate)]
-  #[template(resource = "/io/github/alescdb/mailviewer/window.ui")]
+  #[template(file = "src/window.blp")]
   pub struct MailViewerWindow {
     #[template_child]
     pub from: TemplateChild<gtk4::Entry>,
@@ -977,7 +977,7 @@ impl MailViewerWindow {
     log::debug!("show_preferences()");
     match self.imp().settings.get() {
       Some(settings) => {
-        let builder = gtk4::Builder::from_resource("/io/github/alescdb/mailviewer/preferences.ui");
+        let builder = gtk4::Builder::from_string(gtk4::include_blueprint!("src/preferences.blp"));
         let show_file_name: adw::SwitchRow = builder.object("show_file_name").unwrap();
         let force_css: adw::SwitchRow = builder.object("force_css").unwrap();
         settings
