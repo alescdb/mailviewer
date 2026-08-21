@@ -36,7 +36,7 @@ template $MailViewerWindow: Adw.ApplicationWindow {
 
         [end]
         ToggleButton show_images {
-          visible: bind show_text.active inverted;
+          visible: false;
           icon-name: "image-x-generic-symbolic";
           tooltip-text: _("Show remote images");
           clicked => $on_show_images_clicked() swapped;
@@ -44,7 +44,7 @@ template $MailViewerWindow: Adw.ApplicationWindow {
 
         [end]
         ToggleButton force_css {
-          visible: bind show_text.active inverted;
+          visible: false;
           icon-name: "font-x-generic-symbolic";
           tooltip-text: _("Force CSS");
           clicked => $on_force_css_clicked() swapped;
@@ -52,7 +52,7 @@ template $MailViewerWindow: Adw.ApplicationWindow {
 
         [end]
         Button zoom_minus {
-          visible: bind show_text.active inverted;
+          visible: false;
           icon-name: "loupe-minus-symbolic";
           tooltip-text: _("Zoom -");
           clicked => $on_zoom_minus_clicked() swapped;
@@ -60,7 +60,7 @@ template $MailViewerWindow: Adw.ApplicationWindow {
 
         [end]
         ToggleButton zoom_plus {
-          visible: bind show_text.active inverted;
+          visible: false;
           icon-name: "loupe-plus-symbolic";
           tooltip-text: _("Zoom +");
           clicked => $on_zoom_plus_clicked() swapped;
@@ -154,7 +154,7 @@ template $MailViewerWindow: Adw.ApplicationWindow {
         }
 
         SearchBar search_bar {
-          visible: bind show_text.active inverted;
+          visible: false;
 
           child: SearchEntry search_entry {
             hexpand: true;
@@ -165,33 +165,7 @@ template $MailViewerWindow: Adw.ApplicationWindow {
           };
         }
 
-        Adw.ViewStack stack {
-          Adw.ViewStackPage {
-            name: "html";
-            title: _("HTML");
-
-            child: ScrolledWindow placeholder {
-              hexpand: true;
-              vexpand: true;
-            };
-          }
-
-          Adw.ViewStackPage {
-            name: "text";
-            title: _("TEXT");
-
-            child: ScrolledWindow advanced_scrolledWindow {
-              hscrollbar-policy: never;
-
-              TextView body_text {
-                wrap-mode: word;
-                hexpand: true;
-                vexpand: true;
-                editable: false;
-              }
-            };
-          }
-        }
+        $Viewer viewer {}
       };
     };
 

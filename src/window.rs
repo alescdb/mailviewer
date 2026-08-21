@@ -24,16 +24,16 @@ use adw::prelude::{AlertDialogExt, *};
 use adw::subclass::prelude::*;
 use gettextrs::{gettext, ngettext};
 use gtk4::{gio, glib, template_callbacks};
-use webkit6::prelude::{PolicyDecisionExt, WebViewExt};
-use webkit6::{
-  FindOptions, NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, PrintOperation, PrintOperationResponse, WebView
-};
 
-use crate::html::Html;
 use crate::mailservice::MailService;
 use crate::message::attachment::Attachment;
 use crate::message::message::MessageParser;
 use crate::utils;
+use crate::viewer::capabilities::Capabilities;
+use crate::viewer::content::{RenderOptions, ViewerContent};
+use crate::viewer::printable::{Printable, PrintableContent};
+use crate::viewer::viewer::Viewer;
+use crate::viewer::zoomable::Zoomable;
 
 const SETTINGS_SHOW_FILE_NAME: &str = "show-file-name";
 const SETTINGS_FORCE_CSS: &str = "force-css";
@@ -66,7 +66,7 @@ mod imp {
     #[template_child]
     pub date: TemplateChild<gtk4::Entry>,
     #[template_child]
-    pub placeholder: TemplateChild<gtk4::ScrolledWindow>,
+    pub viewer: TemplateChild<Viewer>,
     #[template_child]
     pub force_css: TemplateChild<gtk4::ToggleButton>,
     #[template_child]
@@ -74,13 +74,9 @@ mod imp {
     #[template_child]
     pub zoom_plus: TemplateChild<gtk4::Button>,
     #[template_child]
-    pub body_text: TemplateChild<gtk4::TextView>,
-    #[template_child]
     pub show_images: TemplateChild<gtk4::ToggleButton>,
     #[template_child]
     pub show_text: TemplateChild<gtk4::ToggleButton>,
-    #[template_child]
-    pub stack: TemplateChild<adw::ViewStack>,
     #[template_child]
     pub pull_label: TemplateChild<gtk4::Label>,
     #[template_child]
@@ -95,39 +91,27 @@ mod imp {
     pub search_entry: TemplateChild<gtk4::SearchEntry>,
     //
     pub scrolled_window: ScrolledWindow,
-    pub network_session: webkit6::NetworkSession,
-    pub webview: webkit6::WebView,
-    pub websettings: webkit6::Settings,
     pub settings: OnceCell<gio::Settings>,
     pub service: MailService,
     pub cancellable: RefCell<gio::Cancellable>,
-    pub print_webview: RefCell<Option<webkit6::WebView>>,
-    pub print_operation: RefCell<Option<webkit6::PrintOperation>>,
   }
 
   impl Default for MailViewerWindow {
     fn default() -> Self {
       // Nothing a message pulls in has any business surviving on disk, so keep
       // the cache and the cookies of the session in memory only.
-      let network_session = webkit6::NetworkSession::new_ephemeral();
-
       MailViewerWindow {
-        webview: WebView::builder().network_session(&network_session).build(),
-        network_session,
-        websettings: webkit6::Settings::new(),
         scrolled_window: ScrolledWindow::new(),
         from: TemplateChild::default(),
         to: TemplateChild::default(),
         subject: TemplateChild::default(),
         date: TemplateChild::default(),
-        placeholder: TemplateChild::default(),
+        viewer: TemplateChild::default(),
         show_images: TemplateChild::default(),
         force_css: TemplateChild::default(),
         zoom_minus: TemplateChild::default(),
         zoom_plus: TemplateChild::default(),
         show_text: TemplateChild::default(),
-        body_text: TemplateChild::default(),
-        stack: TemplateChild::default(),
         pull_label: TemplateChild::default(),
         attachments_clamp: TemplateChild::default(),
         search_bar: TemplateChild::default(),
@@ -137,8 +121,6 @@ mod imp {
         settings: OnceCell::new(),
         service: MailService::new(),
         cancellable: RefCell::new(gio::Cancellable::new()),
-        print_webview: RefCell::new(None),
-        print_operation: RefCell::new(None),
       }
     }
   }
@@ -153,6 +135,7 @@ mod imp {
     const NAME: &'static str = "MailViewerWindow";
 
     fn class_init(klass: &mut Self::Class) {
+      Viewer::static_type();
       klass.bind_template();
       klass.bind_template_instance_callbacks();
       klass.install_action_async(
@@ -244,7 +227,7 @@ impl MailViewerWindow {
   #[template_callback]
   pub fn on_force_css_clicked(&self) {
     log::debug!("on_force_css_clicked()");
-    self.load_html(self.imp().force_css.is_active());
+    self.update_render_options();
   }
 
   #[template_callback]
@@ -258,108 +241,85 @@ impl MailViewerWindow {
   pub fn on_show_images_clicked(&self) {
     let show = self.imp().show_images.is_active();
     log::debug!("on_show_images_clicked({})", show);
-    self.imp().websettings.set_auto_load_images(show);
-    // The policy travels with the html, so the message has to be rendered again.
-    self.load_html(self.imp().force_css.is_active());
+    self.update_render_options();
   }
 
-  /// Ctrl+F. The bar rides on the html view, the plain text one is a
-  /// GtkTextView and does not go through the find controller.
   fn start_search(&self) {
-    if self.imp().show_text.is_active() {
+    if !self.imp().viewer.has_search() {
       return;
     }
     self.imp().search_bar.set_search_mode(true);
     self.imp().search_entry.grab_focus();
   }
 
-  fn find_controller(&self) -> Option<webkit6::FindController> {
-    self.imp().webview.find_controller()
-  }
-
   #[template_callback]
   pub fn on_search_changed(&self) {
     let text = self.imp().search_entry.text();
-    let Some(controller) = self.find_controller() else {
-      return;
-    };
-
-    if text.is_empty() {
-      controller.search_finish();
-      return;
-    }
     log::debug!("on_search_changed({})", text);
-    controller.search(
-      &text,
-      (FindOptions::CASE_INSENSITIVE | FindOptions::WRAP_AROUND).bits(),
-      u32::MAX,
-    );
+    self.imp().viewer.find(&text);
   }
 
   #[template_callback]
   pub fn on_search_next(&self) {
-    if let Some(controller) = self.find_controller() {
-      controller.search_next();
-    }
+    self.imp().viewer.find_next();
   }
 
   #[template_callback]
   pub fn on_search_previous(&self) {
-    if let Some(controller) = self.find_controller() {
-      controller.search_previous();
-    }
+    self.imp().viewer.find_previous();
   }
 
   #[template_callback]
   pub fn on_search_stopped(&self) {
     log::debug!("on_search_stopped()");
-    if let Some(controller) = self.find_controller() {
-      controller.search_finish();
-    }
+    self.imp().viewer.clear_find();
     self.imp().search_bar.set_search_mode(false);
   }
 
   #[template_callback]
   pub fn on_zoom_minus_clicked(&self) {
     log::debug!("on_zoom_minus_clicked()");
-    self.set_zoom_level(self.imp().webview.zoom_level() - ZOOM_STEP);
+    self.set_zoom_level(self.zoom_level() - ZOOM_STEP);
   }
 
   #[template_callback]
   pub fn on_zoom_plus_clicked(&self) {
     log::debug!("on_zoom_plus_clicked()");
-    self.set_zoom_level(self.imp().webview.zoom_level() + ZOOM_STEP);
+    self.set_zoom_level(self.zoom_level() + ZOOM_STEP);
+  }
+
+  fn zoom_level(&self) -> f64 {
+    self.imp().viewer.zoom()
   }
 
   fn initialize(&self) {
     log::debug!("initialize()");
-    let imp = self.imp();
 
     self.initialize_settings();
     self.initialize_actions();
-    self.initialise_webview(&imp.webview, &imp.websettings);
-
-    imp.placeholder.set_child(Some(&imp.webview));
+    self.update_capabilities();
   }
 
-  fn initialise_webview(&self, webview: &webkit6::WebView, websettings: &webkit6::Settings) {
-    websettings.set_allow_file_access_from_file_urls(false);
-    websettings.set_enable_back_forward_navigation_gestures(false);
-    websettings.set_enable_developer_extras(false);
-    websettings.set_enable_dns_prefetching(false);
-    websettings.set_allow_modal_dialogs(false);
-    websettings.set_allow_universal_access_from_file_urls(false);
-    websettings.set_enable_javascript(false);
-    websettings.set_enable_webgl(false);
-    websettings.set_enable_webaudio(false);
-    websettings.set_auto_load_images(self.imp().show_images.is_active());
-    webview.set_settings(websettings);
-    webview.set_editable(false);
-    webview.connect_context_menu(move |_, _, _| {
-      log::debug!("WebView() => context_menu() cancelled");
-      true
-    });
-    webview.set_receives_default(false);
+  fn update_capabilities(&self) {
+    let viewer = &self.imp().viewer;
+    self.imp().show_images.set_visible(viewer.has_images());
+    self.imp().force_css.set_visible(viewer.has_html());
+    self.imp().search_bar.set_visible(viewer.has_search());
+    self.imp().zoom_minus.set_visible(viewer.has_zoom());
+    self.imp().zoom_plus.set_visible(viewer.has_zoom());
+    self.action_set_enabled("print", viewer.has_print());
+  }
+
+  fn render_options(&self) -> RenderOptions {
+    RenderOptions {
+      force_css: self.imp().force_css.is_active(),
+      allow_remote: self.imp().show_images.is_active(),
+      dark: adw::StyleManager::default().is_dark(),
+    }
+  }
+
+  fn update_render_options(&self) {
+    self.imp().viewer.set_render_options(self.render_options());
   }
 
   fn initialize_actions(&self) {
@@ -367,7 +327,7 @@ impl MailViewerWindow {
     let imp = self.imp();
 
     let drop_target = gtk4::DropTarget::new(gio::File::static_type(), gtk4::gdk::DragAction::COPY);
-    imp.body_text.add_controller(drop_target.clone());
+    imp.viewer.add_controller(drop_target.clone());
     drop_target.connect_drop(clone!(
       #[strong]
       win,
@@ -388,25 +348,21 @@ impl MailViewerWindow {
       }
     ));
 
-    // The forced css carries the colours, so it has to be rendered again when
-    // the desktop switches between light and dark.
     adw::StyleManager::default().connect_dark_notify(clone!(
       #[weak(rename_to = window)]
       self,
       move |_| {
         if window.imp().force_css.is_active() {
           log::debug!("colour scheme changed, rendering again");
-          window.load_html(true);
+          window.update_render_options();
         }
       }
     ));
 
-    imp.webview.connect_decide_policy(clone!(
+    imp.viewer.connect_link_handler(clone!(
       #[strong]
       win,
-      move |webview: &WebView, policy: &PolicyDecision, decision_type: PolicyDecisionType| {
-        return win.on_decide_policy(webview, policy, decision_type);
-      }
+      move |uri| win.open_uri(uri)
     ));
   }
 
@@ -415,9 +371,8 @@ impl MailViewerWindow {
     let imp = self.imp();
 
     imp.settings.set(settings.clone()).unwrap();
-    imp
-      .webview
-      .set_zoom_level(settings.get::<f64>("zoom").clamp(ZOOM_MIN, ZOOM_MAX));
+    let zoom = settings.get::<f64>("zoom").clamp(ZOOM_MIN, ZOOM_MAX);
+    imp.viewer.set_zoom(zoom);
 
     settings
       .bind("width", self, "default-width")
@@ -584,7 +539,7 @@ impl MailViewerWindow {
   fn set_zoom_level(&self, zoom: f64) {
     let zoom = zoom.clamp(ZOOM_MIN, ZOOM_MAX);
     log::debug!("set_zoom({})", zoom);
-    self.imp().webview.set_zoom_level(zoom);
+    self.imp().viewer.set_zoom(zoom);
 
     if zoom <= ZOOM_MIN {
       self.imp().zoom_minus.set_sensitive(false);
@@ -602,104 +557,34 @@ impl MailViewerWindow {
     }
   }
 
-  /// Sanitizes the body of the message, allowing remote content only while the
-  /// "Show remote images" button is on.
-  fn sanitized_html(&self, html: &str, force_css: bool) -> String {
-    Html::new(html, force_css)
-      .allow_remote(self.imp().show_images.is_active())
-      .dark(adw::StyleManager::default().is_dark())
-      .inline_images(&self.imp().service.attachments())
-      .safe()
-  }
+  fn open_uri(&self, uri: String) {
+    let allowed = utils::uri_scheme(&uri)
+      .is_some_and(|scheme| ALLOWED_URI_SCHEMES.contains(&scheme.as_str()));
+    if !allowed {
+      log::warn!("URI refused => {}", uri);
+      return;
+    }
 
-  fn load_html(&self, force_css: bool) {
-    log::debug!("load_html({})", force_css);
-    let html = self.imp().service.body_html().unwrap_or_default();
-    self
-      .imp()
-      .webview
-      .load_html(&self.sanitized_html(&html, force_css), None);
-  }
-
-  async fn decide_policy(
-    &self,
-    policy: &PolicyDecision,
-  ) -> Result<bool, Box<dyn std::error::Error>> {
-    match policy.clone().downcast::<NavigationPolicyDecision>() {
-      Ok(policy) => {
-        let navigation_action = policy.navigation_action();
-        if let Some(navigation_action) = navigation_action {
-          if let Some(request) = navigation_action.clone().request() {
-            if let Some(uri) = request.uri() {
-              if uri.starts_with("about:") {
-                return Ok(false);
-              }
-              // Decide before launching, so that a refused or failing uri is never
-              // loaded in the webview instead.
-              policy.ignore();
-
-              let allowed = utils::uri_scheme(uri.as_str())
-                .is_some_and(|scheme| ALLOWED_URI_SCHEMES.contains(&scheme.as_str()));
-              if !allowed {
-                log::warn!("WebView decide_policy(refused) => {}", uri);
-                return Ok(true);
-              }
-
-              log::debug!("WebView decide_policy(launch) => {}", uri);
-              if let Err(e) = gtk4::UriLauncher::new(&uri).launch_future(Some(self)).await {
-                return Err(format!("{} ({}): {}", gettext("Failed to open uri"), uri, e).into());
-              }
-              return Ok(true);
-            }
-            policy.ignore();
-            return Ok(true);
-          }
+    log::debug!("URI launch => {}", uri);
+    glib::spawn_future_local(glib::clone!(
+      #[strong(rename_to = window)]
+      self,
+      async move {
+        if let Err(e) = gtk4::UriLauncher::new(&uri).launch_future(Some(&window)).await {
+          log::error!("{} ({}): {}", gettext("Failed to open uri"), uri, e);
         }
       }
-      Err(e) => {
-        log::error!("WebView policy.clone().downcast({:?})", e);
-        return Err(format!("decide_policy() policy downcast failed ({:?})", e).into());
-      }
-    }
-    Ok(false)
-  }
-
-  fn on_decide_policy(
-    &self,
-    _: &WebView,
-    policy: &PolicyDecision,
-    _decision_type: PolicyDecisionType,
-  ) -> bool {
-    match utils::spawn_and_wait(
-      None,
-      glib::clone!(
-        #[strong(rename_to = win)]
-        self,
-        #[weak]
-        policy,
-        #[upgrade_or]
-        Ok::<bool, Box<dyn std::error::Error>>(false),
-        async move { win.decide_policy(&policy).await }
-      ),
-    ) {
-      Ok(val) => val,
-      Err(e) => {
-        log::error!("WebView on_decide_policy({:?})", e);
-        false
-      }
-    }
+    ));
   }
 
   fn on_show_text(&self, show: bool) {
     log::debug!("on_show_text({})", show);
     let imp = self.imp();
 
-    imp
-      .stack
-      .get()
-      .set_visible_child_name(if show { "text" } else { "html" });
+    imp.viewer.set_text_visible(show);
 
     imp.show_text.set_active(show);
+    self.update_capabilities();
   }
 
   fn build_mail_file_dialog(&self, title: &String) -> gtk4::FileDialog {
@@ -721,83 +606,32 @@ impl MailViewerWindow {
       .build()
   }
 
-  pub fn get_print_html(&self) -> String {
+  fn printable_content(&self) -> PrintableContent {
     let imp = self.imp();
-    let content: String;
-
-    if let Some(html) = imp.service.body_html() {
-      content = html;
-    } else if let Some(text) = imp.service.body_text() {
-      content = format!("<pre>{}</pre>", Html::escape(&text));
-    } else {
-      content = String::new();
+    PrintableContent {
+      html: imp.service.body_html(),
+      text: imp.service.body_text(),
+      from: imp.service.from(),
+      to: imp.service.to(),
+      date: imp.service.date(),
+      subject: imp.service.subject(),
+      attachments: imp.service.attachments(),
     }
-    let attachments = &imp.service.attachments();
-
-    Html::new(&content, false)
-      .allow_remote(imp.show_images.is_active())
-      .inline_images(attachments)
-      .safe_print(
-        imp.service.from().as_str(),
-        imp.service.to().as_str(),
-        imp.service.date().as_str(),
-        imp.service.subject().as_str(),
-        attachments,
-      )
   }
 
   pub async fn print(&self) {
     log::debug!("print()");
 
-    let webview = WebView::builder()
-      .network_session(&self.imp().network_session)
-      .build();
-    let websettings = webkit6::Settings::new();
-    let html: String = self.get_print_html();
-    self.initialise_webview(&webview, &websettings);
+    if !self.imp().viewer.has_print() {
+      return;
+    }
 
-    // The view has to stay alive until it has loaded, but holding it in its own
-    // signal handler makes a reference cycle and neither the view nor its web
-    // process are ever freed. Hold it here and let go once printing is done.
-    self.imp().print_webview.replace(Some(webview.clone()));
-
-    webview.connect_load_changed(clone!(
-      #[weak(rename_to = window)]
-      self,
-      move |webview, e| {
-        log::debug!("print load_html() event : {:?}", e);
-        if e == webkit6::LoadEvent::Finished {
-          let print_operation = PrintOperation::new(webview);
-
-          print_operation.connect_failed(move |_, error| {
-            log::error!("print failed: {}", error);
-          });
-          print_operation.connect_finished(clone!(
-            #[weak(rename_to = window)]
-            window,
-            move |_| {
-              log::debug!("print finished");
-              window.imp().print_operation.replace(None);
-              window.imp().print_webview.replace(None);
-            }
-          ));
-
-          window
-            .imp()
-            .print_operation
-            .replace(Some(print_operation.clone()));
-          let response = print_operation.run_dialog(Some(&window));
-          if response == PrintOperationResponse::Print {
-            log::debug!("print started");
-          } else {
-            log::debug!("print cancelled");
-            window.imp().print_operation.replace(None);
-            window.imp().print_webview.replace(None);
-          }
-        }
-      }
-    ));
-    webview.load_html(&html, None);
+    let content = self.printable_content();
+    let parent: &gtk4::Window = self.upcast_ref();
+    self
+      .imp()
+      .viewer
+      .print(parent, &content, self.render_options());
   }
 
   pub async fn open_file_dialog(&self, close_on_cancel: bool) -> bool {
@@ -875,23 +709,15 @@ impl MailViewerWindow {
     imp.to.set_text(imp.service.to().as_str());
     imp.subject.set_text(imp.service.subject().as_str());
 
-    let mut has_text: bool = false;
-    let mut has_html: bool = false;
+    let content = ViewerContent {
+      html: imp.service.body_html(),
+      text: imp.service.body_text(),
+      attachments: imp.service.attachments(),
+    };
+    let has_text = content.text.is_some();
+    let has_html = content.html.is_some();
 
-    if let Some(text) = imp.service.body_text() {
-      imp.body_text.buffer().set_text(&text);
-      has_text = true;
-    }
-
-    if let Some(html) = imp.service.body_html() {
-      // The button keeps its state across messages, so the new one has to be
-      // rendered the way it says.
-      let force_css = imp.force_css.is_active();
-      imp
-        .webview
-        .load_html(&self.sanitized_html(&html, force_css), None);
-      has_html = true;
-    }
+    imp.viewer.load_content(content, self.render_options());
 
     imp.show_text.set_visible(has_text && has_html);
     self.on_show_text(!has_html);
@@ -954,7 +780,7 @@ impl MailViewerWindow {
   fn set_force_css(&self, force: bool) {
     log::debug!("set_force_css({})", force);
     self.imp().force_css.set_active(force);
-    self.load_html(force);
+    self.update_render_options();
   }
 
   fn get_settings_bool(&self, key: &str) -> bool {

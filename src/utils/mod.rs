@@ -1,4 +1,5 @@
 // Common utilities.
+#[cfg(test)]
 use crate::glib;
 
 /// Returns the lowercased scheme of `uri`, or None if it has no valid one.
@@ -21,6 +22,7 @@ pub fn uri_scheme(uri: &str) -> Option<String> {
   Some(scheme.to_ascii_lowercase())
 }
 
+#[cfg(test)]
 pub fn spawn_and_wait<R: 'static, F: std::future::Future<Output = R> + 'static>(
   ctx: Option<&glib::MainContext>,
   f: F,

@@ -24,6 +24,7 @@ mod html;
 mod mailservice;
 mod message;
 mod utils;
+mod viewer;
 mod window;
 
 use config::{APP_ID, GETTEXT_PACKAGE, LOCALEDIR, PKGDATADIR};
