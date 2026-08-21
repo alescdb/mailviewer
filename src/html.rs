@@ -127,14 +127,25 @@ impl Html {
         .filter(|attachment| !attachment.content_id.is_empty())
         .filter_map(|attachment| {
           let content_id = attachment.content_id.to_lowercase();
-          if !body.contains(&format!("cid:{content_id}")) {
+          let raw_cid: String = format!("cid:{content_id}");
+          let encoded_content_id = Self::url_encode(&content_id);
+          let encoded_cid = format!("cid:{encoded_content_id}");
+          let matched_content_id = if body.contains(&raw_cid) {
+            content_id
+          } else if body.contains(&encoded_cid) {
+            encoded_content_id
+          } else {
             return None;
-          }
+          };
+
           let mime_type = attachment.mime_type.as_deref()?;
-          Some((content_id, InlineImage {
-            mime_type: mime_type.to_string(),
-            body: Arc::from(attachment.body.as_slice()),
-          }))
+          Some((
+            matched_content_id,
+            InlineImage {
+              mime_type: mime_type.to_string(),
+              body: Arc::from(attachment.body.as_slice()),
+            },
+          ))
         })
         .collect()
     };
@@ -145,6 +156,10 @@ impl Html {
   #[cfg(test)]
   fn encoded_image_count(&self) -> usize {
     self.encoded.lock().unwrap().len()
+  }
+
+  pub fn url_encode(content_id: &str) -> String {
+    crate::glib::uri_escape_string(content_id, Some("@"), true).to_string()
   }
 
   pub fn escape(value: &str) -> String {
@@ -629,5 +644,30 @@ mod tests {
     assert_eq!(page.matches("<html").count(), 1);
     assert_eq!(page.matches("<head>").count(), 1);
     assert_eq!(page.matches("Content-Security-Policy").count(), 1);
+  }
+
+
+  // RFC 2392 -> Errata 454
+  // https://errata.rfc-editor.org/search/?rfc_number=2392&presentation=records
+  // Content-ID is not url encoded, but a cid: source in a message is url encoded
+  #[test]
+  fn test_cid_url_encoded() {
+    let attachment = crate::message::attachment::Attachment {
+      filename: "image.png".to_string(),
+      content_id: "foo4%foo1@bar.net".to_string(),
+      body: vec![1, 2, 3],
+      mime_type: Some("image/png".to_string()),
+    };
+
+    assert_eq!(
+      Html::url_encode("foo4%foo1@bar.net"),
+      "foo4%25foo1@bar.net"
+    );
+
+    let body = Html::new(r#"<img src="cid:foo4%25foo1@bar.net">"#, false)
+      .inline_images(&[attachment])
+      .safe();
+
+    assert!(body.contains("<img src=\"data:image/png;base64,"));
   }
 }
