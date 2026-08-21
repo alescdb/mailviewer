@@ -1,0 +1,22 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $Viewer: Adw.Bin {
+  hexpand: true;
+  vexpand: true;
+
+  child: Adw.ViewStack stack {
+    hexpand: true;
+    vexpand: true;
+
+    Adw.ViewStackPage {
+      name: "html";
+      child: $WebViewer web_view {};
+    }
+
+    Adw.ViewStackPage {
+      name: "text";
+      child: $TextViewer text_view {};
+    }
+  };
+}

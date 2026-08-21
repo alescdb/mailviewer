@@ -1,0 +1,24 @@
+using Gtk 4.0;
+
+template $TextViewer: Box {
+  hexpand: true;
+  vexpand: true;
+
+  ScrolledWindow scrolled_window {
+    hscrollbar-policy: never;
+    hexpand: true;
+    vexpand: true;
+
+    TextView text_view {
+      wrap-mode: word;
+      hexpand: true;
+      vexpand: true;
+      editable: false;
+
+      left-margin: 8;
+      right-margin: 8;
+      top-margin: 8;
+      bottom-margin: 8;
+    }
+  }
+}
