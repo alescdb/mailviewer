@@ -9,6 +9,7 @@ repository = "https://github.com/alescdb/mailviewer"
 license = "GPL-3.0+"
 
 [dependencies]
+mailviewer-core = { git = "https://github.com/alescdb/mailviewer-core", branch = "import-the-core" }
 webkit6 = "0.6.1"
 gmime = "0.8.1"
 gtk4 = { version = "0.11.4", features = ["v4_22", "blueprint"] }
