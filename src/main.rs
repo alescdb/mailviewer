@@ -19,18 +19,14 @@
  */
 mod application;
 mod config;
-mod gmimeinit;
-mod html;
 mod mailservice;
-mod message;
-mod utils;
 mod window;
 
 use config::{APP_ID, GETTEXT_PACKAGE, LOCALEDIR, PKGDATADIR};
 use gettextrs::{bind_textdomain_codeset, bindtextdomain, textdomain};
 use gtk4::prelude::*;
 use gtk4::{gio, glib};
-use message::message::MessageParser;
+use mailviewer_core::message::message::MessageParser;
 
 use self::application::MailViewerApplication;
 use self::window::MailViewerWindow;

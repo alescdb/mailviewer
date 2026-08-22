@@ -19,10 +19,11 @@
  */
 use std::cell::RefCell;
 
+use mailviewer_core::message::attachment::Attachment;
+use mailviewer_core::message::message::{Message, MessageParser};
+
 use crate::config::VERSION;
 use crate::gio::prelude::*;
-use crate::message::attachment::Attachment;
-use crate::message::message::{Message, MessageParser};
 use crate::{gio, glib};
 
 type TitleChangedCallback = Box<dyn Fn(&MailService, &str) + 'static>;
@@ -173,9 +174,11 @@ impl std::fmt::Debug for MailService {
 mod tests {
   use std::rc::Rc;
 
+  use mailviewer_core::utils;
+
   use crate::gio::prelude::*;
   use crate::mailservice::MailService;
-  use crate::{gio, glib, utils};
+  use crate::{gio, glib};
 
   fn assert_local_date(date: &str) {
     assert_eq!(date.len(), 25, "Unexpected local date format: {date}");
