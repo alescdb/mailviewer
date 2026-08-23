@@ -1170,9 +1170,31 @@ dependencies = [
  "lazy_static",
  "libadwaita",
  "log",
+ "mailviewer-core",
  "msg_parser",
  "uuid",
  "webkit6",
+]
+
+[[package]]
+name = "mailviewer-core"
+version = "0.1.0"
+source = "git+https://github.com/alescdb/mailviewer-core?branch=import-the-core#2d53ebc199ffd7f88266adc225b62c512163c475"
+dependencies = [
+ "ammonia",
+ "base64",
+ "ctor",
+ "dtor",
+ "encoding_rs",
+ "futures-util",
+ "gio 0.22.8",
+ "glib 0.22.8",
+ "gmime",
+ "hex",
+ "lazy_static",
+ "log",
+ "msg_parser",
+ "uuid",
 ]
 
 [[package]]

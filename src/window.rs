@@ -24,16 +24,16 @@ use adw::prelude::{AlertDialogExt, *};
 use adw::subclass::prelude::*;
 use gettextrs::{gettext, ngettext};
 use gtk4::{gio, glib, template_callbacks};
+use mailviewer_core::html::Html;
+use mailviewer_core::message::attachment::Attachment;
+use mailviewer_core::message::message::MessageParser;
+use mailviewer_core::utils;
 use webkit6::prelude::{PolicyDecisionExt, WebViewExt};
 use webkit6::{
   FindOptions, NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, PrintOperation, PrintOperationResponse, WebView
 };
 
-use crate::html::Html;
 use crate::mailservice::MailService;
-use crate::message::attachment::Attachment;
-use crate::message::message::MessageParser;
-use crate::utils;
 
 const SETTINGS_SHOW_FILE_NAME: &str = "show-file-name";
 const SETTINGS_FORCE_CSS: &str = "force-css";
