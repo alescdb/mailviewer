@@ -9,6 +9,8 @@ It provides a graphical interface for easy navigation and rendering of email con
 
 Written in [Rust](https://www.rust-lang.org/) with [GTK4](https://www.gtk.org/)/[libadwaita](https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/index.html)
 
+On KDE Plasma there is [mailviewer-kde](https://github.com/shakaran/mailviewer-kde), a Qt6 frontend reading the same files through [mailviewer-core](https://github.com/alescdb/mailviewer-core).
+
 ## Features
 
 - **Open and view `.eml` or `.msg` files**: Display the email's subject, sender, receiver, and content.
