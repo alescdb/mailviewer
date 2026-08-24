@@ -415,9 +415,9 @@ impl MailViewerWindow {
     let imp = self.imp();
 
     imp.settings.set(settings.clone()).unwrap();
-    imp
-      .webview
-      .set_zoom_level(settings.get::<f64>("zoom").clamp(ZOOM_MIN, ZOOM_MAX));
+    // set_zoom_level() is what enables and disables the zoom buttons, going
+    // straight to the view leaves them out of step with the saved zoom.
+    self.set_zoom_level(settings.get::<f64>("zoom"));
 
     settings
       .bind("width", self, "default-width")
