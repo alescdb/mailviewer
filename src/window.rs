@@ -26,6 +26,7 @@ use gettextrs::{gettext, ngettext};
 use gtk4::{gio, glib, template_callbacks};
 use mailviewer_core::html::Html;
 use mailviewer_core::message::attachment::Attachment;
+use mailviewer_core::message::message::Protection;
 use mailviewer_core::message::message::MessageParser;
 use mailviewer_core::utils;
 use webkit6::prelude::{PolicyDecisionExt, WebViewExt};
@@ -90,6 +91,8 @@ mod imp {
     #[template_child]
     pub attachments_clamp: TemplateChild<adw::Clamp>,
     #[template_child]
+    pub protection_banner: TemplateChild<adw::Banner>,
+    #[template_child]
     pub search_bar: TemplateChild<gtk4::SearchBar>,
     #[template_child]
     pub search_entry: TemplateChild<gtk4::SearchEntry>,
@@ -130,6 +133,7 @@ mod imp {
         stack: TemplateChild::default(),
         pull_label: TemplateChild::default(),
         attachments_clamp: TemplateChild::default(),
+        protection_banner: TemplateChild::default(),
         search_bar: TemplateChild::default(),
         search_entry: TemplateChild::default(),
         content_box: TemplateChild::default(),
@@ -866,6 +870,27 @@ impl MailViewerWindow {
     self.imp().content_box.get().set_sensitive(true);
   }
 
+  /// Says what the message claims about itself. Nothing is checked and nothing
+  /// is decrypted, so the wording stays away from promising either.
+  fn show_protection(&self, protection: Protection) {
+    let banner = &self.imp().protection_banner;
+    match protection {
+      Protection::Encrypted => {
+        banner.set_title(&gettext(
+          "This message is encrypted. MailViewer cannot show what is inside.",
+        ));
+        banner.set_revealed(true);
+      }
+      Protection::Signed => {
+        banner.set_title(&gettext(
+          "This message is signed. MailViewer does not check the signature.",
+        ));
+        banner.set_revealed(true);
+      }
+      Protection::None => banner.set_revealed(false),
+    }
+  }
+
   pub fn display_message(&self) {
     log::debug!("display_eml()");
     let imp = self.imp();
@@ -874,6 +899,7 @@ impl MailViewerWindow {
     imp.date.set_text(imp.service.date().as_str());
     imp.to.set_text(imp.service.to().as_str());
     imp.subject.set_text(imp.service.subject().as_str());
+    self.show_protection(imp.service.protection());
 
     let mut has_text: bool = false;
     let mut has_html: bool = false;

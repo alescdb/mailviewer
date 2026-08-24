@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailviewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-20 19:32+0200\n"
+"POT-Creation-Date: 2026-08-24 19:42+0200\n"
 "PO-Revision-Date: 2026-08-12 22:15+0200\n"
 "Last-Translator: Ángel Guzmán Maeso <angel@guzmanmaeso.com>\n"
 "Language-Team: Spanish <LL@li.org>\n"
@@ -73,7 +73,8 @@ msgid "Search within HTML emails with Ctrl+F (by shakaran)"
 msgstr "Buscar dentro de los correos HTML con Ctrl+F (por shakaran)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:51
-msgid "Light and dark for HTML messages (if Force CSS is enabled) (by shakaran)"
+msgid ""
+"Light and dark for HTML messages (if Force CSS is enabled) (by shakaran)"
 msgstr ""
 "Claro y oscuro para los mensajes HTML (si se fuerza el CSS) (por shakaran)"
 
@@ -95,7 +96,8 @@ msgstr "Se desactivan los botones de zoom al llegar al mínimo y al máximo"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:62
 msgid "Improve HTML email sanitization and security (shakaran)"
-msgstr "Se mejoran el saneado y la seguridad del HTML de los correos (shakaran)"
+msgstr ""
+"Se mejoran el saneado y la seguridad del HTML de los correos (shakaran)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:63
 msgid "Block unwanted remote content in emails (shakaran)"
@@ -110,8 +112,8 @@ msgstr ""
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:65
 msgid "Fix non-UTF-8 filenames and markup in attachment rows (shakaran)"
 msgstr ""
-"Se corrigen los nombres de archivo que no son UTF-8 y el marcado en las filas "
-"de adjuntos (shakaran)"
+"Se corrigen los nombres de archivo que no son UTF-8 y el marcado en las "
+"filas de adjuntos (shakaran)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:66
 msgid "Improve temporary file cleanup (shakaran)"
@@ -147,7 +149,8 @@ msgstr ""
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:90
 msgid "Outlook (msg) don't show text button if text field is empty"
 msgstr ""
-"Outlook (msg): no se muestra el botón de texto si el campo de texto está vacío"
+"Outlook (msg): no se muestra el botón de texto si el campo de texto está "
+"vacío"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:97
 msgid "Sync \"Show remote images\" status for html print"
@@ -213,7 +216,8 @@ msgstr "Se cancela la carga anterior mediante Cancellable (3v1n0)"
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:134
 msgid "Add test utility function to wait for futures to complete (3v1n0)"
 msgstr ""
-"Se añade una función de prueba para esperar a que terminen los futuros (3v1n0)"
+"Se añade una función de prueba para esperar a que terminen los futuros "
+"(3v1n0)"
 
 #: data/io.github.alescdb.mailviewer.metainfo.xml.in:135
 msgid "Add x-ole-storage as supported mime type (3v1n0)"
@@ -452,86 +456,94 @@ msgstr "Asunto:"
 msgid "Subject"
 msgstr "Asunto"
 
-#: src/window.blp:171
+#: src/window.blp:175
 msgid "HTML"
 msgstr "HTML"
 
-#: src/window.blp:181
+#: src/window.blp:185
 msgid "TEXT"
 msgstr "TEXTO"
 
-#: src/window.blp:234
+#: src/window.blp:238
 msgid "_Open..."
 msgstr "_Abrir…"
 
-#: src/window.blp:239
+#: src/window.blp:243
 msgid "Pr_int..."
 msgstr "_Imprimir…"
 
-#: src/window.blp:244
+#: src/window.blp:248
 msgid "_Preferences"
 msgstr "_Preferencias"
 
-#: src/window.blp:249
+#: src/window.blp:253
 msgid "_Reset Zoom"
 msgstr "_Restablecer el zoom"
 
-#: src/window.blp:254
+#: src/window.blp:258
 msgid "_Keyboard Shortcuts"
 msgstr "Atajos de _teclado"
 
-#: src/window.blp:259
+#: src/window.blp:263
 msgid "_About MailViewer"
 msgstr "Acerca _de MailViewer"
 
-#: src/window.rs:476
+#: src/window.rs:480
 msgid "Save as..."
 msgstr "Guardar como…"
 
-#: src/window.rs:541
+#: src/window.rs:545
 msgid "Save attachment..."
 msgstr "Guardar el adjunto…"
 
-#: src/window.rs:555 src/window.rs:860
+#: src/window.rs:559 src/window.rs:864
 msgid "File Error"
 msgstr "Error de archivo"
 
-#: src/window.rs:577 src/window.rs:861
+#: src/window.rs:581 src/window.rs:865
 msgid "Failed to open file"
 msgstr "No se pudo abrir el archivo"
 
-#: src/window.rs:650
+#: src/window.rs:654
 msgid "Failed to open uri"
 msgstr "No se pudo abrir el URI"
 
-#: src/window.rs:707
+#: src/window.rs:711
 msgid "Mail Files"
 msgstr "Archivos de correo"
 
-#: src/window.rs:806
+#: src/window.rs:810
 msgid "Open Mail File"
 msgstr "Abrir un archivo de correo"
 
-#: src/window.rs:912
+#: src/window.rs:880
+msgid "This message is encrypted. MailViewer cannot show what is inside."
+msgstr "Este mensaje está cifrado. MailViewer no puede mostrar su contenido."
+
+#: src/window.rs:886
+msgid "This message is signed. MailViewer does not check the signature."
+msgstr "Este mensaje está firmado. MailViewer no comprueba la firma."
+
+#: src/window.rs:938
 msgid "{total} attachment"
 msgid_plural "{total} attachments"
 msgstr[0] "{total} adjunto"
 msgstr[1] "{total} adjuntos"
 
 #. never shown
-#: src/window.rs:922
+#: src/window.rs:948
 msgid "No attachments"
 msgstr "Sin adjuntos"
 
-#: src/window.rs:936
+#: src/window.rs:962
 msgid "Close"
 msgstr "Cerrar"
 
-#: src/window.rs:1007
+#: src/window.rs:1033
 msgid "Settings"
 msgstr "Configuración"
 
-#: src/window.rs:1008
+#: src/window.rs:1034
 msgid "Failed to get settings"
 msgstr "No se pudo obtener la configuración"
 
