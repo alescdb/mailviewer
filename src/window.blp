@@ -153,6 +153,10 @@ template $MailViewerWindow: Adw.ApplicationWindow {
           }
         }
 
+        Adw.Banner protection_banner {
+          revealed: false;
+        }
+
         SearchBar search_bar {
           visible: bind show_text.active inverted;
 

@@ -20,7 +20,7 @@
 use std::cell::RefCell;
 
 use mailviewer_core::message::attachment::Attachment;
-use mailviewer_core::message::message::{Message, MessageParser};
+use mailviewer_core::message::message::{Message, MessageParser, Protection};
 
 use crate::config::VERSION;
 use crate::gio::prelude::*;
@@ -119,6 +119,13 @@ impl MailService {
       return parser.body_html();
     }
     None
+  }
+
+  pub fn protection(&self) -> Protection {
+    if let Some(parser) = self.parser.borrow().as_ref() {
+      return parser.protection();
+    }
+    Protection::None
   }
 
   pub fn attachments(&self) -> Vec<Attachment> {
