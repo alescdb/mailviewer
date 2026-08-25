@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailviewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-20 19:32+0200\n"
+"POT-Creation-Date: 2026-08-24 19:42+0200\n"
 "PO-Revision-Date: 2025-05-07 22:22+0100\n"
 "Last-Translator: Albano Battistella <albanobattistella@gmail.com>\n"
 "Language-Team: Italian <LL@li.org>\n"
@@ -427,86 +427,94 @@ msgstr "Soggetto:"
 msgid "Subject"
 msgstr "Soggetto:"
 
-#: src/window.blp:171
+#: src/window.blp:175
 msgid "HTML"
 msgstr "HTML"
 
-#: src/window.blp:181
+#: src/window.blp:185
 msgid "TEXT"
 msgstr "TESTO"
 
-#: src/window.blp:234
+#: src/window.blp:238
 msgid "_Open..."
 msgstr "_Apri..."
 
-#: src/window.blp:239
+#: src/window.blp:243
 msgid "Pr_int..."
 msgstr "S_tampa..."
 
-#: src/window.blp:244
+#: src/window.blp:248
 msgid "_Preferences"
 msgstr "_Preferenze"
 
-#: src/window.blp:249
+#: src/window.blp:253
 msgid "_Reset Zoom"
 msgstr "_Reimposta zoom"
 
-#: src/window.blp:254
+#: src/window.blp:258
 msgid "_Keyboard Shortcuts"
 msgstr "_Scorciatoie da tastiera"
 
-#: src/window.blp:259
+#: src/window.blp:263
 msgid "_About MailViewer"
 msgstr "_Informazioni su MailViewer"
 
-#: src/window.rs:476
+#: src/window.rs:480
 msgid "Save as..."
 msgstr "Salva con nome..."
 
-#: src/window.rs:541
+#: src/window.rs:545
 msgid "Save attachment..."
 msgstr "Salva allegato..."
 
-#: src/window.rs:555 src/window.rs:860
+#: src/window.rs:559 src/window.rs:864
 msgid "File Error"
 msgstr "Errore file"
 
-#: src/window.rs:577 src/window.rs:861
+#: src/window.rs:581 src/window.rs:865
 msgid "Failed to open file"
 msgstr "Impossibile aprire il file"
 
-#: src/window.rs:650
+#: src/window.rs:654
 msgid "Failed to open uri"
 msgstr "Impossibile aprire il file"
 
-#: src/window.rs:707
+#: src/window.rs:711
 msgid "Mail Files"
 msgstr "Apri file di posta"
 
-#: src/window.rs:806
+#: src/window.rs:810
 msgid "Open Mail File"
 msgstr "Apri file di posta"
 
-#: src/window.rs:912
+#: src/window.rs:880
+msgid "This message is encrypted. MailViewer cannot show what is inside."
+msgstr ""
+
+#: src/window.rs:886
+msgid "This message is signed. MailViewer does not check the signature."
+msgstr ""
+
+#: src/window.rs:938
 msgid "{total} attachment"
 msgid_plural "{total} attachments"
 msgstr[0] "{total} allegato"
 msgstr[1] "{total} allegati"
 
 #. never shown
-#: src/window.rs:922
+#: src/window.rs:948
 msgid "No attachments"
 msgstr "Nessun allegato"
 
-#: src/window.rs:936
+#: src/window.rs:962
 msgid "Close"
 msgstr "Chiudi"
 
-#: src/window.rs:1007
+#: src/window.rs:1033
 msgid "Settings"
 msgstr "Impostazioni"
 
-#: src/window.rs:1008
+#: src/window.rs:1034
 msgid "Failed to get settings"
 msgstr "Impossibile ottenere le impostazioni"
 

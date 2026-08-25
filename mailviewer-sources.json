@@ -2,8 +2,8 @@
     {
         "type": "git",
         "url": "https://github.com/alescdb/mailviewer-core",
-        "commit": "5cbd67d22bee258d80797d0be93af82f202e009f",
-        "dest": "flatpak-cargo/git/mailviewer-core-5cbd67d"
+        "commit": "ac463f589c551cb1824199993e7f01f03e5cae91",
+        "dest": "flatpak-cargo/git/mailviewer-core-ac463f5"
     },
     {
         "type": "archive",
@@ -1451,7 +1451,7 @@
     {
         "type": "shell",
         "commands": [
-            "cp -r --reflink=auto \"flatpak-cargo/git/mailviewer-core-5cbd67d/.\" \"cargo/vendor/mailviewer-core\""
+            "cp -r --reflink=auto \"flatpak-cargo/git/mailviewer-core-ac463f5/.\" \"cargo/vendor/mailviewer-core\""
         ]
     },
     {
