@@ -495,11 +495,15 @@ impl MailViewerWindow {
         ));
       }
     ));
+    // Knowing whether something is 2 KB or 40 MB before opening it is worth a
+    // few characters.
+    let subtitle = format!("{}  ({})", mime, glib::format_size(attachment.body.len() as u64));
+
     // The file name and the mime type come from the message, don't let them
     // through as pango markup.
     let btn = adw::ActionRow::builder()
       .title(attachment.filename.to_string())
-      .subtitle(mime)
+      .subtitle(&subtitle)
       .use_markup(false)
       .activatable(true)
       .build();
