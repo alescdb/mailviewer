@@ -578,10 +578,12 @@ impl MailViewerWindow {
         let path = file.peek_path().unwrap().to_string_lossy().to_string();
         log::debug!("write_to_tmp({}) success", path);
 
-        if let Err(e) = gtk4::FileLauncher::new(Some(&file))
-          .launch_future(Some(self))
-          .await
-        {
+        // Which application opens it is decided by the extension the message
+        // came with, so the user gets to see the choice before it happens.
+        let launcher = gtk4::FileLauncher::new(Some(&file));
+        launcher.set_always_ask(true);
+
+        if let Err(e) = launcher.launch_future(Some(self)).await {
           log::error!("{} ({}): {}", gettext("Failed to open file"), path, e);
         }
       }
