@@ -38,6 +38,7 @@ use crate::mailservice::MailService;
 
 const SETTINGS_SHOW_FILE_NAME: &str = "show-file-name";
 const SETTINGS_FORCE_CSS: &str = "force-css";
+const SETTINGS_ASK_OPEN_WITH: &str = "ask-open-with";
 
 /// Links in a message are opened by the system handler, so only hand over the
 /// schemes a mail is expected to link to.
@@ -579,9 +580,9 @@ impl MailViewerWindow {
         log::debug!("write_to_tmp({}) success", path);
 
         // Which application opens it is decided by the extension the message
-        // came with, so the user gets to see the choice before it happens.
+        // came with, so whoever wants to see that choice can ask for it.
         let launcher = gtk4::FileLauncher::new(Some(&file));
-        launcher.set_always_ask(true);
+        launcher.set_always_ask(self.get_settings_ask_open_with());
 
         if let Err(e) = launcher.launch_future(Some(self)).await {
           log::error!("{} ({}): {}", gettext("Failed to open file"), path, e);
@@ -1005,6 +1006,10 @@ impl MailViewerWindow {
     self.get_settings_bool(SETTINGS_FORCE_CSS)
   }
 
+  fn get_settings_ask_open_with(&self) -> bool {
+    self.get_settings_bool(SETTINGS_ASK_OPEN_WITH)
+  }
+
   fn show_preferences(&self) {
     log::debug!("show_preferences()");
     match self.imp().settings.get() {
@@ -1012,11 +1017,15 @@ impl MailViewerWindow {
         let builder = gtk4::Builder::from_string(gtk4::include_blueprint!("src/preferences.blp"));
         let show_file_name: adw::SwitchRow = builder.object("show_file_name").unwrap();
         let force_css: adw::SwitchRow = builder.object("force_css").unwrap();
+        let ask_open_with: adw::SwitchRow = builder.object("ask_open_with").unwrap();
         settings
           .bind(SETTINGS_SHOW_FILE_NAME, &show_file_name, "active")
           .build();
         settings
           .bind(SETTINGS_FORCE_CSS, &force_css, "active")
+          .build();
+        settings
+          .bind(SETTINGS_ASK_OPEN_WITH, &ask_open_with, "active")
           .build();
 
         let prefs: adw::PreferencesDialog = builder.object("preferences").unwrap();

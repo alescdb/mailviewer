@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailviewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 19:42+0200\n"
+"POT-Creation-Date: 2026-09-09 22:10+0200\n"
 "PO-Revision-Date: 2025-11-12 20:10+0100\n"
 "Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
 "Language-Team: \n"
@@ -377,6 +377,14 @@ msgstr "Bestandsnaam op titelbalk tonen"
 msgid "Enable forced CSS by default"
 msgstr "Geforceerde CSS standaard inschakelen"
 
+#: src/preferences.blp:18
+msgid "Ask which application opens an attachment"
+msgstr ""
+
+#: src/preferences.blp:19
+msgid "Otherwise the file name decides"
+msgstr ""
+
 #: src/window.blp:24
 msgid "Menu"
 msgstr "Menu"
@@ -461,62 +469,62 @@ msgstr "_Sneltoetsen"
 msgid "_About MailViewer"
 msgstr "Over MailWeerg_ave"
 
-#: src/window.rs:480
+#: src/window.rs:481
 msgid "Save as..."
 msgstr "Opslaan als…"
 
-#: src/window.rs:545
+#: src/window.rs:550
 msgid "Save attachment..."
 msgstr "Bijlage opslaan…"
 
-#: src/window.rs:559 src/window.rs:864
+#: src/window.rs:564 src/window.rs:871
 msgid "File Error"
 msgstr "Bestandsfout"
 
-#: src/window.rs:581 src/window.rs:865
+#: src/window.rs:588 src/window.rs:872
 msgid "Failed to open file"
 msgstr "Kan de URI niet openen"
 
-#: src/window.rs:654
+#: src/window.rs:661
 msgid "Failed to open uri"
 msgstr "Kan de URI niet openen"
 
-#: src/window.rs:711
+#: src/window.rs:718
 msgid "Mail Files"
 msgstr "Mailbestanden"
 
-#: src/window.rs:810
+#: src/window.rs:817
 msgid "Open Mail File"
 msgstr "Mailbestand openen"
 
-#: src/window.rs:880
+#: src/window.rs:887
 msgid "This message is encrypted. MailViewer cannot show what is inside."
 msgstr ""
 
-#: src/window.rs:886
+#: src/window.rs:893
 msgid "This message is signed. MailViewer does not check the signature."
 msgstr ""
 
-#: src/window.rs:938
+#: src/window.rs:945
 msgid "{total} attachment"
 msgid_plural "{total} attachments"
 msgstr[0] "{total} bijlage"
 msgstr[1] "{total} bijlagen"
 
 #. never shown
-#: src/window.rs:948
+#: src/window.rs:955
 msgid "No attachments"
 msgstr "Er zijn geen bijlagen"
 
-#: src/window.rs:962
+#: src/window.rs:969
 msgid "Close"
 msgstr "Sluiten"
 
-#: src/window.rs:1033
+#: src/window.rs:1048
 msgid "Settings"
 msgstr "Voorkeuren"
 
-#: src/window.rs:1034
+#: src/window.rs:1049
 msgid "Failed to get settings"
 msgstr "De voorkeuren zijn niet beschikbaar"
 
