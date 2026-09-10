@@ -26,8 +26,7 @@ use gettextrs::{gettext, ngettext};
 use gtk4::{gio, glib, template_callbacks};
 use mailviewer_core::html::Html;
 use mailviewer_core::message::attachment::Attachment;
-use mailviewer_core::message::message::Protection;
-use mailviewer_core::message::message::MessageParser;
+use mailviewer_core::message::message::{MessageParser, Protection};
 use mailviewer_core::utils;
 use webkit6::prelude::{PolicyDecisionExt, WebViewExt};
 use webkit6::{
@@ -497,7 +496,11 @@ impl MailViewerWindow {
     ));
     // Knowing whether something is 2 KB or 40 MB before opening it is worth a
     // few characters.
-    let subtitle = format!("{}  ({})", mime, glib::format_size(attachment.body.len() as u64));
+    let subtitle = format!(
+      "{}  ({})",
+      mime,
+      glib::format_size(attachment.body.len() as u64)
+    );
 
     // The file name and the mime type come from the message, don't let them
     // through as pango markup.

@@ -44,6 +44,17 @@
   <content_rating type="oars-1.0" />
   <developer_name>Alexandre Del Bigio</developer_name>
   <releases>
+    <release version="1.0.15" date="2026-09-10">
+      <description>
+        <ul>
+          <li>Show how big an attachment is in its row</li>
+          <li>Say when a message is signed or encrypted</li>
+          <li>Keep the zoom buttons in step with the saved zoom</li>
+          <li>Encode an inline image only when an image uses it</li>
+          <li>Search in message (HTML only)</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.14" date="2026-08-19">
       <description>
         <ul>
