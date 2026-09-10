@@ -13,6 +13,11 @@ Adw.PreferencesDialog preferences {
       Adw.SwitchRow force_css {
         title: _("Enable forced CSS by default");
       }
+
+      Adw.SwitchRow ask_open_with {
+        title: _("Ask which application opens an attachment");
+        subtitle: _("Otherwise the file name decides");
+      }
     }
   }
 }
