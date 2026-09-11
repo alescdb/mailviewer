@@ -11,10 +11,7 @@ jobs:
 
     container:
       image: ubuntu:26.04
-
     steps:
-      - uses: actions/checkout@v4
-
       - name: install dependencies
         run: |
           sed -i 's|http://archive.ubuntu.com|http://fr.archive.ubuntu.com|g' /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list 2>/dev/null || true
@@ -25,22 +22,17 @@ jobs:
             gtk-update-icon-cache libadwaita-1-dev libgmime-3.0-dev \
             libwebkitgtk-6.0-dev pkg-config blueprint-compiler
 
-      - name: install rust
-        run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --yes
-          export PATH="$HOME/.cargo/bin:$PATH"
-          rustup toolchain install nightly
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-
-      - name: generate config
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly
+          components: rustfmt, clippy
+      - name: cargo check (generate config.rs)
         run: cargo check --locked
-
-      - name: clippy
+      - name: cargo clippy
         run: cargo clippy --all-targets -- -D warnings
-
-      - name: format
+      - name: cargo fmt
         run: cargo +nightly fmt -- --check
-
       - name: cargo test
         run: cargo test
 
