@@ -2,12 +2,51 @@ name: release
 
 on:
   push:
-    tags:
-      - '**'
+  pull_request:
 
 jobs:
+  tests:
+    name: "tests"
+    runs-on: ubuntu-26.04
+
+    container:
+      image: ubuntu:26.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install dependencies
+        run: |
+          sed -i 's|http://archive.ubuntu.com|http://fr.archive.ubuntu.com|g' /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list 2>/dev/null || true
+          sed -i 's|http://security.ubuntu.com|http://fr.archive.ubuntu.com|g' /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list 2>/dev/null || true
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
+            build-essential ca-certificates git curl \
+            gtk-update-icon-cache libadwaita-1-dev libgmime-3.0-dev \
+            libwebkitgtk-6.0-dev pkg-config blueprint-compiler
+
+      - name: install rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --yes
+          export PATH="$HOME/.cargo/bin:$PATH"
+          rustup toolchain install nightly
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: generate config
+        run: cargo check --locked
+
+      - name: clippy
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: format
+        run: cargo +nightly fmt -- --check
+
+      - name: cargo test
+        run: cargo test
+
   flatpak:
     name: "flatpak build"
+    needs: [tests]
     strategy:
       matrix:
         variant:
@@ -45,7 +84,8 @@ jobs:
 
   release:
     name: release
-    needs: [flatpak]
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [tests, flatpak]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -61,6 +101,7 @@ jobs:
 
       - uses: softprops/action-gh-release@v3
         with:
+          generate_release_notes: true
           fail_on_unmatched_files: true
           files: |
             LICENSE
