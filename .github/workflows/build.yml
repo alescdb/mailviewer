@@ -36,6 +36,7 @@ jobs:
       - name: cargo machete
         run: |
           cargo install cargo-machete
+          cargo machete
       - name: cargo clippy
         run: cargo clippy --all-targets -- -D warnings
       - name: cargo fmt
