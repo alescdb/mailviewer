@@ -30,8 +30,12 @@ jobs:
         with:
           toolchain: nightly
           components: rustfmt, clippy
+
       - name: cargo check (generate config.rs)
         run: cargo check --locked
+      - name: cargo machete
+        run: |
+          cargo install cargo-machete
       - name: cargo clippy
         run: cargo clippy --all-targets -- -D warnings
       - name: cargo fmt
