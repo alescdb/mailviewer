@@ -44,6 +44,13 @@
   <content_rating type="oars-1.0" />
   <developer_name>Alexandre Del Bigio</developer_name>
   <releases>
+    <release version="1.0.16" date="2026-09-14">
+      <description>
+        <ul>
+          <li>Show full message headers (menu)</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.15" date="2026-09-10">
       <description>
         <ul>
