@@ -2,8 +2,8 @@
     {
         "type": "git",
         "url": "https://github.com/alescdb/mailviewer-core",
-        "commit": "a253e3e69dbe9a0cd958da7ae49f9f047ccce82d",
-        "dest": "flatpak-cargo/git/mailviewer-core-a253e3e"
+        "commit": "24e847547b3ccbf78f19db0f4bb66d6455681a17",
+        "dest": "flatpak-cargo/git/mailviewer-core-24e8475"
     },
     {
         "type": "archive",
@@ -1438,12 +1438,12 @@
     {
         "type": "shell",
         "commands": [
-            "cp -r --reflink=auto \"flatpak-cargo/git/mailviewer-core-a253e3e/.\" \"cargo/vendor/mailviewer-core\""
+            "cp -r --reflink=auto \"flatpak-cargo/git/mailviewer-core-24e8475/.\" \"cargo/vendor/mailviewer-core\""
         ]
     },
     {
         "type": "inline",
-        "contents": "[package]\nname = \"mailviewer-core\"\nversion = \"0.1.0\"\nedition = \"2021\"\nauthors = [\"Alexandre Del Bigio\"]\ndescription = \"Reading and sanitizing of eml and Outlook msg files, without a toolkit\"\nreadme = \"README.md\"\nrepository = \"https://github.com/alescdb/mailviewer-core\"\nlicense = \"GPL-3.0+\"\n\n[dependencies]\nammonia = \"4.1.4\"\nbase64 = \"0.23.1\"\nctor = \"1.0.13\"\ndtor = \"1.0.6\"\nencoding_rs = \"0.8.35\"\nfutures-util = \"0.3.34\"\ngio = \"0.22\"\ngmime = \"0.8.1\"\nhex = \"0.4.3\"\nlazy_static = \"1.5.0\"\nlog = \"0.4.33\"\nmsg_parser = \"0.3.6\"\n\n[dependencies.glib]\nversion = \"0.22\"\nfeatures = [\"v2_66\"]\n\n[dependencies.uuid]\nversion = \"1.24.1\"\nfeatures = [\"v4\"]\n",
+        "contents": "[package]\nname = \"mailviewer-core\"\nversion = \"0.1.1\"\nedition = \"2021\"\nauthors = [\"Alexandre Del Bigio\"]\ndescription = \"Reading and sanitizing of eml and Outlook msg files, without a toolkit\"\nreadme = \"README.md\"\nrepository = \"https://github.com/alescdb/mailviewer-core\"\nlicense = \"GPL-3.0+\"\n\n[dependencies]\nammonia = \"4.1\"\nbase64 = \"0.23\"\nctor = \"1.0\"\ndtor = \"1.0\"\nencoding_rs = \"0.8\"\nfutures-util = \"0.3\"\ngio = \"0.22\"\ngmime = \"0.8\"\nhex = \"0.4\"\nlazy_static = \"1.5\"\nlog = \"0.4\"\nmsg_parser = \"0.3\"\n\n[dependencies.glib]\nversion = \"0.22\"\nfeatures = [\"v2_66\"]\n\n[dependencies.uuid]\nversion = \"1.26\"\nfeatures = [\"v4\"]\n",
         "dest": "cargo/vendor/mailviewer-core",
         "dest-filename": "Cargo.toml"
     },
