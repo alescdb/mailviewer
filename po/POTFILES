@@ -5,3 +5,4 @@ src/gtk/help-overlay.blp
 src/preferences.blp
 src/window.blp
 src/window.rs
+src/headers/headersview.blp

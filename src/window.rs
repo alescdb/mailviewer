@@ -33,6 +33,7 @@ use webkit6::{
   FindOptions, NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, PrintOperation, PrintOperationResponse, WebView
 };
 
+use crate::headers::headersview;
 use crate::mailservice::MailService;
 
 const SETTINGS_SHOW_FILE_NAME: &str = "show-file-name";
@@ -201,6 +202,9 @@ mod imp {
       });
       klass.install_action("win.reset-zoom", None, move |win, _, _| {
         win.reset_zoom();
+      });
+      klass.install_action("win.show-headers", None, move |win, _, _| {
+        win.show_headers();
       });
     }
 
@@ -459,6 +463,11 @@ impl MailViewerWindow {
   fn reset_zoom(&self) {
     log::debug!("reset_zoom()");
     self.set_zoom_level(1.0);
+  }
+
+  fn show_headers(&self) {
+    log::debug!("show_headers()");
+    headersview::show(self, &self.imp().service.headers());
   }
 
   fn add_attachment(&self, attachment: &Attachment, preferences_group: &adw::PreferencesGroup) {

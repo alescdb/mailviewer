@@ -1,10 +1,10 @@
 # TODO
 
-- [ ] Show raw eml file/headers 
 - [ ] Prefs : Text only
 
 ## Done
 
+- [X] Show raw eml file/headers 
 - [X] CSS dark mode ? (done by shakaran)
 - [X] Drag & drop support 
 - [X] Parse Outlook `.msg`

@@ -1,0 +1,31 @@
+using Gtk 4.0;
+using Adw 1;
+
+Adw.Dialog headers_dialog {
+  title: _("Message Headers");
+  content-width: 700;
+  content-height: 500;
+
+  child: Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {}
+
+    content: ScrolledWindow {
+      hscrollbar-policy: automatic;
+      vscrollbar-policy: automatic;
+      margin-top: 12;
+      margin-bottom: 12;
+      margin-start: 12;
+      margin-end: 12;
+
+      Adw.Clamp {
+        maximum-size: 760;
+        tightening-threshold: 600;
+
+        child: Adw.PreferencesGroup headers_group {
+          title: _("Message Headers");
+        };
+      }
+    };
+  };
+}

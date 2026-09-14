@@ -20,6 +20,7 @@
 use std::cell::RefCell;
 
 use mailviewer_core::message::attachment::Attachment;
+use mailviewer_core::message::headers::Header;
 use mailviewer_core::message::message::{Message, MessageParser, Protection};
 
 use crate::config::VERSION;
@@ -131,6 +132,13 @@ impl MailService {
   pub fn attachments(&self) -> Vec<Attachment> {
     if let Some(parser) = self.parser.borrow().as_ref() {
       return parser.attachments().clone();
+    }
+    vec![]
+  }
+
+  pub fn headers(&self) -> Vec<Header> {
+    if let Some(parser) = self.parser.borrow().as_ref() {
+      return parser.headers().clone();
     }
     vec![]
   }

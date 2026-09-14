@@ -1161,8 +1161,8 @@ dependencies = [
 
 [[package]]
 name = "mailviewer-core"
-version = "0.1.0"
-source = "git+https://github.com/alescdb/mailviewer-core?branch=main#a253e3e69dbe9a0cd958da7ae49f9f047ccce82d"
+version = "0.1.1"
+source = "git+https://github.com/alescdb/mailviewer-core?branch=main#24e847547b3ccbf78f19db0f4bb66d6455681a17"
 dependencies = [
  "ammonia",
  "base64",

@@ -19,6 +19,7 @@
  */
 mod application;
 mod config;
+pub mod headers;
 mod mailservice;
 mod window;
 
