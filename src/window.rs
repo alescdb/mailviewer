@@ -39,6 +39,7 @@ use crate::mailservice::MailService;
 const SETTINGS_SHOW_FILE_NAME: &str = "show-file-name";
 const SETTINGS_FORCE_CSS: &str = "force-css";
 const SETTINGS_ASK_OPEN_WITH: &str = "ask-open-with";
+const SETTINGS_SHOW_PRINT_OPTIONS: &str = "show-print-options";
 
 /// Links in a message are opened by the system handler, so only hand over the
 /// schemes a mail is expected to link to.
@@ -744,7 +745,7 @@ impl MailViewerWindow {
       .build()
   }
 
-  pub fn get_print_html(&self) -> String {
+  pub fn get_print_html(&self, full: bool) -> String {
     let imp = self.imp();
     let content: String;
 
@@ -757,26 +758,40 @@ impl MailViewerWindow {
     }
     let attachments = &imp.service.attachments();
 
-    Html::new(&content, false)
+    let html = Html::new(&content, false)
       .allow_remote(imp.show_images.is_active())
-      .inline_images(attachments)
-      .safe_print(
+      .inline_images(attachments);
+
+    if full {
+      html.safe_print(
         imp.service.from().as_str(),
         imp.service.to().as_str(),
         imp.service.date().as_str(),
         imp.service.subject().as_str(),
         attachments,
       )
+    } else {
+      html.safe()
+    }
   }
 
   pub async fn print(&self) {
     log::debug!("print()");
 
+    let full = if self.get_settings_show_print_options() {
+      match self.choose_print_options().await {
+        Some(full) => full,
+        None => return,
+      }
+    } else {
+      true
+    };
+
     let webview = WebView::builder()
       .network_session(&self.imp().network_session)
       .build();
     let websettings = webkit6::Settings::new();
-    let html: String = self.get_print_html();
+    let html: String = self.get_print_html(full);
     self.initialise_webview(&webview, &websettings);
 
     // The view has to stay alive until it has loaded, but holding it in its own
@@ -1022,6 +1037,31 @@ impl MailViewerWindow {
     self.get_settings_bool(SETTINGS_ASK_OPEN_WITH)
   }
 
+  fn get_settings_show_print_options(&self) -> bool {
+    self.get_settings_bool(SETTINGS_SHOW_PRINT_OPTIONS)
+  }
+
+  async fn choose_print_options(&self) -> Option<bool> {
+    let dialog = adw::AlertDialog::new(
+      Some(&gettext("Print Options")),
+      Some(&gettext("Choose which parts of the message to print.")),
+    );
+    dialog.add_responses(&[
+      ("cancel", &gettext("Cancel")),
+      ("body", &gettext("Body only")),
+      ("full", &gettext("Full message")),
+    ]);
+    dialog.set_response_appearance("cancel", adw::ResponseAppearance::Destructive);
+    dialog.set_default_response(Some("full"));
+    dialog.set_close_response("cancel");
+
+    match dialog.choose_future(Some(self)).await.as_str() {
+      "full" => Some(true),
+      "body" => Some(false),
+      _ => None,
+    }
+  }
+
   fn show_preferences(&self) {
     log::debug!("show_preferences()");
     match self.imp().settings.get() {
@@ -1030,6 +1070,7 @@ impl MailViewerWindow {
         let show_file_name: adw::SwitchRow = builder.object("show_file_name").unwrap();
         let force_css: adw::SwitchRow = builder.object("force_css").unwrap();
         let ask_open_with: adw::SwitchRow = builder.object("ask_open_with").unwrap();
+        let show_print_options: adw::SwitchRow = builder.object("show_print_options").unwrap();
         settings
           .bind(SETTINGS_SHOW_FILE_NAME, &show_file_name, "active")
           .build();
@@ -1038,6 +1079,9 @@ impl MailViewerWindow {
           .build();
         settings
           .bind(SETTINGS_ASK_OPEN_WITH, &ask_open_with, "active")
+          .build();
+        settings
+          .bind(SETTINGS_SHOW_PRINT_OPTIONS, &show_print_options, "active")
           .build();
 
         let prefs: adw::PreferencesDialog = builder.object("preferences").unwrap();
