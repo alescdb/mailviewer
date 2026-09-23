@@ -30,8 +30,7 @@ use mailviewer_core::message::message::{MessageParser, Protection};
 use mailviewer_core::utils;
 use webkit6::prelude::{PolicyDecisionExt, WebViewExt};
 use webkit6::{
-  FindOptions, NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, PrintOperation,
-  PrintOperationResponse, WebView,
+  FindOptions, NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, PrintOperation, PrintOperationResponse, WebView
 };
 
 use crate::headers::headersview;
