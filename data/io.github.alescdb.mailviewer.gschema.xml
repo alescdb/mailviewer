@@ -26,5 +26,8 @@
     <key name="force-css" type="b">
       <default>false</default>
     </key>
+    <key name="show-print-options" type="b">
+      <default>false</default>
+    </key>
   </schema>
 </schemalist>
