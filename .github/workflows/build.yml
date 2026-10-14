@@ -10,10 +10,10 @@ env:
 jobs:
   tests:
     name: "tests"
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-26.10
 
     container:
-      image: ubuntu:26.04
+      image: ubuntu:26.10
     steps:
       - name: install dependencies
         run: |
@@ -57,7 +57,7 @@ jobs:
     runs-on: ${{ matrix.variant.runner }}
 
     container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-50
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-51
       options: --privileged
 
     steps:
