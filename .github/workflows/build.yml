@@ -10,7 +10,7 @@ env:
 jobs:
   tests:
     name: "tests"
-    runs-on: ubuntu-26.10
+    runs-on: ubuntu-26.04
 
     container:
       image: ubuntu:26.10
