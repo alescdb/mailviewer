@@ -1,7 +1,8 @@
 use adw::prelude::{AdwDialogExt, PreferencesGroupExt};
 use gtk4::glib;
 use gtk4::prelude::*;
-use mailviewer_core::message::headers::Header;
+
+use crate::core::message::headers::Header;
 
 pub fn new(headers: &[Header]) -> adw::Dialog {
   let builder = gtk4::Builder::from_string(gtk4::include_blueprint!("src/headers/headersview.blp"));

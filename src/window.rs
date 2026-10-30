@@ -24,15 +24,15 @@ use adw::prelude::{AlertDialogExt, *};
 use adw::subclass::prelude::*;
 use gettextrs::{gettext, ngettext};
 use gtk4::{gio, glib, template_callbacks};
-use mailviewer_core::html::Html;
-use mailviewer_core::message::attachment::Attachment;
-use mailviewer_core::message::message::{MessageParser, Protection};
-use mailviewer_core::utils;
 use webkit6::prelude::{PolicyDecisionExt, WebViewExt};
 use webkit6::{
   FindOptions, NavigationPolicyDecision, PolicyDecision, PolicyDecisionType, PrintOperation, PrintOperationResponse, WebView
 };
 
+use crate::core::html::Html;
+use crate::core::message::attachment::Attachment;
+use crate::core::message::message::{MessageParser, Protection};
+use crate::core::utils;
 use crate::headers::headersview;
 use crate::mailservice::MailService;
 

@@ -8,7 +8,7 @@ It provides a graphical interface for easy navigation and rendering of email con
 
 Written in [Rust](https://www.rust-lang.org/) with [GTK4](https://www.gtk.org/)/[libadwaita](https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/index.html)
 
-On KDE Plasma there is [mailviewer-kde](https://github.com/shakaran/mailviewer-kde), a Qt6 frontend reading the same files through [mailviewer-core](https://github.com/alescdb/mailviewer-core).
+For KDE Plasma, [mailviewer-kde](https://github.com/shakaran/mailviewer-kde) is an independent Qt6-based project developed by [shakaran](https://github.com/shakaran), maintained separately from MailViewer.
 
 ## Features
 
