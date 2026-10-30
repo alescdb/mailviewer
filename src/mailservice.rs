@@ -19,11 +19,10 @@
  */
 use std::cell::RefCell;
 
-use mailviewer_core::message::attachment::Attachment;
-use mailviewer_core::message::headers::Header;
-use mailviewer_core::message::message::{Message, MessageParser, Protection};
-
 use crate::config::VERSION;
+use crate::core::message::attachment::Attachment;
+use crate::core::message::headers::Header;
+use crate::core::message::message::{Message, MessageParser, Protection};
 use crate::gio::prelude::*;
 use crate::{gio, glib};
 
@@ -189,8 +188,7 @@ impl std::fmt::Debug for MailService {
 mod tests {
   use std::rc::Rc;
 
-  use mailviewer_core::utils;
-
+  use crate::core::utils;
   use crate::gio::prelude::*;
   use crate::mailservice::MailService;
   use crate::{gio, glib};

@@ -1,0 +1,19 @@
+From: MailViewer Test <test@example.com>
+To: Someone <someone@example.com>
+Subject: Lorem ipsum
+Date: Mon, 24 Aug 2026 09:00:00 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA256
+
+Lorem ipsum, en linea.
+-----BEGIN PGP SIGNATURE-----
+
+iHUEARYIAB0WIQTf45+tqvUR16ONTdJyxLEP2T41hwUCaoyBEAAKCRByxLEP2T41
+h1MfAP92AkY/2hdUBUQWxsGAkJeadyFt5vpDRPW2LExmkXrA5wEA4Qai7tllNqDd
+WHFh/KbCrDdB1ElP6JWNMCBFkkiXhg4=
+=nqx4
+-----END PGP SIGNATURE-----

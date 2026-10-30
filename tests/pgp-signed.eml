@@ -1,0 +1,27 @@
+From: MailViewer Test <test@example.com>
+To: Someone <someone@example.com>
+Subject: Lorem ipsum
+Date: Mon, 24 Aug 2026 09:00:00 +0200
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature"; boundary="sig-boundary"
+
+--sig-boundary
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+
+Lorem ipsum, firmado.
+
+--sig-boundary
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYIAB0WIQTf45+tqvUR16ONTdJyxLEP2T41hwUCaoyA3QAKCRByxLEP2T41
+h1SvAQC/8FqnNjhhxSd2m07GQ3i5gkGdQ0VjupnCtztWlC1C0gD+NdqK0noRy85s
+3WHveRvRj+MU/lrtABWjIJqiztDkAgg=
+=m1Za
+-----END PGP SIGNATURE-----
+
+--sig-boundary--

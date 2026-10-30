@@ -11,10 +11,22 @@ license = "GPL-3.0+"
 ignored = ["gettext-rs"]
 
 [dependencies]
-mailviewer-core = { git = "https://github.com/alescdb/mailviewer-core", branch = "main" }
-webkit6 = "0.6"
+adw = { version = "0.9", features = ["v1_10"], package = "libadwaita" }
 gtk4 = { version = "0.11", features = ["v4_24", "blueprint"] }
+webkit6 = "0.6"
 log = "0.4"
 env_logger = "0.11"
-adw = { version = "0.9", features = ["v1_9"], package = "libadwaita" }
 gettext-rs = { version = "0.8", features = ["gettext-system"] }
+ammonia = "4.2"
+base64 = "0.23"
+ctor = "1.0"
+dtor = "1.0"
+encoding_rs = "0.8"
+futures-util = "0.3"
+gio = "0.22"
+glib = { version = "0.22", features = ["v2_66"] }
+gmime = "0.8"
+hex = "0.4"
+lazy_static = "1.5"
+msg_parser = "0.3"
+uuid = { version = "1.29", features = ["v4"] }

@@ -1,0 +1,30 @@
+From: MailViewer Test <test@example.com>
+To: Someone <someone@example.com>
+Subject: Lorem ipsum
+Date: Mon, 24 Aug 2026 09:00:00 +0200
+MIME-Version: 1.0
+Content-Type: multipart/encrypted;
+ protocol="application/pgp-encrypted"; boundary="enc-boundary"
+
+--enc-boundary
+Content-Type: application/pgp-encrypted
+Content-Description: PGP/MIME version identification
+
+Version: 1
+
+--enc-boundary
+Content-Type: application/octet-stream; name="encrypted.asc"
+Content-Description: OpenPGP encrypted message
+
+-----BEGIN PGP MESSAGE-----
+
+hF4Do4HdROBBv4kSAQdAmIXFxsThEvLyTxuuPkR/W/4kFOwUvEEaVAUkWH8sU10w
+D1zikM22imVJW/6gF8PT2xjfUY15o3OHePaVK9PnNyw440BGChs+kE02EKl0RN1c
+0qAB+QMPZD271vqQXZz2plbjD99C/zJdJKGCJcTtyw2Bdn7nTqjVSpHxPw0wnpqV
+NYJTG3DEMBc0d0X7a17ep/QX8Yhc7RP2idRQGIQQUehTBnvpu4orRHVCkxFx7ihP
+wNCmCCYGfeoYzscDm+OkggHi2PnyuCzJhcq4eEl2CPupkFxB39sGtaDZxwZ1aSj2
+TIoa1hJcLWyaGew5pxI7uxEP
+=sADT
+-----END PGP MESSAGE-----
+
+--enc-boundary--
