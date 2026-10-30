@@ -69,6 +69,7 @@ pub enum Protection {
 
 pub trait Message {
   fn parse(&mut self, cancellable: Option<&gio::Cancellable>) -> Result<(), Box<dyn Error>>;
+  fn release_source(&mut self);
   fn from(&self) -> String;
   fn to(&self) -> String;
   fn subject(&self) -> String;
@@ -89,6 +90,7 @@ pub enum MessageType {
 
 pub struct MessageParser {
   parser: Box<dyn Message + Send>,
+  parsed: bool,
   #[allow(dead_code)]
   message_type: MessageType,
 }
@@ -121,6 +123,7 @@ impl MessageParser {
       } else {
         Box::new(ElectronicMail::new(content))
       },
+      parsed: false,
       message_type,
     })
   }
@@ -224,7 +227,20 @@ impl MessageParser {
 
 impl Message for MessageParser {
   fn parse(&mut self, cancellable: Option<&gio::Cancellable>) -> Result<(), Box<dyn Error>> {
-    self.parser.parse(cancellable)
+    if self.parsed {
+      log::debug!("MessageParser::parse() already parsed, skipping");
+      return Ok(());
+    }
+
+    log::debug!("MessageParser::parse() parsing message");
+    self.parser.parse(cancellable)?;
+    self.parsed = true;
+    self.release_source();
+    Ok(())
+  }
+
+  fn release_source(&mut self) {
+    self.parser.release_source();
   }
 
   fn from(&self) -> String {

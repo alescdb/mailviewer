@@ -354,6 +354,10 @@ impl super::message::Message for ElectronicMail {
     Ok(())
   }
 
+  fn release_source(&mut self) {
+    self.data = Vec::new();
+  }
+
   fn from(&self) -> String {
     self.from.clone()
   }
