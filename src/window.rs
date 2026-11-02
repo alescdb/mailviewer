@@ -207,6 +207,9 @@ mod imp {
       klass.install_action("win.show-headers", None, move |win, _, _| {
         win.show_headers();
       });
+      klass.install_action("win.show-images", None, move |win, _, _| {
+        win.toggle_show_images();
+      });
     }
 
     fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -267,9 +270,23 @@ impl MailViewerWindow {
   pub fn on_show_images_clicked(&self) {
     let show = self.imp().show_images.is_active();
     log::debug!("on_show_images_clicked({})", show);
+    self.set_show_images(show);
+  }
+
+  fn set_show_images(&self, show: bool) {
+    log::debug!("set_show_images({})", show);
+    self.imp().show_images.set_active(show);
     self.imp().websettings.set_auto_load_images(show);
     // The policy travels with the html, so the message has to be rendered again.
     self.load_html(self.imp().force_css.is_active());
+  }
+
+  /// Ctrl+I. The button is hidden in plain text mode, and so is the action.
+  fn toggle_show_images(&self) {
+    let imp = self.imp();
+    if imp.show_images.is_visible() {
+      self.set_show_images(!imp.show_images.is_active());
+    }
   }
 
   /// Ctrl+F. The bar rides on the html view, the plain text one is a
